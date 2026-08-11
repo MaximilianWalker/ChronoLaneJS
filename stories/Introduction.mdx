@@ -2,9 +2,9 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 <Meta title="Introduction/Overview" />
 
-# ChronoLane
+# ChronoLaneJS
 
-ChronoLane is a composable, timezone-aware calendar toolkit for React. This
+ChronoLaneJS is a composable, timezone-aware calendar toolkit for React. This
 Storybook is the executable catalog for its public API: every example renders a
 real exported view with deterministic synthetic data.
 
@@ -22,12 +22,12 @@ stories lock those settings only when the scenario depends on a specific value.
 ## Install
 
 ```bash
-npm install chronolane react react-dom date-fns @date-fns/tz
+npm install @chronolanejs/react react react-dom date-fns @date-fns/tz
 ```
 
 ```tsx
-import Calendar from "chronolane";
-import "chronolane/styles.css";
+import Calendar from "@chronolanejs/react";
+import "@chronolanejs/react/styles.css";
 
 <Calendar
     view="week"

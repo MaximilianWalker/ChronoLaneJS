@@ -1,6 +1,6 @@
-# Contributing to ChronoLane
+# Contributing to ChronoLaneJS
 
-ChronoLane welcomes focused bug fixes, tests, documentation improvements, and
+ChronoLaneJS welcomes focused bug fixes, tests, documentation improvements, and
 features that keep the calendar application-independent.
 
 ## Development

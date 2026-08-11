@@ -32,7 +32,7 @@ export default defineConfig({
             entry: resolve(import.meta.dirname, "src/packageEntry.ts"),
             formats: ["es"],
             fileName: "index",
-            cssFileName: "chronolane"
+            cssFileName: "chronolanejs"
         },
         rollupOptions: {
             external: isPeerDependency,

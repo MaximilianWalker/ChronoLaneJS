@@ -1,17 +1,17 @@
 {
-  "name": "chronolane",
+  "name": "@chronolanejs/react",
   "version": "0.1.0",
   "description": "A composable, timezone-aware calendar toolkit for React.",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MaximilianWalker/chronolane.git"
+    "url": "git+https://github.com/MaximilianWalker/ChronoLaneJS.git"
   },
   "bugs": {
-    "url": "https://github.com/MaximilianWalker/chronolane/issues"
+    "url": "https://github.com/MaximilianWalker/ChronoLaneJS/issues"
   },
-  "homepage": "https://github.com/MaximilianWalker/chronolane#readme",
+  "homepage": "https://github.com/MaximilianWalker/ChronoLaneJS#readme",
   "keywords": [
     "calendar",
     "date-fns",
@@ -35,7 +35,7 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./styles.css": "./dist/chronolane.css",
+    "./styles.css": "./dist/chronolanejs.css",
     "./package.json": "./package.json"
   },
   "sideEffects": [

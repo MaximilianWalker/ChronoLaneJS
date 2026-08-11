@@ -14,7 +14,7 @@ const {
 } = packageModule;
 
 const bundle = await readFile(new URL("../dist/index.js", import.meta.url), "utf8");
-const styles = await readFile(new URL("../dist/chronolane.css", import.meta.url), "utf8");
+const styles = await readFile(new URL("../dist/chronolanejs.css", import.meta.url), "utf8");
 
 assert.match(bundle, /^"use client";/);
 assert.doesNotMatch(bundle, /next\/dynamic|@mui|uni-sync/);
@@ -35,4 +35,4 @@ const markup = renderToStaticMarkup(createElement(Calendar, {
 assert.match(markup, /class="calendar"/);
 assert.match(markup, /class="time-grid-view"/);
 
-console.log("Verified the built ChronoLane package entry, styles, exports, and render path.");
+console.log("Verified the built ChronoLaneJS package entry, styles, exports, and render path.");

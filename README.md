@@ -1,13 +1,13 @@
-# ChronoLane
+# ChronoLaneJS
 
 A composable, timezone-aware calendar toolkit for React.
 
-ChronoLane provides day, week, month, agenda, resource, and configurable
+ChronoLaneJS provides day, week, month, agenda, resource, and configurable
 time-grid views without imposing application state, a design system, or a data
 backend. Every major renderer can be replaced while the date, range, locale,
 resource, and overlap behavior remains reusable.
 
-> ChronoLane is pre-1.0. Its public API is usable, but breaking changes may be
+> ChronoLaneJS is pre-1.0. Its public API is usable, but breaking changes may be
 > made while the package is being extracted and documented.
 
 ## Features
@@ -26,20 +26,20 @@ resource, and overlap behavior remains reusable.
 ## Installation
 
 ```bash
-npm install chronolane react react-dom date-fns @date-fns/tz
+npm install @chronolanejs/react react react-dom date-fns @date-fns/tz
 ```
 
 Import the package stylesheet once in your application:
 
 ```ts
-import "chronolane/styles.css";
+import "@chronolanejs/react/styles.css";
 ```
 
 ## Quick start
 
 ```tsx
-import Calendar from "chronolane";
-import "chronolane/styles.css";
+import Calendar from "@chronolanejs/react";
+import "@chronolanejs/react/styles.css";
 
 const events = [
     {
@@ -63,12 +63,12 @@ export default function Schedule() {
 }
 ```
 
-ChronoLane's package entry is marked as a client module and can be imported
+ChronoLaneJS's package entry is marked as a client module and can be imported
 from a Next.js client component without a framework-specific wrapper.
 
 ## Interactive examples
 
-The [ChronoLane Storybook](https://maximilianwalker.github.io/chronolane/)
+The [ChronoLaneJS Storybook](https://maximilianwalker.github.io/ChronoLaneJS/)
 documents every built-in view and its public customization points. It includes
 fixed examples for event overlap, overnight and multi-day events, resources,
 background events, custom ranges and renderers, locale and timezone changes,
@@ -167,7 +167,7 @@ Views accept component overrides where applicable:
 - `emptyComponent`
 
 Custom renderers receive the normalized calendar value plus the semantic and
-interaction props required by that view. ChronoLane owns layout and behavior;
+interaction props required by that view. ChronoLaneJS owns layout and behavior;
 the renderer owns markup and presentation.
 
 ## Custom views
@@ -192,7 +192,7 @@ shared calendar props, its registered defaults, and `viewProps`.
 
 ## Public exports
 
-ChronoLane exports `Calendar` as the default plus:
+ChronoLaneJS exports `Calendar` as the default plus:
 
 - `AgendaView`, `DayView`, `MonthView`, `ResourceView`, `TimeGridView`, and
   `WeekView`;

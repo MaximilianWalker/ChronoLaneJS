@@ -6,7 +6,7 @@ import "../src/views/agenda/AgendaView.css";
 import "../src/views/month/MonthView.css";
 import "../src/views/time-grid/TimeGridView.css";
 import "../stories/story.css";
-import { chronolaneTheme } from "./theme.js";
+import { chronoLaneJsTheme } from "./theme.js";
 
 interface CalendarStoryParameters {
     locale?: string;
@@ -81,7 +81,7 @@ const preview: Preview = {
             sort: "requiredFirst"
         },
         docs: {
-            theme: chronolaneTheme,
+            theme: chronoLaneJsTheme,
             toc: true
         },
         layout: "fullscreen",
