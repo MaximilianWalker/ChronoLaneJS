@@ -87,11 +87,7 @@ export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
     eventEditable?: boolean | ((event: NormalizedCalendarEvent<Event>) => boolean);
     onDateChange?: (date: Date) => void;
     onRangeChange?: (range: CalendarRange) => void;
-    onEventClick?: (
-        interaction: SyntheticEvent,
-        event: NormalizedCalendarEvent<Event>
-    ) => void;
-    onSelectEvent?: (
+    onEventSelect?: (
         event: NormalizedCalendarEvent<Event>,
         interaction: SyntheticEvent
     ) => void;

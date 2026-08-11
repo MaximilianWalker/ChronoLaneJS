@@ -81,7 +81,7 @@ export function ControlledNavigation({
 export function InteractionHarness({
     onEventDrop,
     onEventEdit,
-    onSelectEvent,
+    onEventSelect,
     onSelectSlot,
     ...props
 }: StoryCalendarProps) {
@@ -100,10 +100,10 @@ export function InteractionHarness({
                 selectedRange={selectedRange}
                 eventEditable
                 eventDraggable
-                onSelectEvent={(event, interaction) => {
+                onEventSelect={(event, interaction) => {
                     if (event.id != null) setSelectedEventIds([event.id]);
                     setLastAction(`Selected ${event.title ?? "event"}`);
-                    onSelectEvent?.(event, interaction);
+                    onEventSelect?.(event, interaction);
                 }}
                 onSelectSlot={(slot, interaction) => {
                     setSelectedRange({ start: slot.start, end: slot.end });

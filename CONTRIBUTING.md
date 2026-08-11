@@ -35,3 +35,11 @@ development, `npm run storybook:test` for the Chromium suite, and
 
 Open an issue before starting a breaking API or architectural change so the
 contract can be agreed before implementation.
+
+## Roadmap discipline
+
+`ROADMAP.md` is the canonical backlog. Reference its stable item identifier in
+related issues and pull requests. A change that completes, adds, removes, or
+materially changes planned work must update the roadmap in the same pull
+request. Mark an item complete only after its code, public types, tests,
+stories, and documentation satisfy the listed completion criteria.

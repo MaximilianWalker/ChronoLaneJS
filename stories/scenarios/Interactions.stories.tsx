@@ -26,14 +26,14 @@ const meta = {
         maxTime: MAX_TIME,
         onEventDrop: fn(),
         onEventEdit: fn(),
-        onSelectEvent: fn(),
+        onEventSelect: fn(),
         onSelectSlot: fn()
     },
     argTypes: {
         events: { control: false },
         onEventDrop: { control: false },
         onEventEdit: { control: false },
-        onSelectEvent: { control: false },
+        onEventSelect: { control: false },
         onSelectSlot: { control: false }
     }
 } satisfies Meta<typeof InteractionHarness>;
@@ -46,7 +46,7 @@ export const SelectEvent: Story = {
         const canvas = within(canvasElement);
         await userEvent.click(canvas.getByRole("button", { name: /Planning/i }));
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Selected Planning");
-        await expect(args.onSelectEvent).toHaveBeenCalledOnce();
+        await expect(args.onEventSelect).toHaveBeenCalledOnce();
     }
 };
 

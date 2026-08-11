@@ -10,6 +10,9 @@ resource, and overlap behavior remains reusable.
 > ChronoLaneJS is pre-1.0. Its public API is usable, but breaking changes may be
 > made while the package is being extracted and documented.
 
+All known correctness work, API improvements, release gates, and remaining
+library tasks are tracked in the [roadmap](ROADMAP.md).
+
 ## Features
 
 - Day, week, month, agenda, resource, and arbitrary time-grid ranges.
@@ -222,7 +225,6 @@ src/
     |-- month/             View, private renderers, and feature types
     `-- time-grid/
         |-- TimeGridView.tsx
-        |-- Grid.tsx
         |-- Event.tsx
         |-- Slot.tsx
         |-- ColumnHeader.tsx

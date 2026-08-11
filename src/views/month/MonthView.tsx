@@ -62,8 +62,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     onDateChange,
     onRangeChange,
     onSelectDay,
-    onEventClick,
-    onSelectEvent,
+    onEventSelect,
     onEventEdit,
     onShowMore,
     eventComponent: EventComponent = Event,
@@ -208,7 +207,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                                         && (typeof eventEditable === "function"
                                                             ? eventEditable(event)
                                                             : eventEditable);
-                                                    const hasPrimaryAction = Boolean(onEventClick || onSelectEvent);
+                                                    const hasPrimaryAction = Boolean(onEventSelect);
                                                     return (
                                                         <EventComponent
                                                             key={`${event.id ?? event.title}-${event.start.getTime()}-${day.getTime()}`}
@@ -217,11 +216,8 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                                             day={day}
                                                             locale={calendarLocale}
                                                             selected={event.id != null && selectedEventIds.includes(event.id)}
-                                                            onClick={onEventClick || onSelectEvent
-                                                                ? (clickEvent) => {
-                                                                    onSelectEvent?.(event, clickEvent);
-                                                                    onEventClick?.(clickEvent, event);
-                                                                }
+                                                            onClick={onEventSelect
+                                                                ? (interaction) => onEventSelect(event, interaction)
                                                                 : undefined}
                                                             onDoubleClick={editable
                                                                 ? (editEvent) => onEventEdit?.(event, editEvent)

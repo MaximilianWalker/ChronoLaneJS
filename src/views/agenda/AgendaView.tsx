@@ -57,8 +57,7 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     eventEditable = false,
     onDateChange,
     onRangeChange,
-    onEventClick,
-    onSelectEvent,
+    onEventSelect,
     onEventEdit,
     eventComponent: EventComponent = Event,
     dayHeaderComponent: DayHeaderComponent = DayHeader,
@@ -160,7 +159,7 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                                     && (typeof eventEditable === "function"
                                         ? eventEditable(event)
                                         : eventEditable);
-                                const hasPrimaryAction = Boolean(onEventClick || onSelectEvent);
+                                const hasPrimaryAction = Boolean(onEventSelect);
                                 return (
                                     <EventComponent
                                         key={`${event.id ?? event.title}-${event.start.getTime()}`}
@@ -168,11 +167,8 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                                         event={event}
                                         locale={calendarLocale}
                                         selected={event.id != null && selectedEventIds.includes(event.id)}
-                                        onClick={onEventClick || onSelectEvent
-                                            ? (clickEvent) => {
-                                                onSelectEvent?.(event, clickEvent);
-                                                onEventClick?.(clickEvent, event);
-                                            }
+                                        onClick={onEventSelect
+                                            ? (interaction) => onEventSelect(event, interaction)
                                             : undefined}
                                         onDoubleClick={editable
                                             ? (editEvent) => onEventEdit?.(event, editEvent)
