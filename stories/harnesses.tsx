@@ -6,7 +6,8 @@ import Calendar, {
     AgendaView,
     DayView,
     MonthView,
-    WeekView
+    WeekView,
+    calendarDateFromTimestamp
 } from "../src/index.js";
 import type {
     AgendaDayHeaderProps,
@@ -58,7 +59,10 @@ export function ControlledNavigation({
         <>
             <p className="story-log" aria-live="polite">
                 Controlled anchor: {date instanceof Date
-                    ? format(date, "yyyy-MM-dd")
+                    ? format(
+                        calendarDateFromTimestamp(date.getTime(), props.timeZone),
+                        "yyyy-MM-dd"
+                    )
                     : String(date)}
             </p>
             <Calendar
