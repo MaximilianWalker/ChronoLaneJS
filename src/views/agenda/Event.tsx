@@ -17,7 +17,7 @@ export default function Event<EventType extends CalendarEvent = CalendarEvent>({
     onClick,
     onDoubleClick,
     onKeyDown,
-    editShortcut,
+    "aria-keyshortcuts": ariaKeyShortcuts,
     selected
 }: AgendaEventProps<EventType>) {
     const isInteractive = Boolean(onClick || onDoubleClick);
@@ -37,7 +37,7 @@ export default function Event<EventType extends CalendarEvent = CalendarEvent>({
             onClick={onClick}
             onDoubleClick={onDoubleClick}
             onKeyDown={onKeyDown}
-            aria-keyshortcuts={editShortcut}
+            aria-keyshortcuts={ariaKeyShortcuts}
             style={style}
         >
             <time className="agenda-view_event-time">

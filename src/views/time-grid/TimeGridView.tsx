@@ -8,6 +8,7 @@ import { isSameMonth } from "date-fns/isSameMonth";
 import { startOfDay } from "date-fns/startOfDay";
 
 import CalendarNavigation from "../../components/CalendarNavigation.js";
+import { createEventInteractionProps } from "../../components/eventInteraction.js";
 import { asCalendarDate } from "../../core/date.js";
 import { normalizeEvents } from "../../core/events.js";
 import {
@@ -449,9 +450,12 @@ export default function TimeGridView<
                                         : getResourceId(segment.resource);
                                     const draggable = canDropEvents
                                         && (canDragEvent?.(event, segment) ?? true);
-                                    const editable = onEventEdit != null
-                                        && (canEditEvent?.(event) ?? true);
-                                    const hasPrimaryAction = Boolean(onEventSelect);
+                                    const interactionProps = createEventInteractionProps({
+                                        event,
+                                        onEventSelect,
+                                        onEventEdit,
+                                        canEditEvent
+                                    });
                                     const selected = event.id != null
                                         && selectedEventIds.includes(event.id);
 
@@ -470,25 +474,7 @@ export default function TimeGridView<
                                             draggable={draggable}
                                             onDragStart={draggable ? () => setDraggedEvent(segment) : undefined}
                                             onDragEnd={draggable ? () => setDraggedEvent(null) : undefined}
-                                            onClick={onEventSelect
-                                                ? (interaction) => onEventSelect(event, interaction)
-                                                : undefined}
-                                            onDoubleClick={editable
-                                                ? (interaction) => onEventEdit?.(event, interaction)
-                                                : undefined}
-                                            onKeyDown={editable
-                                                ? (interaction) => {
-                                                    const shouldEdit = hasPrimaryAction
-                                                        ? interaction.shiftKey && interaction.key === "Enter"
-                                                        : interaction.key === "Enter";
-                                                    if (!shouldEdit) return;
-                                                    interaction.preventDefault();
-                                                    onEventEdit?.(event, interaction);
-                                                }
-                                                : undefined}
-                                            aria-keyshortcuts={editable
-                                                ? hasPrimaryAction ? "Shift+Enter" : "Enter"
-                                                : undefined}
+                                            {...interactionProps}
                                             aria-label={[
                                                 event.title ?? "Calendar event",
                                                 `${format(event.start, "EEEE, MMMM do, HH:mm", { locale: calendarLocale })} to ${format(event.end, "EEEE, MMMM do, HH:mm", { locale: calendarLocale })}`,

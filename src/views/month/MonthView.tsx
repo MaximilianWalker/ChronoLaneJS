@@ -12,6 +12,7 @@ import { startOfDay } from "date-fns/startOfDay";
 import { startOfMonth } from "date-fns/startOfMonth";
 import { startOfWeek } from "date-fns/startOfWeek";
 import CalendarNavigation from "../../components/CalendarNavigation.js";
+import { createEventInteractionProps } from "../../components/eventInteraction.js";
 import { asCalendarDate } from "../../core/date.js";
 import {
     eventOverlapsDay,
@@ -201,9 +202,12 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                         {(!outsideMonth || showOutsideDays) && (
                                             <div className="month-view_events">
                                                 {visibleEvents.map((event) => {
-                                                    const editable = onEventEdit != null
-                                                        && (canEditEvent?.(event) ?? true);
-                                                    const hasPrimaryAction = Boolean(onEventSelect);
+                                                    const interactionProps = createEventInteractionProps({
+                                                        event,
+                                                        onEventSelect,
+                                                        onEventEdit,
+                                                        canEditEvent
+                                                    });
                                                     return (
                                                         <EventComponent
                                                             key={`${event.id ?? event.title}-${event.start.getTime()}-${day.getTime()}`}
@@ -212,25 +216,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                                             day={day}
                                                             locale={calendarLocale}
                                                             selected={event.id != null && selectedEventIds.includes(event.id)}
-                                                            onClick={onEventSelect
-                                                                ? (interaction) => onEventSelect(event, interaction)
-                                                                : undefined}
-                                                            onDoubleClick={editable
-                                                                ? (editEvent) => onEventEdit?.(event, editEvent)
-                                                                : undefined}
-                                                            onKeyDown={editable
-                                                                ? (keyEvent) => {
-                                                                    const shouldEdit = hasPrimaryAction
-                                                                        ? keyEvent.shiftKey && keyEvent.key === "Enter"
-                                                                        : keyEvent.key === "Enter";
-                                                                    if (!shouldEdit) return;
-                                                                    keyEvent.preventDefault();
-                                                                    onEventEdit?.(event, keyEvent);
-                                                                }
-                                                                : undefined}
-                                                            editShortcut={editable
-                                                                ? hasPrimaryAction ? "Shift+Enter" : "Enter"
-                                                                : undefined}
+                                                            {...interactionProps}
                                                         />
                                                     );
                                                 })}

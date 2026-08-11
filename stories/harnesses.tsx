@@ -312,7 +312,7 @@ export function CustomAgendaEvent({
     onClick,
     onDoubleClick,
     onKeyDown,
-    editShortcut,
+    "aria-keyshortcuts": ariaKeyShortcuts,
     selected
 }: AgendaEventProps<StoryEvent>) {
     const interactive = Boolean(onClick || onDoubleClick);
@@ -325,7 +325,7 @@ export function CustomAgendaEvent({
             onClick={onClick}
             onDoubleClick={onDoubleClick}
             onKeyDown={onKeyDown}
-            aria-keyshortcuts={editShortcut}
+            aria-keyshortcuts={ariaKeyShortcuts}
             style={{ "--color": event.color } as CalendarStyle}
         >
             <strong>{event.title}</strong>
@@ -356,7 +356,7 @@ export function CustomMonthEvent({
     onClick,
     onDoubleClick,
     onKeyDown,
-    editShortcut,
+    "aria-keyshortcuts": ariaKeyShortcuts,
     selected
 }: MonthEventProps<StoryEvent>) {
     const interactive = Boolean(onClick || onDoubleClick);
@@ -369,7 +369,7 @@ export function CustomMonthEvent({
             onClick={onClick}
             onDoubleClick={onDoubleClick}
             onKeyDown={onKeyDown}
-            aria-keyshortcuts={editShortcut}
+            aria-keyshortcuts={ariaKeyShortcuts}
             style={{ "--color": event.color } as CalendarStyle}
         >
             <strong>{event.title}</strong>

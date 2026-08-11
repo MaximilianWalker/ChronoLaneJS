@@ -27,7 +27,7 @@ export interface MonthEventProps<Event extends CalendarEvent = CalendarEvent> {
     day: Date;
     locale: Locale;
     selected: boolean;
-    editShortcut?: string;
+    "aria-keyshortcuts"?: string;
     onClick?: MouseEventHandler<HTMLElement>;
     onDoubleClick?: MouseEventHandler<HTMLElement>;
     onKeyDown?: KeyboardEventHandler<HTMLElement>;

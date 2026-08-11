@@ -160,11 +160,11 @@ Last reviewed: 2026-08-11
 - [x] **[P1][ARCH-02] Retire the generic interaction helper module.**
   - Event interaction predicates are evaluated where their behavior is owned.
   - Drop construction is a focused, independently tested domain operation.
-- [ ] **[P1][ARCH-03] Share event interaction semantics across views.**
-  - Month, agenda, and time-grid should not independently implement different
-    click/edit/keyboard rules.
-  - Keep view-specific markup separate while sharing one explicit interaction
-    contract.
+- [x] **[P1][ARCH-03] Share event interaction semantics across views.**
+  - One tested policy owns selection, editing, keyboard, and shortcut behavior
+    for month, agenda, and time-grid renderers.
+  - View-specific markup remains separate and receives cohesive standard React
+    interaction props.
 - [ ] **[P2][ARCH-04] Establish performance limits.**
   - Benchmark large event and resource sets.
   - Avoid repeated linear selected-ID lookups and unnecessary per-render

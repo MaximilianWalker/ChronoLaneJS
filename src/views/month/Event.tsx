@@ -23,7 +23,7 @@ export default function Event<EventType extends CalendarEvent = CalendarEvent>({
     onClick,
     onDoubleClick,
     onKeyDown,
-    editShortcut
+    "aria-keyshortcuts": ariaKeyShortcuts
 }: MonthEventProps<EventType>) {
     const isInteractive = Boolean(onClick || onDoubleClick);
     const Component: ElementType = isInteractive ? "button" : "div";
@@ -42,7 +42,7 @@ export default function Event<EventType extends CalendarEvent = CalendarEvent>({
             onClick={onClick}
             onDoubleClick={onDoubleClick}
             onKeyDown={onKeyDown}
-            aria-keyshortcuts={editShortcut}
+            aria-keyshortcuts={ariaKeyShortcuts}
             style={style}
         >
             {startsToday && (

@@ -7,7 +7,10 @@ import {
     within
 } from "storybook/test";
 
-import { InteractionHarness } from "../harnesses.js";
+import {
+    CustomTimeGridEvent,
+    InteractionHarness
+} from "../harnesses.js";
 import {
     ANCHOR_DATE,
     MAX_TIME,
@@ -182,6 +185,48 @@ export const EventSpecificPermissions: Story = {
 
         await expect(designReview).toHaveAttribute("draggable", "true");
         await userEvent.dblClick(designReview);
+        await expect(args.onEventEdit).toHaveBeenCalledOnce();
+    }
+};
+
+export const AgendaKeyboardEdit: Story = {
+    args: {
+        view: "agenda"
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const event = canvas.getByRole("button", { name: /Planning/i });
+        await expect(event).toHaveAttribute("aria-keyshortcuts", "Shift+Enter");
+        event.focus();
+        await userEvent.keyboard("{Shift>}{Enter}{/Shift}");
+        await expect(args.onEventEdit).toHaveBeenCalledOnce();
+    }
+};
+
+export const MonthKeyboardEdit: Story = {
+    args: {
+        view: "month"
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const event = canvas.getByRole("button", { name: /Planning/i });
+        await expect(event).toHaveAttribute("aria-keyshortcuts", "Shift+Enter");
+        event.focus();
+        await userEvent.keyboard("{Shift>}{Enter}{/Shift}");
+        await expect(args.onEventEdit).toHaveBeenCalledOnce();
+    }
+};
+
+export const CustomRendererKeyboardEdit: Story = {
+    args: {
+        eventComponent: CustomTimeGridEvent
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const event = canvas.getByRole("button", { name: /Planning/i });
+        await expect(event).toHaveAttribute("aria-keyshortcuts", "Shift+Enter");
+        event.focus();
+        await userEvent.keyboard("{Shift>}{Enter}{/Shift}");
         await expect(args.onEventEdit).toHaveBeenCalledOnce();
     }
 };

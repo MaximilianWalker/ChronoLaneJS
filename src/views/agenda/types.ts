@@ -26,7 +26,7 @@ export interface AgendaEventProps<Event extends CalendarEvent = CalendarEvent> {
     className: string;
     locale: Locale;
     selected: boolean;
-    editShortcut?: string;
+    "aria-keyshortcuts"?: string;
     onClick?: MouseEventHandler<HTMLElement>;
     onDoubleClick?: MouseEventHandler<HTMLElement>;
     onKeyDown?: KeyboardEventHandler<HTMLElement>;
