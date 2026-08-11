@@ -24,7 +24,11 @@ Document exported functions and components, plus non-obvious private helpers,
 with TSDoc comments (`/** ... */`). Describe observable contracts and important
 semantics rather than restating the implementation. Use `@remarks` for behavior
 that needs context and add `@param`, `@returns`, and `@throws` when they clarify
-the contract. These comments are emitted into the package declarations.
+the contract. These comments are emitted into the package declarations. Do not
+add isolated comments to individual props, expressions, or obvious branches.
+Comments must either document a public contract systematically or explain a
+non-obvious invariant or constraint; otherwise, prefer clear code with no
+comment.
 
 Add or update a story for every visible component behavior or public
 customization point. Keep story fixtures synthetic and deterministic, exercise

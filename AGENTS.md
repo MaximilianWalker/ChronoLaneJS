@@ -17,3 +17,9 @@ project-specific constraints are defined here.
   do not create miscellaneous helper or utility files.
 - Remove obsolete boundaries and all references atomically. Do not retain
   aliases or compatibility wrappers unless the user explicitly requires them.
+
+## Comment discipline
+
+- Follow the documentation and comment rules in `CONTRIBUTING.md`.
+- Do not introduce isolated explanatory comments where naming and structure
+  already make the code clear.
