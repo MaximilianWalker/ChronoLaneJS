@@ -155,7 +155,11 @@ export default function Grid<
     const gridRows = `repeat(${totalMinutes}, minmax(0, 1fr))`;
 
     return (
-        <div className="time-grid-view_grid-wrapper">
+        <div
+            className="time-grid-view_grid-wrapper"
+            aria-label="Calendar grid"
+            tabIndex={0}
+        >
             <div
                 className="time-grid-view_header"
                 style={{

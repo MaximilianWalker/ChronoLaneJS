@@ -66,6 +66,18 @@ export default function Schedule() {
 ChronoLane's package entry is marked as a client module and can be imported
 from a Next.js client component without a framework-specific wrapper.
 
+## Interactive examples
+
+The [ChronoLane Storybook](https://maximilianwalker.github.io/chronolane/)
+documents every built-in view and its public customization points. It includes
+fixed examples for event overlap, overnight and multi-day events, resources,
+background events, custom ranges and renderers, locale and timezone changes,
+daylight-saving transitions, responsive layouts, and user interactions.
+
+Use the Storybook toolbar to change the locale, IANA timezone, and viewport.
+Each story is also an executable browser test; interaction stories assert their
+callbacks and every story is checked automatically for accessibility issues.
+
 ## Built-in views
 
 | Name | Purpose |
@@ -237,8 +249,20 @@ package entry.
 ```bash
 npm install
 npm run check
+npm run check:storybook
 npm pack --dry-run
 ```
+
+Run the interactive component catalog locally:
+
+```bash
+npm run storybook
+```
+
+`npm run storybook:test` executes every story in Chromium, while
+`npm run storybook:build` produces the static site in `storybook-static/`.
+GitHub Actions validates the package and Storybook separately, then publishes
+the static catalog to GitHub Pages from `main`.
 
 Regenerate the locale registry after changing date-fns versions:
 

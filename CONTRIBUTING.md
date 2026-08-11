@@ -8,6 +8,7 @@ features that keep the calendar application-independent.
 ```bash
 npm install
 npm run check
+npm run check:storybook
 ```
 
 Keep pure date and layout behavior outside React components, add tests for
@@ -24,6 +25,13 @@ with TSDoc comments (`/** ... */`). Describe observable contracts and important
 semantics rather than restating the implementation. Use `@remarks` for behavior
 that needs context and add `@param`, `@returns`, and `@throws` when they clarify
 the contract. These comments are emitted into the package declarations.
+
+Add or update a story for every visible component behavior or public
+customization point. Keep story fixtures synthetic and deterministic, exercise
+important interactions with a `play` function, and fix accessibility failures
+rather than disabling the global checks. Run `npm run storybook` for interactive
+development, `npm run storybook:test` for the Chromium suite, and
+`npm run storybook:build` to verify the deployable catalog.
 
 Open an issue before starting a breaking API or architectural change so the
 contract can be agreed before implementation.

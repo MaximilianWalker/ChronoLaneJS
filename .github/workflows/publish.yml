@@ -20,4 +20,6 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check:storybook
       - run: npm publish --access public --provenance

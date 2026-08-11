@@ -105,6 +105,10 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
             (event) => eventOverlapsDay(event, day)
         )
     })), [calendarBackgroundEvents, calendarEvents, days]);
+    const weeks = useMemo(() => Array.from(
+        { length: Math.ceil(dayEntries.length / 7) },
+        (_, index) => dayEntries.slice(index * 7, (index + 1) * 7)
+    ), [dayEntries]);
     const minBoundary = minDate == null
         ? null
         : startOfDay(asCalendarDate(minDate, timeZone));
@@ -149,104 +153,114 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                     navigationButton={navigationButton}
                 />
             )}
-            <div className="month-view_grid-wrapper">
+            <div
+                className="month-view_grid-wrapper"
+                aria-label="Month calendar grid"
+                tabIndex={0}
+            >
                 <div className="month-view_grid" role="grid">
-                    {weekdayHeaders.map((day) => (
-                        <div key={`weekday-${day.getDay()}`} className="month-view_weekday" role="columnheader">
-                            {format(day, weekdayFormat, { locale: calendarLocale })}
-                        </div>
-                    ))}
-                    {dayEntries.map(({ day, events: dayEvents, backgroundEvents: dayBackgrounds }) => {
-                        const outsideMonth = !isSameMonth(day, anchorDate);
-                        const visibleEvents = dayEvents.slice(0, maxEventsPerDay);
-                        const hiddenEvents = dayEvents.slice(maxEventsPerDay);
-                        const daySelected = selectedDate
-                            && isSameDay(day, asCalendarDate(selectedDate, timeZone));
+                    <div className="month-view_weekdays" role="row">
+                        {weekdayHeaders.map((day) => (
+                            <div key={`weekday-${day.getDay()}`} className="month-view_weekday" role="columnheader">
+                                {format(day, weekdayFormat, { locale: calendarLocale })}
+                            </div>
+                        ))}
+                    </div>
+                    {weeks.map((week, weekIndex) => (
+                        <div key={weekIndex} className="month-view_week" role="row">
+                            {week.map(({ day, events: dayEvents, backgroundEvents: dayBackgrounds }) => {
+                                const outsideMonth = !isSameMonth(day, anchorDate);
+                                const visibleEvents = dayEvents.slice(0, maxEventsPerDay);
+                                const hiddenEvents = dayEvents.slice(maxEventsPerDay);
+                                const daySelected = selectedDate
+                                    && isSameDay(day, asCalendarDate(selectedDate, timeZone));
 
-                        return (
-                            <div
-                                key={day.getTime()}
-                                className={[
-                                    "month-view_day",
-                                    outsideMonth ? "is-outside" : "",
-                                    daySelected ? "is-selected" : ""
-                                ].filter(Boolean).join(" ")}
-                                role="gridcell"
-                                aria-label={format(day, "EEEE, MMMM do, yyyy", { locale: calendarLocale })}
-                            >
-                                {dayBackgrounds.map((event) => (
+                                return (
                                     <div
-                                        key={`${event.id ?? "background"}-${day.getTime()}`}
-                                        className="month-view_background-event"
-                                        style={{ "--color": event.color } as CalendarStyle}
-                                    />
-                                ))}
-                                <button
-                                    type="button"
-                                    className="month-view_day-button"
-                                    disabled={!onSelectDay}
-                                    onClick={onSelectDay ? (clickEvent) => onSelectDay(day, clickEvent) : undefined}
-                                >
-                                    <DayHeaderComponent day={day} locale={calendarLocale} outsideMonth={outsideMonth} />
-                                </button>
-                                {(!outsideMonth || showOutsideDays) && (
-                                    <div className="month-view_events">
-                                        {visibleEvents.map((event) => {
-                                            const editable = Boolean(onEventEdit)
-                                                && (typeof eventEditable === "function"
-                                                    ? eventEditable(event)
-                                                    : eventEditable);
-                                            const hasPrimaryAction = Boolean(onEventClick || onSelectEvent);
-                                            return (
-                                                <EventComponent
-                                                    key={`${event.id ?? event.title}-${event.start.getTime()}-${day.getTime()}`}
-                                                    className="month-view_event"
-                                                    event={event}
-                                                    day={day}
-                                                    locale={calendarLocale}
-                                                    selected={event.id != null && selectedEventIds.includes(event.id)}
-                                                    onClick={onEventClick || onSelectEvent
-                                                        ? (clickEvent) => {
-                                                            onSelectEvent?.(event, clickEvent);
-                                                            onEventClick?.(clickEvent, event);
-                                                        }
-                                                        : undefined}
-                                                    onDoubleClick={editable
-                                                        ? (editEvent) => onEventEdit?.(event, editEvent)
-                                                        : undefined}
-                                                    onKeyDown={editable
-                                                        ? (keyEvent) => {
-                                                            const shouldEdit = hasPrimaryAction
-                                                                ? keyEvent.shiftKey && keyEvent.key === "Enter"
-                                                                : keyEvent.key === "Enter";
-                                                            if (!shouldEdit) return;
-                                                            keyEvent.preventDefault();
-                                                            onEventEdit?.(event, keyEvent);
-                                                        }
-                                                        : undefined}
-                                                    editShortcut={editable
-                                                        ? hasPrimaryAction ? "Shift+Enter" : "Enter"
-                                                        : undefined}
-                                                />
-                                            );
-                                        })}
-                                        {hiddenEvents.length > 0 && (
-                                            <button
-                                                type="button"
-                                                className="month-view_more"
-                                                onClick={(clickEvent) => onShowMore?.({
-                                                    day,
-                                                    events: dayEvents
-                                                }, clickEvent)}
-                                            >
-                                                +{hiddenEvents.length} more
-                                            </button>
+                                        key={day.getTime()}
+                                        className={[
+                                            "month-view_day",
+                                            outsideMonth ? "is-outside" : "",
+                                            daySelected ? "is-selected" : ""
+                                        ].filter(Boolean).join(" ")}
+                                        role="gridcell"
+                                        aria-label={format(day, "EEEE, MMMM do, yyyy", { locale: calendarLocale })}
+                                    >
+                                        {dayBackgrounds.map((event) => (
+                                            <div
+                                                key={`${event.id ?? "background"}-${day.getTime()}`}
+                                                className="month-view_background-event"
+                                                style={{ "--color": event.color } as CalendarStyle}
+                                            />
+                                        ))}
+                                        <button
+                                            type="button"
+                                            className="month-view_day-button"
+                                            disabled={!onSelectDay}
+                                            onClick={onSelectDay ? (clickEvent) => onSelectDay(day, clickEvent) : undefined}
+                                        >
+                                            <DayHeaderComponent day={day} locale={calendarLocale} outsideMonth={outsideMonth} />
+                                        </button>
+                                        {(!outsideMonth || showOutsideDays) && (
+                                            <div className="month-view_events">
+                                                {visibleEvents.map((event) => {
+                                                    const editable = Boolean(onEventEdit)
+                                                        && (typeof eventEditable === "function"
+                                                            ? eventEditable(event)
+                                                            : eventEditable);
+                                                    const hasPrimaryAction = Boolean(onEventClick || onSelectEvent);
+                                                    return (
+                                                        <EventComponent
+                                                            key={`${event.id ?? event.title}-${event.start.getTime()}-${day.getTime()}`}
+                                                            className="month-view_event"
+                                                            event={event}
+                                                            day={day}
+                                                            locale={calendarLocale}
+                                                            selected={event.id != null && selectedEventIds.includes(event.id)}
+                                                            onClick={onEventClick || onSelectEvent
+                                                                ? (clickEvent) => {
+                                                                    onSelectEvent?.(event, clickEvent);
+                                                                    onEventClick?.(clickEvent, event);
+                                                                }
+                                                                : undefined}
+                                                            onDoubleClick={editable
+                                                                ? (editEvent) => onEventEdit?.(event, editEvent)
+                                                                : undefined}
+                                                            onKeyDown={editable
+                                                                ? (keyEvent) => {
+                                                                    const shouldEdit = hasPrimaryAction
+                                                                        ? keyEvent.shiftKey && keyEvent.key === "Enter"
+                                                                        : keyEvent.key === "Enter";
+                                                                    if (!shouldEdit) return;
+                                                                    keyEvent.preventDefault();
+                                                                    onEventEdit?.(event, keyEvent);
+                                                                }
+                                                                : undefined}
+                                                            editShortcut={editable
+                                                                ? hasPrimaryAction ? "Shift+Enter" : "Enter"
+                                                                : undefined}
+                                                        />
+                                                    );
+                                                })}
+                                                {hiddenEvents.length > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        className="month-view_more"
+                                                        onClick={(clickEvent) => onShowMore?.({
+                                                            day,
+                                                            events: dayEvents
+                                                        }, clickEvent)}
+                                                    >
+                                                        +{hiddenEvents.length} more
+                                                    </button>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                                );
+                            })}
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

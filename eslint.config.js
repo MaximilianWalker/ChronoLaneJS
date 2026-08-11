@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
+import storybook from "eslint-plugin-storybook";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
@@ -10,7 +11,8 @@ export default tseslint.config(
             "coverage/**",
             "dist/**",
             "node_modules/**",
-            "src/core/localeLoaders.generated.ts"
+            "src/core/localeLoaders.generated.ts",
+            "storybook-static/**"
         ]
     },
     js.configs.recommended,
@@ -28,7 +30,7 @@ export default tseslint.config(
                 ...globals.node
             },
             parserOptions: {
-                projectService: true,
+                project: ["./tsconfig.json", "./tsconfig.storybook.json"],
                 tsconfigRootDir: import.meta.dirname,
                 sourceType: "module"
             }
@@ -49,5 +51,6 @@ export default tseslint.config(
         rules: {
             "@typescript-eslint/no-floating-promises": "off"
         }
-    }
+    },
+    storybook.configs["flat/recommended"]
 );

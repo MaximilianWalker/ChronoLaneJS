@@ -1,0 +1,48 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction/Overview" />
+
+# ChronoLane
+
+ChronoLane is a composable, timezone-aware calendar toolkit for React. This
+Storybook is the executable catalog for its public API: every example renders a
+real exported view with deterministic synthetic data.
+
+## Explore the library
+
+- **Views** introduces `Calendar` and each built-in view.
+- **Scenarios** covers layout edge cases, localization, time zones, and user
+  interactions.
+- **Customization** demonstrates range definitions, renderer replacement,
+  custom view registration, and CSS extension points.
+
+Use the toolbar to switch locale, time zone, and viewport globally. Individual
+stories lock those settings only when the scenario depends on a specific value.
+
+## Install
+
+```bash
+npm install chronolane react react-dom date-fns @date-fns/tz
+```
+
+```tsx
+import Calendar from "chronolane";
+import "chronolane/styles.css";
+
+<Calendar
+    view="week"
+    date="2026-09-14"
+    events={events}
+    locale="en-US"
+    timeZone="Europe/Lisbon"
+/>
+```
+
+## Testing model
+
+Stories are render tests by default. Interaction stories execute browser-level
+assertions, and accessibility checks run with failure-level enforcement. Pure
+date, range, and layout behavior remains covered by the package's Node tests.
+
+All examples use fixed dates and fictional data so results remain stable across
+machines and visual baselines.

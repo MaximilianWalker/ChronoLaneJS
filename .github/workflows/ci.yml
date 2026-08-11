@@ -19,4 +19,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check:storybook
       - run: npm pack --dry-run
