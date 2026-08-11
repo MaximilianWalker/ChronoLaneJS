@@ -1,9 +1,10 @@
-import { format } from "date-fns";
+import { format } from "date-fns/format";
 import type { ElementType } from "react";
 
-import type { AgendaEventProps, CalendarEvent, CalendarStyle } from "../../types.js";
+import type { CalendarEvent, CalendarStyle } from "../../types.js";
+import type { AgendaEventProps } from "./types.js";
 
-export default function AgendaEvent<Event extends CalendarEvent = CalendarEvent>({
+export default function EventRow<Event extends CalendarEvent = CalendarEvent>({
     event,
     className,
     locale,

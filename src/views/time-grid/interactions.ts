@@ -1,7 +1,15 @@
-import { addMilliseconds } from "date-fns";
-import type { CalendarEvent, TimeGridEventLayout } from "../../types.js";
+import { addMilliseconds } from "date-fns/addMilliseconds";
+import type { CalendarEvent } from "../../types.js";
+import type { TimeGridEventLayout } from "./types.js";
 
-export const moveTimeGridEvent = <
+export const isEventInteractionEnabled = <Event>(
+    value: boolean | ((event: Event) => boolean),
+    event: Event
+): boolean => (
+    typeof value === "function" ? value(event) : value
+);
+
+export const moveEventToSlot = <
     Event extends CalendarEvent,
     Resource
 >(

@@ -1,6 +1,6 @@
-import type { TimeGridBackgroundEventProps } from "../../../types.js";
+import type { TimeGridBackgroundEventProps } from "./types.js";
 
-export default function TimeGridBackgroundEvent({
+export default function TimeRegion({
     className,
     event,
     style

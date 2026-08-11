@@ -3,8 +3,8 @@ import test from "node:test";
 
 import { format } from "date-fns";
 
-import { moveTimeGridEvent } from "../../../src/views/time-grid/timeGridEventDrop.js";
-import { createTimeGridLayout } from "../../../src/views/time-grid/timeGridLayout.js";
+import { moveEventToSlot } from "../../../src/views/time-grid/interactions.js";
+import { createLayout } from "../../../src/views/time-grid/layout/createLayout.js";
 import type { CalendarEvent } from "../../../src/types.js";
 
 const date = (day: number, hour = 0, minute = 0): Date => (
@@ -12,7 +12,7 @@ const date = (day: number, hour = 0, minute = 0): Date => (
 );
 
 test("moving a clipped event preserves its original duration", () => {
-    const [segment] = createTimeGridLayout({
+    const [segment] = createLayout({
         days: [date(1)],
         events: [{
             id: "overnight",
@@ -27,7 +27,7 @@ test("moving a clipped event preserves its original duration", () => {
         dividerInterval: 60
     }).events;
     assert.ok(segment);
-    const moved = moveTimeGridEvent<CalendarEvent, unknown>(segment, date(4, 10));
+    const moved = moveEventToSlot<CalendarEvent, unknown>(segment, date(4, 10));
 
     assert.equal(format(moved.start, "yyyy-MM-dd HH:mm"), "2026-09-04 10:00");
     assert.equal(format(moved.end, "yyyy-MM-dd HH:mm"), "2026-09-05 01:45");

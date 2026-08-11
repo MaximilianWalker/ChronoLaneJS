@@ -1,13 +1,14 @@
-import { format, isSameDay } from "date-fns";
+import { format } from "date-fns/format";
+import { isSameDay } from "date-fns/isSameDay";
 import type { ElementType } from "react";
 
 import type {
     CalendarEvent,
-    CalendarStyle,
-    MonthEventProps
+    CalendarStyle
 } from "../../types.js";
+import type { MonthEventProps } from "./types.js";
 
-export default function MonthEvent<Event extends CalendarEvent = CalendarEvent>({
+export default function EventChip<Event extends CalendarEvent = CalendarEvent>({
     event,
     day,
     locale,

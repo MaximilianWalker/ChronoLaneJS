@@ -1,9 +1,7 @@
-import {
-    addDays,
-    eachDayOfInterval,
-    startOfDay,
-    startOfWeek
-} from "date-fns";
+import { addDays } from "date-fns/addDays";
+import { eachDayOfInterval } from "date-fns/eachDayOfInterval";
+import { startOfDay } from "date-fns/startOfDay";
+import { startOfWeek } from "date-fns/startOfWeek";
 
 import type {
     CalendarRangeContext,

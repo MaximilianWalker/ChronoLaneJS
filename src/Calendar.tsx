@@ -1,22 +1,66 @@
 "use client";
 
 import { Suspense } from "react";
-import type { ElementType, ReactElement, ReactNode } from "react";
+import type {
+    CSSProperties,
+    ElementType,
+    ReactElement,
+    ReactNode
+} from "react";
 import {
     DEFAULT_CALENDAR_LOCALE,
     readCalendarLocale
 } from "./core/locale.js";
 import { defaultCalendarViews } from "./viewRegistry.js";
 import type {
+    CalendarDateInput,
     CalendarEvent,
     CalendarLocale,
-    CalendarProps,
-    CalendarViewDefinition
+    CalendarRangeDefinition,
+    CalendarViewDefinition,
+    SharedViewProps
 } from "./types.js";
+import type { TimeGridViewProps } from "./views/time-grid/types.js";
 
 const EMPTY_EVENTS: never[] = [];
 const EMPTY_PROPS = Object.freeze({});
 const EMPTY_VIEWS = Object.freeze({});
+
+export interface CalendarProps<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> extends SharedViewProps<Event> {
+    className?: string;
+    style?: CSSProperties;
+    view?: string;
+    views?: Record<string, ElementType | CalendarViewDefinition>;
+    viewProps?: Record<string, unknown>;
+    weekViewProps?: Partial<TimeGridViewProps<Event, Resource>>;
+    locale?: CalendarLocale;
+    localeFallback?: ReactNode;
+    resources?: Resource[];
+    range?: CalendarRangeDefinition;
+    minTime?: CalendarDateInput;
+    maxTime?: CalendarDateInput;
+    step?: number;
+    dividerInterval?: number;
+    headerHeight?: number;
+    timeLabelWidth?: number;
+    cellWidth?: number;
+    cellHeight?: number;
+    showGrid?: boolean;
+    showGridLines?: boolean;
+    weekStart?: TimeGridViewProps<Event, Resource>["weekStart"];
+    selectedRange?: { start: Date; end: Date };
+    eventDraggable?: TimeGridViewProps<Event, Resource>["eventDraggable"];
+    onEventDrop?: TimeGridViewProps<Event, Resource>["onEventDrop"];
+    onSlotClick?: TimeGridViewProps<Event, Resource>["onSlotClick"];
+    onSelectSlot?: TimeGridViewProps<Event, Resource>["onSelectSlot"];
+    getResourceId?: TimeGridViewProps<Event, Resource>["getResourceId"];
+    getResourceTitle?: TimeGridViewProps<Event, Resource>["getResourceTitle"];
+    getEventResourceIds?: TimeGridViewProps<Event, Resource>["getEventResourceIds"];
+    [key: string]: unknown;
+}
 
 interface ResolvedCalendarViewProps<Event extends CalendarEvent> {
     ViewComponent: ElementType;

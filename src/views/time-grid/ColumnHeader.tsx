@@ -1,7 +1,7 @@
-import { format } from "date-fns";
-import type { TimeGridColumnHeaderProps } from "../../../types.js";
+import { format } from "date-fns/format";
+import type { TimeGridColumnHeaderProps } from "./types.js";
 
-export default function TimeGridColumnHeader<Resource>({
+export default function ColumnHeader<Resource>({
     column,
     locale,
     dayFormat,

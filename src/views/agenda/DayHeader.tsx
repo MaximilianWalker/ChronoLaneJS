@@ -1,7 +1,7 @@
-import { format } from "date-fns";
-import type { AgendaDayHeaderProps } from "../../types.js";
+import { format } from "date-fns/format";
+import type { AgendaDayHeaderProps } from "./types.js";
 
-export default function AgendaDayHeader({
+export default function DayHeader({
     day,
     locale,
     format: dayFormat

@@ -1,0 +1,104 @@
+import { sortEvents } from "../../../core/events.js";
+import type {
+    CalendarEvent,
+    NormalizedCalendarEvent
+} from "../../../types.js";
+import {
+    getDefaultEventResourceIds,
+    getDefaultResourceId
+} from "../resources.js";
+import type {
+    TimeGridColumn,
+    TimeGridLayout
+} from "../types.js";
+import { assignEventLanes, createEventSegments } from "./events.js";
+import { createTimeScale } from "./timeScale.js";
+
+const createColumns = <Resource>(
+    days: Date[],
+    resources: Resource[]
+): TimeGridColumn<Resource>[] => {
+    if (resources.length === 0) {
+        return days.map((day, dayIndex) => ({
+            key: `${day.getTime()}`,
+            day,
+            dayIndex,
+            resource: null,
+            resourceIndex: null
+        }));
+    }
+
+    return days.flatMap((day, dayIndex) => resources.map((resource, resourceIndex) => ({
+        key: `${day.getTime()}-${resourceIndex}`,
+        day,
+        dayIndex,
+        resource,
+        resourceIndex
+    })));
+};
+
+export interface CreateLayoutOptions<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> {
+    days: Date[];
+    events: NormalizedCalendarEvent<Event>[];
+    backgroundEvents: NormalizedCalendarEvent<Event>[];
+    resources?: Resource[];
+    minTime: Date;
+    maxTime: Date;
+    step: number;
+    dividerInterval: number;
+    getResourceId?: (resource: Resource) => unknown;
+    getEventResourceIds?: (event: NormalizedCalendarEvent<Event>) => unknown[];
+}
+
+export const createLayout = <Event extends CalendarEvent, Resource>({
+    days,
+    events,
+    backgroundEvents,
+    resources = [],
+    minTime,
+    maxTime,
+    step,
+    dividerInterval,
+    getResourceId = getDefaultResourceId,
+    getEventResourceIds = getDefaultEventResourceIds
+}: CreateLayoutOptions<Event, Resource>): TimeGridLayout<Event, Resource> => {
+    const firstDay = days[0];
+    if (!firstDay) {
+        throw new RangeError("A time-grid layout requires at least one day.");
+    }
+
+    const columns = createColumns(days, resources);
+    const timeScale = createTimeScale({
+        firstDay,
+        columns,
+        minTime,
+        maxTime,
+        step,
+        dividerInterval
+    });
+    const segmentOptions = {
+        columns,
+        minTime,
+        maxTime,
+        getResourceId,
+        getEventResourceIds
+    };
+    const eventSegments = createEventSegments<Event, Resource>({
+        ...segmentOptions,
+        events
+    });
+    const backgroundSegments = createEventSegments({
+        ...segmentOptions,
+        events: backgroundEvents
+    });
+
+    return {
+        columns,
+        ...timeScale,
+        events: sortEvents(assignEventLanes(eventSegments, columns.length)),
+        backgroundEvents: backgroundSegments
+    };
+};

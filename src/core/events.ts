@@ -1,4 +1,5 @@
-import { addDays, startOfDay } from "date-fns";
+import { addDays } from "date-fns/addDays";
+import { startOfDay } from "date-fns/startOfDay";
 
 import { asCalendarDate } from "./date.js";
 import type { CalendarEvent, NormalizedCalendarEvent } from "../types.js";

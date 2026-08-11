@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format } from "date-fns/format";
 import type { Locale } from "date-fns";
 import { useMemo } from "react";
 import type {
@@ -13,7 +13,9 @@ import type {
     CalendarEvent,
     CalendarEventId,
     CalendarStyle,
-    NormalizedCalendarEvent,
+    NormalizedCalendarEvent
+} from "../../types.js";
+import type {
     TimeGridBackgroundEventProps,
     TimeGridColumnHeaderProps,
     TimeGridEventLayout,
@@ -21,7 +23,8 @@ import type {
     TimeGridLayout,
     TimeGridSlot,
     TimeGridSlotProps
-} from "../../types.js";
+} from "./types.js";
+import { isEventInteractionEnabled } from "./interactions.js";
 
 const percentage = (value: number): number => Number(value.toFixed(6));
 
@@ -37,13 +40,6 @@ const getLaneStyle = ({
         marginRight: "2px"
     };
 };
-
-const isEnabledForEvent = <Event,>(
-    value: boolean | ((event: Event) => boolean),
-    event: Event
-): boolean => (
-    typeof value === "function" ? value(event) : Boolean(value)
-);
 
 const groupByColumn = <Item extends { columnIndex: number }>(
     items: Item[],
@@ -89,7 +85,7 @@ interface TimeGridProps<
     onDragEnd: DragEventHandler<HTMLElement>;
 }
 
-export default function TimeGrid<
+export default function Grid<
     Event extends CalendarEvent,
     Resource
 >({
@@ -309,9 +305,9 @@ export default function TimeGrid<
                                         ? undefined
                                         : getResourceId(event.resource);
                                     const draggable = eventDropEnabled
-                                        && isEnabledForEvent(eventDraggable, event);
+                                        && isEventInteractionEnabled(eventDraggable, event);
                                     const editable = Boolean(onEventEdit)
-                                        && isEnabledForEvent(eventEditable, calendarEvent);
+                                        && isEventInteractionEnabled(eventEditable, calendarEvent);
                                     const hasPrimaryAction = Boolean(onEventClick || onSelectEvent);
                                     const selected = event.id != null
                                         && selectedEventIds.includes(event.id);

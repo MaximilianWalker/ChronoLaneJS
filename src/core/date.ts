@@ -1,12 +1,10 @@
-import {
-    setDate as setDateFn,
-    setHours,
-    setMilliseconds,
-    setMinutes,
-    setMonth,
-    setSeconds,
-    setYear
-} from "date-fns";
+import { setDate as setDateFn } from "date-fns/setDate";
+import { setHours } from "date-fns/setHours";
+import { setMilliseconds } from "date-fns/setMilliseconds";
+import { setMinutes } from "date-fns/setMinutes";
+import { setMonth } from "date-fns/setMonth";
+import { setSeconds } from "date-fns/setSeconds";
+import { setYear } from "date-fns/setYear";
 import { TZDate } from "@date-fns/tz";
 
 import type { CalendarDateInput } from "../types.js";

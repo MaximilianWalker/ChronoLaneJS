@@ -1,4 +1,5 @@
-import type { CalendarEvent, TimeGridViewProps } from "../../../types.js";
+import type { CalendarEvent } from "../../../types.js";
+import type { TimeGridViewProps } from "../types.js";
 import TimeGridView from "../TimeGridView.js";
 
 export default function ResourceView<

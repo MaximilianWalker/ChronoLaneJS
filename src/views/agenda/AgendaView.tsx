@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { format, startOfDay } from "date-fns";
+import { format } from "date-fns/format";
+import { startOfDay } from "date-fns/startOfDay";
 import {
     getCalendarRangeBounds,
     moveCalendarDate,
@@ -20,10 +21,11 @@ import {
     resolveCalendarWeekStart
 } from "../../core/locale.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
-import type { AgendaViewProps, CalendarEvent } from "../../types.js";
-import AgendaDayHeader from "./AgendaDayHeader.js";
-import AgendaEmptyState from "./AgendaEmptyState.js";
-import AgendaEvent from "./AgendaEvent.js";
+import type { CalendarEvent } from "../../types.js";
+import DayHeader from "./DayHeader.js";
+import EmptyState from "./EmptyState.js";
+import EventRow from "./EventRow.js";
+import type { AgendaViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
 
@@ -50,9 +52,9 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     onEventClick,
     onSelectEvent,
     onEventEdit,
-    eventComponent: EventComponent = AgendaEvent,
-    dayHeaderComponent: DayHeaderComponent = AgendaDayHeader,
-    emptyComponent: EmptyComponent = AgendaEmptyState,
+    eventComponent: EventComponent = EventRow,
+    dayHeaderComponent: DayHeaderComponent = DayHeader,
+    emptyComponent: EmptyComponent = EmptyState,
     navigationButton,
     previousLabel = "Previous agenda range",
     nextLabel = "Next agenda range"

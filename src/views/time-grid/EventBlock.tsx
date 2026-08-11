@@ -1,8 +1,8 @@
 import type { ElementType } from "react";
 
-import type { TimeGridEventProps } from "../../../types.js";
+import type { TimeGridEventProps } from "./types.js";
 
-export default function TimeGridEvent({
+export default function EventBlock({
     className,
     event,
     dayIndex,

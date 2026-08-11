@@ -197,22 +197,35 @@ they can evolve without expanding the package compatibility surface.
 ```text
 src/
 |-- Calendar.tsx           Public calendar component
-|-- types.ts               Shared public and internal contracts
+|-- types.ts               Contracts shared across features
 |-- core/                  Pure date, event, locale, and range behavior
 |-- hooks/                 Shared React state
 |-- components/            Components shared across views
 `-- views/
-    |-- agenda/            Agenda feature and its renderers
-    |-- month/             Month feature and its renderers
-    `-- time-grid/         Controller, renderer, layout, and presets
+    |-- agenda/            View, private renderers, and feature types
+    |-- month/             View, private renderers, and feature types
+    `-- time-grid/
+        |-- TimeGridView.tsx
+        |-- Grid.tsx
+        |-- EventBlock.tsx
+        |-- SlotCell.tsx
+        |-- ColumnHeader.tsx
+        |-- TimeRegion.tsx
+        |-- interactions.ts
+        |-- resources.ts
+        |-- types.ts
+        |-- layout/        Scale, event placement, and orchestration
+        `-- presets/       Day, week, and resource public views
 ```
 
 Views may depend on shared components, hooks, and core modules. Shared modules
 never depend on a view, and one view never imports another view's internals.
 
-React component files use PascalCase (`TimeGridView.tsx`), while hooks, pure
-modules, and generated registries use camelCase (`useViewDate.ts`,
-`timeGridLayout.ts`). Component styles use the same basename as their owner.
+Public and cross-feature components retain explicit domain names such as
+`TimeGridView.tsx`. Private components rely on their feature directory and use
+role-based names such as `EventBlock.tsx`. Hooks and pure modules use camelCase,
+and component styles use the same basename as their owner. Feature-specific
+types stay with their feature and are re-exported from the package entry.
 
 ## Development
 

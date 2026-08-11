@@ -1,18 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import {
-    addMonths,
-    eachDayOfInterval,
-    endOfMonth,
-    endOfWeek,
-    format,
-    isSameDay,
-    isSameMonth,
-    startOfDay,
-    startOfMonth,
-    startOfWeek
-} from "date-fns";
+import { addMonths } from "date-fns/addMonths";
+import { eachDayOfInterval } from "date-fns/eachDayOfInterval";
+import { endOfMonth } from "date-fns/endOfMonth";
+import { endOfWeek } from "date-fns/endOfWeek";
+import { format } from "date-fns/format";
+import { isSameDay } from "date-fns/isSameDay";
+import { isSameMonth } from "date-fns/isSameMonth";
+import { startOfDay } from "date-fns/startOfDay";
+import { startOfMonth } from "date-fns/startOfMonth";
+import { startOfWeek } from "date-fns/startOfWeek";
 import CalendarNavigation from "../../components/CalendarNavigation.js";
 import { asCalendarDate } from "../../core/date.js";
 import {
@@ -26,9 +24,10 @@ import {
     resolveCalendarWeekStart
 } from "../../core/locale.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
-import type { CalendarEvent, CalendarStyle, MonthViewProps } from "../../types.js";
-import MonthDayHeader from "./MonthDayHeader.js";
-import MonthEvent from "./MonthEvent.js";
+import type { CalendarEvent, CalendarStyle } from "../../types.js";
+import DayHeader from "./DayHeader.js";
+import EventChip from "./EventChip.js";
+import type { MonthViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
 
@@ -59,8 +58,8 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     onSelectEvent,
     onEventEdit,
     onShowMore,
-    eventComponent: EventComponent = MonthEvent,
-    dayHeaderComponent: DayHeaderComponent = MonthDayHeader,
+    eventComponent: EventComponent = EventChip,
+    dayHeaderComponent: DayHeaderComponent = DayHeader,
     navigationButton,
     previousLabel = "Previous month",
     nextLabel = "Next month"

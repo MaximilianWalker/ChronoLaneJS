@@ -2,13 +2,18 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { TZDate } from "@date-fns/tz";
-import { eachDayOfInterval, format } from "date-fns";
+import {
+    eachDayOfInterval,
+    endOfDay,
+    format,
+    startOfDay
+} from "date-fns";
 
-import { createTimeGridLayout } from "../../../src/views/time-grid/timeGridLayout.js";
+import { createLayout as buildTimeGridLayout } from "../../../../src/views/time-grid/layout/createLayout.js";
 import type {
     CalendarEvent,
     NormalizedCalendarEvent
-} from "../../../src/types.js";
+} from "../../../../src/types.js";
 
 interface TestEvent extends CalendarEvent {
     id: string;
@@ -51,7 +56,7 @@ const createLayout = ({
     step = 60,
     dividerInterval = step,
     ...options
-}: CreateLayoutOptions = {}) => createTimeGridLayout<TestEvent, TestResource>({
+}: CreateLayoutOptions = {}) => buildTimeGridLayout<TestEvent, TestResource>({
     days,
     events,
     backgroundEvents,
@@ -97,6 +102,20 @@ test("creates slots and dividers from one validated time scale", () => {
     assert.equal(format(layout.slots[0]!.start, "HH:mm"), "08:00");
     assert.equal(format(layout.slots.at(-1)!.end, "HH:mm"), "18:00");
     assert.equal(layout.slots[1]!.isDividerBoundary, true);
+});
+
+test("includes every minute when maxTime is the end of the day", () => {
+    const day = date(1);
+    const layout = createLayout({
+        minTime: startOfDay(day),
+        maxTime: endOfDay(day),
+        step: 60,
+        dividerInterval: 60
+    });
+
+    assert.equal(layout.totalMinutes, 1_440);
+    assert.equal(layout.slots.length, 24);
+    assert.equal(format(layout.slots.at(-1)!.end, "yyyy-MM-dd HH:mm"), "2026-09-02 00:00");
 });
 
 test("assigns lanes per local overlap cluster and reuses ended lanes", () => {
@@ -292,8 +311,8 @@ test("uses wall-clock rows across Lisbon daylight-saving changes", () => {
     });
 
     assert.deepEqual(results, [
-        { date: "2026-03-29", end: "2026-03-29 23:59", startRow: 1, endRow: 1440 },
-        { date: "2026-10-25", end: "2026-10-25 23:59", startRow: 1, endRow: 1440 }
+        { date: "2026-03-29", end: "2026-03-29 23:59", startRow: 1, endRow: 1441 },
+        { date: "2026-10-25", end: "2026-10-25 23:59", startRow: 1, endRow: 1441 }
     ]);
 });
 

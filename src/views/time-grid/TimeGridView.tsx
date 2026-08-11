@@ -1,13 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { DragEvent, ReactNode } from "react";
-import {
-    endOfDay,
-    format,
-    isSameMonth,
-    startOfDay
-} from "date-fns";
+import type { DragEvent } from "react";
+import { endOfDay } from "date-fns/endOfDay";
+import { format } from "date-fns/format";
+import { isSameMonth } from "date-fns/isSameMonth";
+import { startOfDay } from "date-fns/startOfDay";
 
 import CalendarNavigation from "../../components/CalendarNavigation.js";
 import { asCalendarDate } from "../../core/date.js";
@@ -23,35 +21,25 @@ import {
     resolveCalendarRange
 } from "../../core/range.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
+import type { CalendarEvent } from "../../types.js";
+import ColumnHeader from "./ColumnHeader.js";
+import EventBlock from "./EventBlock.js";
+import Grid from "./Grid.js";
+import { moveEventToSlot } from "./interactions.js";
+import { createLayout } from "./layout/createLayout.js";
+import {
+    getDefaultResourceId,
+    getDefaultResourceTitle
+} from "./resources.js";
+import SlotCell from "./SlotCell.js";
+import TimeRegion from "./TimeRegion.js";
 import type {
-    CalendarEvent,
     TimeGridEventLayout,
     TimeGridSlot as TimeGridSlotValue,
     TimeGridViewProps
-} from "../../types.js";
-import TimeGridBackgroundEvent from "./components/TimeGridBackgroundEvent.js";
-import TimeGridColumnHeader from "./components/TimeGridColumnHeader.js";
-import TimeGridEvent from "./components/TimeGridEvent.js";
-import TimeGridSlot from "./components/TimeGridSlot.js";
-import { moveTimeGridEvent } from "./timeGridEventDrop.js";
-import TimeGrid from "./TimeGrid.js";
-import { createTimeGridLayout } from "./timeGridLayout.js";
+} from "./types.js";
 
 const EMPTY_ITEMS: never[] = [];
-const DEFAULT_GET_RESOURCE_ID = (resource: unknown): unknown => (
-    resource && typeof resource === "object" && "id" in resource
-        ? resource.id
-        : undefined
-);
-const DEFAULT_GET_RESOURCE_TITLE = (resource: unknown): ReactNode => (
-    resource && typeof resource === "object"
-        ? ("title" in resource && resource.title != null
-            ? resource.title
-            : "name" in resource && resource.name != null
-                ? resource.name
-                : "id" in resource ? resource.id : null) as ReactNode
-        : null
-);
 
 export default function TimeGridView<
     Event extends CalendarEvent = CalendarEvent,
@@ -97,13 +85,13 @@ export default function TimeGridView<
     onEventDrop,
     onSlotClick,
     onSelectSlot,
-    getResourceId = DEFAULT_GET_RESOURCE_ID,
-    getResourceTitle = DEFAULT_GET_RESOURCE_TITLE,
+    getResourceId = getDefaultResourceId,
+    getResourceTitle = getDefaultResourceTitle,
     getEventResourceIds,
-    slotComponent: SlotComponent = TimeGridSlot,
-    eventComponent: EventComponent = TimeGridEvent,
-    backgroundEventComponent: BackgroundEventComponent = TimeGridBackgroundEvent,
-    columnHeaderComponent: ColumnHeaderComponent = TimeGridColumnHeader,
+    slotComponent: SlotComponent = SlotCell,
+    eventComponent: EventComponent = EventBlock,
+    backgroundEventComponent: BackgroundEventComponent = TimeRegion,
+    columnHeaderComponent: ColumnHeaderComponent = ColumnHeader,
     navigationButton,
     previousLabel = "Previous range",
     nextLabel = "Next range"
@@ -148,7 +136,7 @@ export default function TimeGridView<
         () => normalizeEvents(backgroundEvents, timeZone),
         [backgroundEvents, timeZone]
     );
-    const layout = useMemo(() => createTimeGridLayout({
+    const layout = useMemo(() => createLayout({
         days,
         events: calendarEvents,
         backgroundEvents: calendarBackgroundEvents,
@@ -220,7 +208,7 @@ export default function TimeGridView<
         interaction.preventDefault();
         if (!draggedEvent || !onEventDrop) return;
 
-        const nextEvent = moveTimeGridEvent(draggedEvent, slot.start);
+        const nextEvent = moveEventToSlot(draggedEvent, slot.start);
         onEventDrop({
             event: draggedEvent,
             start: nextEvent.start,
@@ -245,7 +233,7 @@ export default function TimeGridView<
                     navigationButton={navigationButton}
                 />
             )}
-            <TimeGrid
+            <Grid
                 layout={layout}
                 locale={calendarLocale}
                 dayFormat={dayFormat}

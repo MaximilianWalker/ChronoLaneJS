@@ -27,17 +27,14 @@ export { default as DayView } from "./views/time-grid/presets/DayView.js";
 export { default as ResourceView } from "./views/time-grid/presets/ResourceView.js";
 export { default as WeekView } from "./views/time-grid/presets/WeekView.js";
 export { default as TimeGridView } from "./views/time-grid/TimeGridView.js";
+export type { CalendarProps } from "./Calendar.js";
 export type {
-    AgendaDayHeaderProps,
-    AgendaEventProps,
-    AgendaViewProps,
     CalendarDateInput,
     CalendarEvent,
     CalendarEventId,
     CalendarLocale,
     CalendarNavigationButton,
     CalendarNavigationButtonProps,
-    CalendarProps,
     CalendarRange,
     CalendarRangeContext,
     CalendarRangeDefinition,
@@ -46,19 +43,27 @@ export type {
     CalendarStyle,
     CalendarViewDefinition,
     CalendarWeekStart,
+    NormalizedCalendarEvent,
+    SharedViewProps
+} from "./types.js";
+export type {
+    AgendaDayHeaderProps,
+    AgendaEventProps,
+    AgendaViewProps
+} from "./views/agenda/types.js";
+export type {
     MonthDayHeaderProps,
     MonthEventProps,
-    MonthViewProps,
-    NormalizedCalendarEvent,
-    SharedViewProps,
+    MonthViewProps
+} from "./views/month/types.js";
+export type {
     TimeGridBackgroundEventProps,
     TimeGridColumn,
     TimeGridColumnHeaderProps,
     TimeGridEventLayout,
     TimeGridEventProps,
     TimeGridEventSegment,
-    TimeGridLayout,
     TimeGridSlot,
     TimeGridSlotProps,
     TimeGridViewProps
-} from "./types.js";
+} from "./views/time-grid/types.js";
