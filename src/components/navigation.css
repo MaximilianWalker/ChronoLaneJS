@@ -1,0 +1,50 @@
+.calendar-view_navigation {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 540px;
+    margin-right: auto;
+    margin-left: auto;
+    gap: 20px;
+    padding: 10px;
+}
+
+.calendar-view_navigation-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: max-content;
+    margin: 0;
+    text-align: center;
+}
+
+.calendar-view_navigation-button {
+    flex: 0 0 50px;
+    width: 50px;
+    border: none;
+    border-radius: 4px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.calendar-view_navigation-button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+}
+
+@media (max-width: 768px) {
+    .calendar-view_navigation {
+        gap: 8px;
+        padding: 8px 0;
+    }
+
+    .calendar-view_navigation-text {
+        font-size: 1rem;
+    }
+
+    .calendar-view_navigation-button {
+        flex-basis: 40px;
+        width: 40px;
+        height: 40px;
+    }
+}

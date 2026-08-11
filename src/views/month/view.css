@@ -1,0 +1,139 @@
+.month-view {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+}
+
+.month-view_grid-wrapper {
+    min-height: 0;
+    overflow: auto;
+}
+
+.month-view_grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(var(--month-view-day-min-width, 0), 1fr));
+    min-width: 100%;
+}
+
+.month-view_weekday {
+    padding: 8px;
+    border-bottom: 1px solid #c6c6c6;
+    text-align: center;
+    font-weight: 600;
+}
+
+.month-view_day {
+    position: relative;
+    box-sizing: border-box;
+    min-height: 128px;
+    padding: 4px;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fff;
+    overflow: hidden;
+}
+
+.month-view_day:nth-of-type(7n + 1) {
+    border-left: 1px solid #e0e0e0;
+}
+
+.month-view_day.is-outside {
+    color: #767676;
+    background: #fafafa;
+}
+
+.month-view_day.is-selected {
+    box-shadow: inset 0 0 0 2px #1e293c;
+}
+
+.month-view_day-button {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    padding: 4px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    z-index: 2;
+}
+
+.month-view_day-button:not(:disabled) {
+    cursor: pointer;
+}
+
+.month-view_day-button:focus-visible,
+.month-view_event:focus-visible,
+.month-view_more:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+}
+
+.month-view_background-event {
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--color, #78909c) 12%, transparent);
+    pointer-events: none;
+}
+
+.month-view_events {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    z-index: 2;
+}
+
+.month-view_event,
+.month-view_more {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
+    gap: 4px;
+    padding: 3px 5px;
+    border: 0;
+    border-left: 3px solid var(--color, #1e293c);
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--color, #1e293c) 9%, white);
+    color: inherit;
+    font: inherit;
+    font-size: 0.75rem;
+    text-align: left;
+}
+
+button.month-view_event,
+.month-view_more {
+    cursor: pointer;
+}
+
+.month-view_event:hover,
+.month-view_event.is-selected,
+.month-view_more:hover {
+    background: color-mix(in srgb, var(--color, #1e293c) 16%, white);
+}
+
+.month-view_event-time {
+    flex: 0 0 auto;
+}
+
+.month-view_event-title {
+    overflow: hidden;
+    min-width: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.month-view_more {
+    border-left: 0;
+    background: transparent;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .month-view {
+        --month-view-day-min-width: 112px;
+    }
+}
