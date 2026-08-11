@@ -20,8 +20,8 @@ resource, and overlap behavior remains reusable.
 - Custom event, slot, header, background-event, navigation, and empty renderers.
 - Controlled and uncontrolled navigation.
 - Application-independent CSS with custom-property extension points.
-- ESM package with React 18 and 19 support.
-- Bundled TypeScript declarations for the public API.
+- TypeScript-first ESM package with React 18 and 19 support.
+- Public declarations generated from the implementation during every build.
 
 ## Installation
 
@@ -31,13 +31,13 @@ npm install chronolane react react-dom date-fns @date-fns/tz
 
 Import the package stylesheet once in your application:
 
-```js
+```ts
 import "chronolane/styles.css";
 ```
 
 ## Quick start
 
-```jsx
+```tsx
 import Calendar from "chronolane";
 import "chronolane/styles.css";
 
@@ -90,7 +90,7 @@ Time-grid and agenda ranges accept:
 - `{ start, end }` or `{ start, days }`;
 - a callback returning any supported definition.
 
-```jsx
+```tsx
 import { startOfWeek } from "date-fns";
 
 <Calendar
@@ -113,7 +113,7 @@ dedicated work-week view.
 `en-US` is the synchronous default. Other named locales are loaded lazily and
 cached:
 
-```jsx
+```tsx
 <Calendar locale="pt-PT" timeZone="Europe/Lisbon" />
 ```
 
@@ -128,7 +128,7 @@ caller-controlled.
 
 Resources are arbitrary values rather than a room-specific abstraction:
 
-```jsx
+```tsx
 <Calendar
     view="resource"
     resources={people}
@@ -162,7 +162,7 @@ the renderer owns markup and presentation.
 
 Extend or replace the view registry with the `views` prop:
 
-```jsx
+```tsx
 <Calendar
     view="quarter"
     views={{
@@ -196,17 +196,23 @@ they can evolve without expanding the package compatibility surface.
 
 ```text
 src/
-├── core/                  Pure date, event, locale, and range behavior
-├── hooks/                 Shared React state
-├── components/            Components shared across views
-└── views/
-    ├── agenda/            Agenda feature and its renderers
-    ├── month/             Month feature and its renderers
-    └── time-grid/         Controller, renderer, layout, and presets
+|-- Calendar.tsx           Public calendar component
+|-- types.ts               Shared public and internal contracts
+|-- core/                  Pure date, event, locale, and range behavior
+|-- hooks/                 Shared React state
+|-- components/            Components shared across views
+`-- views/
+    |-- agenda/            Agenda feature and its renderers
+    |-- month/             Month feature and its renderers
+    `-- time-grid/         Controller, renderer, layout, and presets
 ```
 
 Views may depend on shared components, hooks, and core modules. Shared modules
 never depend on a view, and one view never imports another view's internals.
+
+React component files use PascalCase (`TimeGridView.tsx`), while hooks, pure
+modules, and generated registries use camelCase (`useViewDate.ts`,
+`timeGridLayout.ts`). Component styles use the same basename as their owner.
 
 ## Development
 

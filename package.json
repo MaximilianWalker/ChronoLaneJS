@@ -23,16 +23,15 @@
   ],
   "files": [
     "dist",
-    "index.d.ts",
     "LICENSE",
     "README.md"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
-  "types": "./index.d.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
@@ -43,17 +42,17 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && tsc -p tsconfig.build.json",
     "check": "npm run locales:check && npm run test && npm run test:timezones && npm run types:check && npm run lint && npm run build && npm run package:verify",
     "dev": "vite build --watch",
     "lint": "eslint .",
-    "locales:check": "node scripts/generate-calendar-locales.mjs --check",
-    "locales:generate": "node scripts/generate-calendar-locales.mjs",
-    "package:verify": "node scripts/verify-package.mjs",
+    "locales:check": "tsx scripts/generateLocaleLoaders.ts --check",
+    "locales:generate": "tsx scripts/generateLocaleLoaders.ts",
+    "package:verify": "tsx scripts/verifyPackage.ts",
     "prepack": "npm run check",
-    "test": "node --no-warnings --test \"test/**/*.test.js\"",
-    "test:timezones": "node scripts/verify-timezones.mjs",
-    "types:check": "tsc --noEmit --strict --skipLibCheck false --moduleResolution bundler --module preserve --target ES2022 --jsx react-jsx index.d.ts"
+    "test": "node --import tsx --no-warnings --test \"test/**/*.test.ts\"",
+    "test:timezones": "tsx scripts/verifyTimezones.ts",
+    "types:check": "tsc -p tsconfig.json"
   },
   "peerDependencies": {
     "@date-fns/tz": ">=1.5.0 <2",
@@ -64,6 +63,7 @@
   "devDependencies": {
     "@date-fns/tz": "^1.5.0",
     "@eslint/js": "^10.0.1",
+    "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
@@ -74,7 +74,9 @@
     "globals": "^17.9.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "typescript": "^7.0.2",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.67.0",
     "vite": "^8.2.1"
   },
   "engines": {
