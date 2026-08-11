@@ -154,12 +154,12 @@ Last reviewed: 2026-08-11
 
 ## Time-grid implementation
 
-- [ ] **[P1][ARCH-01] Reduce the co-located `TimeGridView` render body after the
-  API cleanup.**
-  - Do not recreate a separate generic `Grid.tsx`.
-  - Remove the 29-value private handoff as the public contracts become smaller.
-  - Extract only cohesive layers or hooks with clear ownership; do not create
-    miscellaneous utility modules.
+- [x] **[P1][ARCH-01] Keep the time-grid render body owned by `TimeGridView`.**
+  - The view renders its prepared layout directly without a private prop
+    handoff or a generic grid wrapper.
+  - Future extractions must own a cohesive responsibility, reduce coupling,
+    and expose a smaller contract than the code they replace.
+  - Pure layout behavior remains in independently testable domain modules.
 - [ ] **[P1][ARCH-02] Retire the current interaction helper module.**
   - Replace `moveEventToSlot` as part of the correct drop model.
   - Keep a helper only if it represents a stable, independently testable

@@ -1,14 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type {
-    ComponentType,
-    DragEvent,
-    DragEventHandler,
-    ReactNode,
-    SyntheticEvent
-} from "react";
-import type { Locale } from "date-fns";
+import type { DragEvent, SyntheticEvent } from "react";
 import { endOfDay } from "date-fns/endOfDay";
 import { format } from "date-fns/format";
 import { isSameMonth } from "date-fns/isSameMonth";
@@ -30,7 +23,6 @@ import {
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type {
     CalendarEvent,
-    CalendarEventId,
     CalendarStyle,
     NormalizedCalendarEvent
 } from "../../types.js";
@@ -48,13 +40,8 @@ import {
 } from "./resources.js";
 import Slot from "./Slot.js";
 import type {
-    TimeGridBackgroundEventProps,
-    TimeGridColumnHeaderProps,
     TimeGridEventLayout,
-    TimeGridEventProps,
-    TimeGridLayout,
     TimeGridSlot as TimeGridSlotValue,
-    TimeGridSlotProps,
     TimeGridViewProps
 } from "./types.js";
 
@@ -86,334 +73,6 @@ const groupByColumn = <Item extends { columnIndex: number }>(
     items.forEach((item) => groups[item.columnIndex]?.push(item));
     return groups;
 };
-
-interface TimeGridProps<
-    Event extends CalendarEvent,
-    Resource
-> {
-    layout: TimeGridLayout<Event, Resource>;
-    locale: Locale;
-    dayFormat: string;
-    step: number;
-    headerHeight: number;
-    timeLabelWidth: number;
-    cellWidth?: number;
-    cellHeight: number;
-    showGrid: boolean;
-    showGridLines: boolean;
-    selectedRange?: { start: Date; end: Date };
-    selectedEventIds: CalendarEventId[];
-    eventDraggable: boolean | ((event: TimeGridEventLayout<Event, Resource>) => boolean);
-    eventEditable: boolean | ((event: NormalizedCalendarEvent<Event>) => boolean);
-    getResourceId: (resource: Resource) => unknown;
-    getResourceTitle: (resource: Resource) => ReactNode;
-    SlotComponent: ComponentType<TimeGridSlotProps<Resource>>;
-    EventComponent: ComponentType<TimeGridEventProps<Event, Resource>>;
-    BackgroundEventComponent: ComponentType<TimeGridBackgroundEventProps<Event, Resource>>;
-    ColumnHeaderComponent: ComponentType<TimeGridColumnHeaderProps<Resource>>;
-    onEventSelect?: (event: NormalizedCalendarEvent<Event>, interaction: SyntheticEvent) => void;
-    onEventEdit?: (event: NormalizedCalendarEvent<Event>, interaction: SyntheticEvent) => void;
-    onSlotSelect?: (slot: TimeGridSlotValue<Resource>, interaction: SyntheticEvent) => void;
-    eventDropEnabled: boolean;
-    onDrop: (
-        interaction: DragEvent<HTMLElement>,
-        slot: TimeGridSlotValue<Resource>
-    ) => void;
-    onDragStart: (event: TimeGridEventLayout<Event, Resource>) => void;
-    onDragEnd: DragEventHandler<HTMLElement>;
-}
-
-/**
- * Renders the prepared layout and connects its renderer components to the
- * time-grid interactions owned by {@link TimeGridView}.
- *
- * This private component remains in the view module because it is the view's
- * render body rather than a reusable component boundary.
- */
-function Grid<
-    Event extends CalendarEvent,
-    Resource
->({
-    layout,
-    locale,
-    dayFormat,
-    step,
-    headerHeight,
-    timeLabelWidth,
-    cellWidth,
-    cellHeight,
-    showGrid,
-    showGridLines,
-    selectedRange,
-    selectedEventIds,
-    eventDraggable,
-    eventEditable,
-    getResourceId,
-    getResourceTitle,
-    SlotComponent,
-    EventComponent,
-    BackgroundEventComponent,
-    ColumnHeaderComponent,
-    onEventSelect,
-    onEventEdit,
-    onSlotSelect,
-    eventDropEnabled,
-    onDrop,
-    onDragStart,
-    onDragEnd
-}: TimeGridProps<Event, Resource>) {
-    const {
-        columns,
-        slots,
-        dividers,
-        events,
-        backgroundEvents,
-        totalMinutes
-    } = layout;
-    const eventsByColumn = useMemo(
-        () => groupByColumn(events, columns.length),
-        [columns.length, events]
-    );
-    const backgroundEventsByColumn = useMemo(
-        () => groupByColumn(backgroundEvents, columns.length),
-        [backgroundEvents, columns.length]
-    );
-    const headerHeightValue = `${headerHeight}px`;
-    const timeLabelWidthValue = `${timeLabelWidth}px`;
-    const cellWidthValue = cellWidth
-        ? `${cellWidth}px`
-        : "minmax(var(--time-grid-day-min-width, 0px), 1fr)";
-    const gridHeight = `${(totalMinutes / step) * cellHeight}px`;
-    const gridRows = `repeat(${totalMinutes}, minmax(0, 1fr))`;
-
-    return (
-        <div
-            className="time-grid-view_grid-wrapper"
-            aria-label="Calendar grid"
-            tabIndex={0}
-        >
-            <div
-                className="time-grid-view_header"
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: `${timeLabelWidthValue} repeat(${columns.length}, ${cellWidthValue})`,
-                    gridTemplateRows: headerHeightValue
-                }}
-            >
-                {columns.map((column, columnIndex) => (
-                    <div
-                        key={column.key}
-                        className="time-grid-view_column-header"
-                        style={{ gridColumn: columnIndex + 2 }}
-                    >
-                        <ColumnHeaderComponent
-                            column={column}
-                            columnIndex={columnIndex}
-                            day={column.day}
-                            dayIndex={column.dayIndex}
-                            resource={column.resource}
-                            resourceIndex={column.resourceIndex}
-                            resourceTitle={column.resource == null
-                                ? null
-                                : getResourceTitle(column.resource)}
-                            locale={locale}
-                            dayFormat={dayFormat}
-                        />
-                    </div>
-                ))}
-            </div>
-            <div className="time-grid-view_body">
-                <div
-                    className="time-grid-view_time-labels"
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: timeLabelWidthValue,
-                        gridTemplateRows: gridRows,
-                        height: gridHeight
-                    }}
-                >
-                    {dividers.map(({ key, time, startRow, rowSpan }) => (
-                        <div
-                            key={key}
-                            className="time-grid-view_time-label"
-                            style={{ gridRow: `${startRow} / span ${rowSpan}` }}
-                        >
-                            <time dateTime={format(time, "HH:mm")}>
-                                {format(time, "HH:mm", { locale })}
-                            </time>
-                        </div>
-                    ))}
-                </div>
-                <div
-                    className="time-grid-view_grid"
-                    style={{
-                        flexGrow: 1,
-                        display: "grid",
-                        gridTemplateColumns: `repeat(${columns.length}, ${cellWidthValue})`,
-                        gridTemplateRows: gridRows,
-                        height: gridHeight
-                    }}
-                >
-                    {showGrid && slots.map((slot) => {
-                        const selected = selectedRange
-                            && selectedRange.start < slot.end
-                            && selectedRange.end > slot.start;
-                        const handleSelect = onSlotSelect
-                            ? (interaction: SyntheticEvent) => onSlotSelect(slot, interaction)
-                            : undefined;
-
-                        return (
-                            <SlotComponent
-                                key={`${slot.key}-slot`}
-                                className={`time-grid-view_slot${selected ? " is-selected" : ""}`}
-                                timeIndex={slot.timeIndex}
-                                dayIndex={slot.dayIndex}
-                                columnIndex={slot.columnIndex}
-                                step={step}
-                                day={slot.day}
-                                resource={slot.resource}
-                                startTime={slot.start}
-                                endTime={slot.end}
-                                aria-label={`Calendar slot, ${format(slot.start, "EEEE, MMMM do, HH:mm", { locale })}`}
-                                onClick={handleSelect}
-                                onDragOver={eventDropEnabled
-                                    ? (interaction) => interaction.preventDefault()
-                                    : undefined}
-                                onDrop={eventDropEnabled
-                                    ? (interaction) => onDrop(interaction, slot)
-                                    : undefined}
-                                style={{
-                                    gridRow: `${(slot.timeIndex * step) + 1} / ${(slot.timeIndex * step) + 1 + slot.duration}`,
-                                    gridColumn: slot.columnIndex + 1,
-                                    borderTop: showGridLines && slot.timeIndex === 0
-                                        ? "var(--border)"
-                                        : "none",
-                                    borderLeft: showGridLines && slot.columnIndex === 0
-                                        ? "var(--border)"
-                                        : "none",
-                                    borderRight: showGridLines ? "var(--border)" : "none",
-                                    borderBottom: showGridLines
-                                        ? slot.isDividerBoundary
-                                            ? "var(--divider-border)"
-                                            : "var(--border)"
-                                        : "none"
-                                }}
-                            />
-                        );
-                    })}
-                    {columns.map((column, columnIndex) => (
-                        <div
-                            key={`${column.key}-backgrounds`}
-                            className="time-grid-view_background-events"
-                            style={{
-                                gridColumn: columnIndex + 1,
-                                gridRow: `1 / ${totalMinutes + 1}`,
-                                gridTemplateColumns: "minmax(0, 1fr)",
-                                gridTemplateRows: gridRows
-                            }}
-                        >
-                            {(backgroundEventsByColumn[columnIndex] ?? []).map((event) => (
-                                <BackgroundEventComponent
-                                    key={`${event.id ?? "background"}-${event.start.getTime()}-${columnIndex}`}
-                                    className="time-grid-view_background-event"
-                                    event={event}
-                                    dayIndex={event.dayIndex}
-                                    columnIndex={columnIndex}
-                                    resource={event.resource}
-                                    style={{
-                                        "--color": event.color,
-                                        gridColumn: "1 / 2",
-                                        gridRow: `${event.startRow} / ${event.endRow}`,
-                                        ...event.style
-                                    }}
-                                />
-                            ))}
-                        </div>
-                    ))}
-                    {columns.map((column, columnIndex) => (
-                        <div
-                            key={`${column.key}-events`}
-                            className="time-grid-view_column-events"
-                            data-column-index={columnIndex}
-                            data-day-index={column.dayIndex}
-                            style={{
-                                gridColumn: columnIndex + 1,
-                                gridRow: `1 / ${totalMinutes + 1}`,
-                                gridTemplateColumns: "minmax(0, 1fr)",
-                                gridTemplateRows: gridRows
-                            }}
-                        >
-                            {(eventsByColumn[columnIndex] ?? []).map((event) => {
-                                const calendarEvent = event as unknown as NormalizedCalendarEvent<Event>;
-                                const resourceId = event.resource == null
-                                    ? undefined
-                                    : getResourceId(event.resource);
-                                const draggable = eventDropEnabled
-                                    && isEventInteractionEnabled(eventDraggable, event);
-                                const editable = Boolean(onEventEdit)
-                                    && isEventInteractionEnabled(eventEditable, calendarEvent);
-                                const hasPrimaryAction = Boolean(onEventSelect);
-                                const selected = event.id != null
-                                    && selectedEventIds.includes(event.id);
-
-                                return (
-                                    <EventComponent
-                                        key={`${event.id ?? event.title ?? "event"}-${event.start.getTime()}-${event.end.getTime()}-${columnIndex}`}
-                                        className={`time-grid-view_event${selected ? " is-selected" : ""}`}
-                                        event={event}
-                                        dayIndex={event.dayIndex}
-                                        columnIndex={columnIndex}
-                                        laneIndex={event.laneIndex}
-                                        laneCount={event.laneCount}
-                                        resource={event.resource}
-                                        resourceId={resourceId}
-                                        draggable={draggable}
-                                        onDragStart={draggable ? () => onDragStart(event) : undefined}
-                                        onDragEnd={draggable ? onDragEnd : undefined}
-                                        onClick={onEventSelect
-                                            ? (interaction) => onEventSelect(calendarEvent, interaction)
-                                            : undefined}
-                                        onDoubleClick={editable
-                                            ? (interaction) => onEventEdit?.(calendarEvent, interaction)
-                                            : undefined}
-                                        onKeyDown={editable
-                                            ? (interaction) => {
-                                                const shouldEdit = hasPrimaryAction
-                                                    ? interaction.shiftKey && interaction.key === "Enter"
-                                                    : interaction.key === "Enter";
-                                                if (!shouldEdit) return;
-                                                interaction.preventDefault();
-                                                onEventEdit?.(calendarEvent, interaction);
-                                            }
-                                            : undefined}
-                                        aria-keyshortcuts={editable
-                                            ? hasPrimaryAction ? "Shift+Enter" : "Enter"
-                                            : undefined}
-                                        aria-label={[
-                                            event.title ?? "Calendar event",
-                                            `${format(event.start, "EEEE, MMMM do, HH:mm", { locale })} to ${format(event.end, "EEEE, MMMM do, HH:mm", { locale })}`,
-                                            event.description
-                                        ].filter(Boolean).join(", ")}
-                                        style={{
-                                            "--color": event.color,
-                                            gridColumn: "1 / 2",
-                                            gridRow: `${event.startRow} / ${event.endRow}`,
-                                            overflow: "hidden",
-                                            ...getLaneStyle(event),
-                                            ...event.style
-                                        }}
-                                        titleStyle={event.titleStyle}
-                                        descriptionStyle={event.descriptionStyle}
-                                    />
-                                );
-                            })}
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-}
 
 /**
  * Renders a configurable time grid across arbitrary days and resource columns.
@@ -538,6 +197,29 @@ export default function TimeGridView<
         resources,
         step
     ]);
+    const {
+        columns,
+        slots,
+        dividers,
+        events: positionedEvents,
+        backgroundEvents: positionedBackgroundEvents,
+        totalMinutes
+    } = layout;
+    const eventsByColumn = useMemo(
+        () => groupByColumn(positionedEvents, columns.length),
+        [columns.length, positionedEvents]
+    );
+    const backgroundEventsByColumn = useMemo(
+        () => groupByColumn(positionedBackgroundEvents, columns.length),
+        [columns.length, positionedBackgroundEvents]
+    );
+    const headerHeightValue = `${headerHeight}px`;
+    const timeLabelWidthValue = `${timeLabelWidth}px`;
+    const cellWidthValue = cellWidth
+        ? `${cellWidth}px`
+        : "minmax(var(--time-grid-day-min-width, 0px), 1fr)";
+    const gridHeight = `${(totalMinutes / step) * cellHeight}px`;
+    const gridRows = `repeat(${totalMinutes}, minmax(0, 1fr))`;
 
     const firstHeaderDate = format(rangeStart, headerFormat, { locale: calendarLocale });
     const secondHeaderDate = format(rangeEnd, headerFormat, { locale: calendarLocale });
@@ -556,6 +238,7 @@ export default function TimeGridView<
         ) + 1);
     const minBoundary = calendarMinDate && startOfDay(calendarMinDate);
     const maxBoundary = calendarMaxDate && startOfDay(calendarMaxDate);
+    const canDropEvents = onEventDrop != null;
 
     const navigate = useCallback((direction: -1 | 1) => {
         const nextDate = navigateDate
@@ -612,35 +295,231 @@ export default function TimeGridView<
                     navigationButton={navigationButton}
                 />
             )}
-            <Grid
-                layout={layout}
-                locale={calendarLocale}
-                dayFormat={dayFormat}
-                step={step}
-                headerHeight={headerHeight}
-                timeLabelWidth={timeLabelWidth}
-                cellWidth={cellWidth}
-                cellHeight={cellHeight}
-                showGrid={showGrid}
-                showGridLines={showGridLines}
-                selectedRange={selectedRange}
-                selectedEventIds={selectedEventIds}
-                eventDraggable={eventDraggable}
-                eventEditable={eventEditable}
-                getResourceId={getResourceId}
-                getResourceTitle={getResourceTitle}
-                SlotComponent={SlotComponent}
-                EventComponent={EventComponent}
-                BackgroundEventComponent={BackgroundEventComponent}
-                ColumnHeaderComponent={ColumnHeaderComponent}
-                onEventSelect={onEventSelect}
-                onEventEdit={onEventEdit}
-                onSlotSelect={onSlotSelect}
-                eventDropEnabled={Boolean(onEventDrop)}
-                onDrop={handleDrop}
-                onDragStart={setDraggedEvent}
-                onDragEnd={() => setDraggedEvent(null)}
-            />
+            <div
+                className="time-grid-view_grid-wrapper"
+                aria-label="Calendar grid"
+                tabIndex={0}
+            >
+                <div
+                    className="time-grid-view_header"
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: `${timeLabelWidthValue} repeat(${columns.length}, ${cellWidthValue})`,
+                        gridTemplateRows: headerHeightValue
+                    }}
+                >
+                    {columns.map((column, columnIndex) => (
+                        <div
+                            key={column.key}
+                            className="time-grid-view_column-header"
+                            style={{ gridColumn: columnIndex + 2 }}
+                        >
+                            <ColumnHeaderComponent
+                                column={column}
+                                columnIndex={columnIndex}
+                                day={column.day}
+                                dayIndex={column.dayIndex}
+                                resource={column.resource}
+                                resourceIndex={column.resourceIndex}
+                                resourceTitle={column.resource == null
+                                    ? null
+                                    : getResourceTitle(column.resource)}
+                                locale={calendarLocale}
+                                dayFormat={dayFormat}
+                            />
+                        </div>
+                    ))}
+                </div>
+                <div className="time-grid-view_body">
+                    <div
+                        className="time-grid-view_time-labels"
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: timeLabelWidthValue,
+                            gridTemplateRows: gridRows,
+                            height: gridHeight
+                        }}
+                    >
+                        {dividers.map(({ key, time, startRow, rowSpan }) => (
+                            <div
+                                key={key}
+                                className="time-grid-view_time-label"
+                                style={{ gridRow: `${startRow} / span ${rowSpan}` }}
+                            >
+                                <time dateTime={format(time, "HH:mm")}>
+                                    {format(time, "HH:mm", { locale: calendarLocale })}
+                                </time>
+                            </div>
+                        ))}
+                    </div>
+                    <div
+                        className="time-grid-view_grid"
+                        style={{
+                            flexGrow: 1,
+                            display: "grid",
+                            gridTemplateColumns: `repeat(${columns.length}, ${cellWidthValue})`,
+                            gridTemplateRows: gridRows,
+                            height: gridHeight
+                        }}
+                    >
+                        {showGrid && slots.map((slot) => {
+                            const selected = selectedRange
+                                && selectedRange.start < slot.end
+                                && selectedRange.end > slot.start;
+                            const handleSelect = onSlotSelect
+                                ? (interaction: SyntheticEvent) => onSlotSelect(slot, interaction)
+                                : undefined;
+
+                            return (
+                                <SlotComponent
+                                    key={`${slot.key}-slot`}
+                                    className={`time-grid-view_slot${selected ? " is-selected" : ""}`}
+                                    timeIndex={slot.timeIndex}
+                                    dayIndex={slot.dayIndex}
+                                    columnIndex={slot.columnIndex}
+                                    step={step}
+                                    day={slot.day}
+                                    resource={slot.resource}
+                                    startTime={slot.start}
+                                    endTime={slot.end}
+                                    aria-label={`Calendar slot, ${format(slot.start, "EEEE, MMMM do, HH:mm", { locale: calendarLocale })}`}
+                                    onClick={handleSelect}
+                                    onDragOver={canDropEvents
+                                        ? (interaction) => interaction.preventDefault()
+                                        : undefined}
+                                    onDrop={canDropEvents
+                                        ? (interaction) => handleDrop(interaction, slot)
+                                        : undefined}
+                                    style={{
+                                        gridRow: `${(slot.timeIndex * step) + 1} / ${(slot.timeIndex * step) + 1 + slot.duration}`,
+                                        gridColumn: slot.columnIndex + 1,
+                                        borderTop: showGridLines && slot.timeIndex === 0
+                                            ? "var(--border)"
+                                            : "none",
+                                        borderLeft: showGridLines && slot.columnIndex === 0
+                                            ? "var(--border)"
+                                            : "none",
+                                        borderRight: showGridLines ? "var(--border)" : "none",
+                                        borderBottom: showGridLines
+                                            ? slot.isDividerBoundary
+                                                ? "var(--divider-border)"
+                                                : "var(--border)"
+                                            : "none"
+                                    }}
+                                />
+                            );
+                        })}
+                        {columns.map((column, columnIndex) => (
+                            <div
+                                key={`${column.key}-backgrounds`}
+                                className="time-grid-view_background-events"
+                                style={{
+                                    gridColumn: columnIndex + 1,
+                                    gridRow: `1 / ${totalMinutes + 1}`,
+                                    gridTemplateColumns: "minmax(0, 1fr)",
+                                    gridTemplateRows: gridRows
+                                }}
+                            >
+                                {(backgroundEventsByColumn[columnIndex] ?? []).map((event) => (
+                                    <BackgroundEventComponent
+                                        key={`${event.id ?? "background"}-${event.start.getTime()}-${columnIndex}`}
+                                        className="time-grid-view_background-event"
+                                        event={event}
+                                        dayIndex={event.dayIndex}
+                                        columnIndex={columnIndex}
+                                        resource={event.resource}
+                                        style={{
+                                            "--color": event.color,
+                                            gridColumn: "1 / 2",
+                                            gridRow: `${event.startRow} / ${event.endRow}`,
+                                            ...event.style
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        ))}
+                        {columns.map((column, columnIndex) => (
+                            <div
+                                key={`${column.key}-events`}
+                                className="time-grid-view_column-events"
+                                data-column-index={columnIndex}
+                                data-day-index={column.dayIndex}
+                                style={{
+                                    gridColumn: columnIndex + 1,
+                                    gridRow: `1 / ${totalMinutes + 1}`,
+                                    gridTemplateColumns: "minmax(0, 1fr)",
+                                    gridTemplateRows: gridRows
+                                }}
+                            >
+                                {(eventsByColumn[columnIndex] ?? []).map((event) => {
+                                    const calendarEvent = event as unknown as NormalizedCalendarEvent<Event>;
+                                    const resourceId = event.resource == null
+                                        ? undefined
+                                        : getResourceId(event.resource);
+                                    const draggable = canDropEvents
+                                        && isEventInteractionEnabled(eventDraggable, event);
+                                    const editable = Boolean(onEventEdit)
+                                        && isEventInteractionEnabled(eventEditable, calendarEvent);
+                                    const hasPrimaryAction = Boolean(onEventSelect);
+                                    const selected = event.id != null
+                                        && selectedEventIds.includes(event.id);
+
+                                    return (
+                                        <EventComponent
+                                            key={`${event.id ?? event.title ?? "event"}-${event.start.getTime()}-${event.end.getTime()}-${columnIndex}`}
+                                            className={`time-grid-view_event${selected ? " is-selected" : ""}`}
+                                            event={event}
+                                            dayIndex={event.dayIndex}
+                                            columnIndex={columnIndex}
+                                            laneIndex={event.laneIndex}
+                                            laneCount={event.laneCount}
+                                            resource={event.resource}
+                                            resourceId={resourceId}
+                                            draggable={draggable}
+                                            onDragStart={draggable ? () => setDraggedEvent(event) : undefined}
+                                            onDragEnd={draggable ? () => setDraggedEvent(null) : undefined}
+                                            onClick={onEventSelect
+                                                ? (interaction) => onEventSelect(calendarEvent, interaction)
+                                                : undefined}
+                                            onDoubleClick={editable
+                                                ? (interaction) => onEventEdit?.(calendarEvent, interaction)
+                                                : undefined}
+                                            onKeyDown={editable
+                                                ? (interaction) => {
+                                                    const shouldEdit = hasPrimaryAction
+                                                        ? interaction.shiftKey && interaction.key === "Enter"
+                                                        : interaction.key === "Enter";
+                                                    if (!shouldEdit) return;
+                                                    interaction.preventDefault();
+                                                    onEventEdit?.(calendarEvent, interaction);
+                                                }
+                                                : undefined}
+                                            aria-keyshortcuts={editable
+                                                ? hasPrimaryAction ? "Shift+Enter" : "Enter"
+                                                : undefined}
+                                            aria-label={[
+                                                event.title ?? "Calendar event",
+                                                `${format(event.start, "EEEE, MMMM do, HH:mm", { locale: calendarLocale })} to ${format(event.end, "EEEE, MMMM do, HH:mm", { locale: calendarLocale })}`,
+                                                event.description
+                                            ].filter(Boolean).join(", ")}
+                                            style={{
+                                                "--color": event.color,
+                                                gridColumn: "1 / 2",
+                                                gridRow: `${event.startRow} / ${event.endRow}`,
+                                                overflow: "hidden",
+                                                ...getLaneStyle(event),
+                                                ...event.style
+                                            }}
+                                            titleStyle={event.titleStyle}
+                                            descriptionStyle={event.descriptionStyle}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
