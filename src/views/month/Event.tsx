@@ -8,7 +8,7 @@ import type {
 } from "../../types.js";
 import type { MonthEventProps } from "./types.js";
 
-export default function EventChip<Event extends CalendarEvent = CalendarEvent>({
+export default function Event<EventType extends CalendarEvent = CalendarEvent>({
     event,
     day,
     locale,
@@ -18,7 +18,7 @@ export default function EventChip<Event extends CalendarEvent = CalendarEvent>({
     onDoubleClick,
     onKeyDown,
     editShortcut
-}: MonthEventProps<Event>) {
+}: MonthEventProps<EventType>) {
     const isInteractive = Boolean(onClick || onDoubleClick);
     const Component: ElementType = isInteractive ? "button" : "div";
     const startsToday = isSameDay(event.start, day);

@@ -22,8 +22,9 @@ import {
 } from "../../core/range.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type { CalendarEvent } from "../../types.js";
+import Background from "./Background.js";
 import ColumnHeader from "./ColumnHeader.js";
-import EventBlock from "./EventBlock.js";
+import Event from "./Event.js";
 import Grid from "./Grid.js";
 import { moveEventToSlot } from "./interactions.js";
 import { createLayout } from "./layout/createLayout.js";
@@ -31,8 +32,7 @@ import {
     getDefaultResourceId,
     getDefaultResourceTitle
 } from "./resources.js";
-import SlotCell from "./SlotCell.js";
-import TimeRegion from "./TimeRegion.js";
+import Slot from "./Slot.js";
 import type {
     TimeGridEventLayout,
     TimeGridSlot as TimeGridSlotValue,
@@ -88,9 +88,9 @@ export default function TimeGridView<
     getResourceId = getDefaultResourceId,
     getResourceTitle = getDefaultResourceTitle,
     getEventResourceIds,
-    slotComponent: SlotComponent = SlotCell,
-    eventComponent: EventComponent = EventBlock,
-    backgroundEventComponent: BackgroundEventComponent = TimeRegion,
+    slotComponent: SlotComponent = Slot,
+    eventComponent: EventComponent = Event,
+    backgroundEventComponent: BackgroundEventComponent = Background,
     columnHeaderComponent: ColumnHeaderComponent = ColumnHeader,
     navigationButton,
     previousLabel = "Previous range",

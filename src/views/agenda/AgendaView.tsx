@@ -24,7 +24,7 @@ import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type { CalendarEvent } from "../../types.js";
 import DayHeader from "./DayHeader.js";
 import EmptyState from "./EmptyState.js";
-import EventRow from "./EventRow.js";
+import Event from "./Event.js";
 import type { AgendaViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
@@ -52,7 +52,7 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     onEventClick,
     onSelectEvent,
     onEventEdit,
-    eventComponent: EventComponent = EventRow,
+    eventComponent: EventComponent = Event,
     dayHeaderComponent: DayHeaderComponent = DayHeader,
     emptyComponent: EmptyComponent = EmptyState,
     navigationButton,

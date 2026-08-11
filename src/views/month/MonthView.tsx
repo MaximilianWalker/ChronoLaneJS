@@ -26,7 +26,7 @@ import {
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type { CalendarEvent, CalendarStyle } from "../../types.js";
 import DayHeader from "./DayHeader.js";
-import EventChip from "./EventChip.js";
+import Event from "./Event.js";
 import type { MonthViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
@@ -58,7 +58,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     onSelectEvent,
     onEventEdit,
     onShowMore,
-    eventComponent: EventComponent = EventChip,
+    eventComponent: EventComponent = Event,
     dayHeaderComponent: DayHeaderComponent = DayHeader,
     navigationButton,
     previousLabel = "Previous month",

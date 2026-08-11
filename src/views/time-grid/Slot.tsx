@@ -2,7 +2,7 @@ import type { ElementType } from "react";
 
 import type { TimeGridSlotProps } from "./types.js";
 
-export default function SlotCell({
+export default function Slot({
     className,
     onClick,
     onDragOver,

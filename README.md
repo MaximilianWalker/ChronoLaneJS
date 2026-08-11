@@ -207,10 +207,10 @@ src/
     `-- time-grid/
         |-- TimeGridView.tsx
         |-- Grid.tsx
-        |-- EventBlock.tsx
-        |-- SlotCell.tsx
+        |-- Event.tsx
+        |-- Slot.tsx
         |-- ColumnHeader.tsx
-        |-- TimeRegion.tsx
+        |-- Background.tsx
         |-- interactions.ts
         |-- resources.ts
         |-- types.ts
@@ -223,7 +223,7 @@ never depend on a view, and one view never imports another view's internals.
 
 Public and cross-feature components retain explicit domain names such as
 `TimeGridView.tsx`. Private components rely on their feature directory and use
-role-based names such as `EventBlock.tsx`. Hooks and pure modules use camelCase,
+concise role names such as `Event.tsx` and `Slot.tsx`. Hooks and pure modules use camelCase,
 and component styles use the same basename as their owner. Feature-specific
 types stay with their feature and are re-exported from the package entry.
 

@@ -4,7 +4,7 @@ import type { ElementType } from "react";
 import type { CalendarEvent, CalendarStyle } from "../../types.js";
 import type { AgendaEventProps } from "./types.js";
 
-export default function EventRow<Event extends CalendarEvent = CalendarEvent>({
+export default function Event<EventType extends CalendarEvent = CalendarEvent>({
     event,
     className,
     locale,
@@ -13,7 +13,7 @@ export default function EventRow<Event extends CalendarEvent = CalendarEvent>({
     onKeyDown,
     editShortcut,
     selected
-}: AgendaEventProps<Event>) {
+}: AgendaEventProps<EventType>) {
     const isInteractive = Boolean(onClick || onDoubleClick);
     const Component: ElementType = isInteractive ? "button" : "div";
     const style: CalendarStyle = { "--color": event.color };
