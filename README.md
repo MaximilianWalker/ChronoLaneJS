@@ -173,6 +173,17 @@ Custom renderers receive the normalized calendar value plus the semantic and
 interaction props required by that view. ChronoLaneJS owns layout and behavior;
 the renderer owns markup and presentation.
 
+## Interactions
+
+Selection and editing callbacks receive the normalized source event, never a
+clipped time-grid segment. Time-grid event renderers receive that source as
+`event` and the visible positioned portion as `segment`.
+
+`onEventDrop` receives the source event, its proposed `start` and `end`, and
+explicit `source` and `destination` positions. Each position contains its day
+and concrete resource value, or `null` when the grid has no resources. Dropping
+a clipped multi-day event preserves the source event's complete duration.
+
 ## Custom views
 
 Extend or replace the view registry with the `views` prop:
@@ -229,7 +240,7 @@ src/
         |-- Slot.tsx
         |-- ColumnHeader.tsx
         |-- Background.tsx
-        |-- interactions.ts
+        |-- drop.ts
         |-- resources.ts
         |-- types.ts
         |-- layout/        Scale, event placement, and orchestration

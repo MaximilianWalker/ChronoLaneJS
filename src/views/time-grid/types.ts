@@ -45,8 +45,8 @@ export type TimeGridEventSegment<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > = Omit<NormalizedCalendarEvent<Event>, "resource"> & {
-    originalStart: Date;
-    originalEnd: Date;
+    event: NormalizedCalendarEvent<Event>;
+    day: Date;
     dayIndex: number;
     columnIndex: number;
     resource: Resource | null;
@@ -62,6 +62,24 @@ export type TimeGridEventLayout<
     laneIndex: number;
     laneCount: number;
 };
+
+/** Calendar position occupied by an event before or after a drop. */
+export interface TimeGridEventDropPosition<Resource = unknown> {
+    day: Date;
+    resource: Resource | null;
+}
+
+/** Complete application-facing result of dropping a time-grid event. */
+export interface TimeGridEventDrop<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> {
+    event: NormalizedCalendarEvent<Event>;
+    start: Date;
+    end: Date;
+    source: TimeGridEventDropPosition<Resource>;
+    destination: TimeGridEventDropPosition<Resource>;
+}
 
 export interface TimeGridDivider {
     key: string;
@@ -105,7 +123,8 @@ export interface TimeGridEventProps<
     Resource = unknown
 > {
     className: string;
-    event: TimeGridEventLayout<Event, Resource>;
+    event: NormalizedCalendarEvent<Event>;
+    segment: TimeGridEventLayout<Event, Resource>;
     dayIndex: number;
     columnIndex: number;
     laneIndex: number;
@@ -130,7 +149,8 @@ export interface TimeGridBackgroundEventProps<
     Resource = unknown
 > {
     className: string;
-    event: TimeGridEventSegment<Event, Resource>;
+    event: NormalizedCalendarEvent<Event>;
+    segment: TimeGridEventSegment<Event, Resource>;
     dayIndex: number;
     columnIndex: number;
     resource: Resource | null;
@@ -177,12 +197,7 @@ export interface TimeGridViewProps<
     formatHeader?: (range: CalendarRange & { locale: Locale }) => ReactNode;
     selectedRange?: { start: Date; end: Date };
     eventDraggable?: boolean | ((event: TimeGridEventLayout<Event, Resource>) => boolean);
-    onEventDrop?: (change: {
-        event: TimeGridEventLayout<Event, Resource>;
-        start: Date;
-        end: Date;
-        nextEvent: TimeGridEventLayout<Event, Resource>;
-    }) => void;
+    onEventDrop?: (change: TimeGridEventDrop<Event, Resource>) => void;
     onSlotSelect?: (
         slot: TimeGridSlot<Resource>,
         interaction: SyntheticEvent

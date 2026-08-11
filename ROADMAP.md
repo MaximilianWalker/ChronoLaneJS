@@ -43,18 +43,16 @@ Last reviewed: 2026-08-11
 
 ## Correctness
 
-- [ ] **[P0][TG-01] Preserve original event identity in time-grid callbacks.**
-  - Selection and editing callbacks currently receive a clipped layout segment
-    cast to `NormalizedCalendarEvent`.
-  - Callbacks must receive the original event with its original boundaries and
-    resource data.
-  - Renderers should receive the original event and a separate visible segment.
-- [ ] **[P0][TG-02] Replace the event-drop payload.**
-  - Remove the partially stale `nextEvent` layout object.
-  - Return the original event, next start and end, and explicit source and
-    destination day/resource information.
-  - Support drops between resource columns without losing the target resource.
-  - Preserve the original duration when dragging a clipped multi-day segment.
+- [x] **[P0][TG-01] Preserve original event identity in time-grid callbacks.**
+  - Layout segments retain their normalized source event.
+  - Selection and editing callbacks receive the source with its unclipped
+    boundaries and original resource data.
+  - Renderers receive the source event and visible segment separately.
+- [x] **[P0][TG-02] Return a complete event-drop payload.**
+  - Drops return the source event, proposed start and end, and explicit source
+    and destination day/resource positions.
+  - Cross-resource drops retain the concrete destination resource.
+  - Dragging a clipped segment preserves the source event's full duration.
 - [ ] **[P0][TG-03] Decouple slot interaction from grid visibility.**
   - Slots must remain selectable and droppable regardless of visual grid-line
     styling.
@@ -160,10 +158,9 @@ Last reviewed: 2026-08-11
   - Future extractions must own a cohesive responsibility, reduce coupling,
     and expose a smaller contract than the code they replace.
   - Pure layout behavior remains in independently testable domain modules.
-- [ ] **[P1][ARCH-02] Retire the current interaction helper module.**
-  - Replace `moveEventToSlot` as part of the correct drop model.
-  - Keep a helper only if it represents a stable, independently testable
-    interaction rule.
+- [x] **[P1][ARCH-02] Retire the generic interaction helper module.**
+  - Event interaction predicates are evaluated where their behavior is owned.
+  - Drop construction is a focused, independently tested domain operation.
 - [ ] **[P1][ARCH-03] Share event interaction semantics across views.**
   - Month, agenda, and time-grid should not independently implement different
     click/edit/keyboard rules.
@@ -204,13 +201,14 @@ Last reviewed: 2026-08-11
 
 ## Testing and verification
 
-- [ ] **[P0][TEST-01] Test public callback identity and payloads.**
-  - Cover ordinary, clipped multi-day, overnight, and multi-resource events.
-  - Assert that callbacks receive the original event rather than a layout
-    segment.
-- [ ] **[P0][TEST-02] Test drag and drop across days and resources.**
-  - Cover duration preservation, destination resource data, cancellation, and
-    invalid targets.
+- [x] **[P0][TEST-01] Test public callback identity and payloads.**
+  - Browser stories cover ordinary, clipped multi-day, overnight, and
+    multi-resource event callbacks.
+  - Selection and editing assertions verify source boundaries and resource
+    data rather than visible layout-segment values.
+- [x] **[P0][TEST-02] Test drag and drop across days and resources.**
+  - Unit tests cover duration preservation and cross-resource destinations.
+  - Browser stories cover successful, cancelled, and invalid-target drops.
 - [ ] **[P0][TEST-03] Add compile-time public API tests.**
   - Assert accepted prop combinations for every built-in view.
   - Assert that typos, wrong callback payloads, and view-incompatible props

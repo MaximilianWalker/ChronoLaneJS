@@ -12,7 +12,11 @@ import {
     ANCHOR_DATE,
     MAX_TIME,
     MIN_TIME,
-    basicEvents
+    basicEvents,
+    multiDayEvents,
+    overnightEvents,
+    resourceEvents,
+    resources
 } from "../fixtures.js";
 
 const meta = {
@@ -47,6 +51,87 @@ export const SelectEvent: Story = {
         await userEvent.click(canvas.getByRole("button", { name: /Planning/i }));
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Selected Planning");
         await expect(args.onEventSelect).toHaveBeenCalledOnce();
+    }
+};
+
+export const SelectClippedEvent: Story = {
+    args: {
+        date: "2026-09-15",
+        events: multiDayEvents.filter(({ id }) => id === "conference")
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        await userEvent.click(canvas.getByRole("button", { name: /Design systems conference/i }));
+        await expect(args.onEventSelect).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: "conference",
+                start: new Date(2026, 8, 14, 14),
+                end: new Date(2026, 8, 16, 11)
+            }),
+            expect.anything()
+        );
+    }
+};
+
+export const EditClippedEvent: Story = {
+    args: {
+        date: "2026-09-15",
+        events: multiDayEvents.filter(({ id }) => id === "conference")
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        await userEvent.dblClick(canvas.getByRole("button", { name: /Design systems conference/i }));
+        await expect(args.onEventEdit).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: "conference",
+                start: new Date(2026, 8, 14, 14),
+                end: new Date(2026, 8, 16, 11)
+            }),
+            expect.anything()
+        );
+    }
+};
+
+export const SelectOvernightEvent: Story = {
+    args: {
+        date: "2026-09-15",
+        events: overnightEvents,
+        minTime: "1970-01-01T00:00:00",
+        maxTime: "1970-01-01T05:00:00"
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        await userEvent.click(canvas.getByRole("button", { name: /Release monitoring/i }));
+        await expect(args.onEventSelect).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: "overnight",
+                start: new Date(2026, 8, 14, 23),
+                end: new Date(2026, 8, 15, 2)
+            }),
+            expect.anything()
+        );
+    }
+};
+
+export const SelectMultiResourceEvent: Story = {
+    args: {
+        view: "resource",
+        events: resourceEvents.filter(({ id }) => id === "shared-briefing"),
+        resources
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const [firstSegment] = canvas.getAllByRole("button", { name: /Shared briefing/i });
+        await userEvent.click(firstSegment!);
+        await expect(args.onEventSelect).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: "shared-briefing",
+                resourceIds: ["studio", "workshop"],
+                start: new Date(2026, 8, 14, 11, 30),
+                end: new Date(2026, 8, 14, 12, 30)
+            }),
+            expect.anything()
+        );
     }
 };
 
@@ -88,5 +173,28 @@ export const DragToSlot: Story = {
         await fireEvent.drop(slot);
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Dropped Planning at 13:00");
         await expect(args.onEventDrop).toHaveBeenCalledOnce();
+    }
+};
+
+export const CancelledDrag: Story = {
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const event = canvas.getByRole("button", { name: /Planning/i });
+        const slot = canvas.getByRole("button", { name: /Calendar slot.*13:00/i });
+        await fireEvent.dragStart(event);
+        await fireEvent.dragEnd(event);
+        await fireEvent.drop(slot);
+        await expect(args.onEventDrop).not.toHaveBeenCalled();
+    }
+};
+
+export const IgnoreDropOutsideSlot: Story = {
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const event = canvas.getByRole("button", { name: /Planning/i });
+        const grid = canvas.getByLabelText("Calendar grid");
+        await fireEvent.dragStart(event);
+        await fireEvent.drop(grid);
+        await expect(args.onEventDrop).not.toHaveBeenCalled();
     }
 };

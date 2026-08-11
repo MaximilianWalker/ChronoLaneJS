@@ -23,16 +23,12 @@ import {
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type {
     CalendarEvent,
-    CalendarStyle,
-    NormalizedCalendarEvent
+    CalendarStyle
 } from "../../types.js";
 import Background from "./Background.js";
 import ColumnHeader from "./ColumnHeader.js";
+import { createEventDrop } from "./drop.js";
 import Event from "./Event.js";
-import {
-    isEventInteractionEnabled,
-    moveEventToSlot
-} from "./interactions.js";
 import { createLayout } from "./layout/createLayout.js";
 import {
     getDefaultResourceId,
@@ -270,13 +266,7 @@ export default function TimeGridView<
         interaction.preventDefault();
         if (!draggedEvent || !onEventDrop) return;
 
-        const nextEvent = moveEventToSlot(draggedEvent, slot.start);
-        onEventDrop({
-            event: draggedEvent,
-            start: nextEvent.start,
-            end: nextEvent.end,
-            nextEvent
-        });
+        onEventDrop(createEventDrop(draggedEvent, slot));
         setDraggedEvent(null);
     }, [draggedEvent, onEventDrop]);
 
@@ -420,19 +410,20 @@ export default function TimeGridView<
                                     gridTemplateRows: gridRows
                                 }}
                             >
-                                {(backgroundEventsByColumn[columnIndex] ?? []).map((event) => (
+                                {(backgroundEventsByColumn[columnIndex] ?? []).map((segment) => (
                                     <BackgroundEventComponent
-                                        key={`${event.id ?? "background"}-${event.start.getTime()}-${columnIndex}`}
+                                        key={`${segment.id ?? "background"}-${segment.start.getTime()}-${columnIndex}`}
                                         className="time-grid-view_background-event"
-                                        event={event}
-                                        dayIndex={event.dayIndex}
+                                        event={segment.event}
+                                        segment={segment}
+                                        dayIndex={segment.dayIndex}
                                         columnIndex={columnIndex}
-                                        resource={event.resource}
+                                        resource={segment.resource}
                                         style={{
-                                            "--color": event.color,
+                                            "--color": segment.event.color,
                                             gridColumn: "1 / 2",
-                                            gridRow: `${event.startRow} / ${event.endRow}`,
-                                            ...event.style
+                                            gridRow: `${segment.startRow} / ${segment.endRow}`,
+                                            ...segment.event.style
                                         }}
                                     />
                                 ))}
@@ -451,38 +442,43 @@ export default function TimeGridView<
                                     gridTemplateRows: gridRows
                                 }}
                             >
-                                {(eventsByColumn[columnIndex] ?? []).map((event) => {
-                                    const calendarEvent = event as unknown as NormalizedCalendarEvent<Event>;
-                                    const resourceId = event.resource == null
+                                {(eventsByColumn[columnIndex] ?? []).map((segment) => {
+                                    const { event } = segment;
+                                    const resourceId = segment.resource == null
                                         ? undefined
-                                        : getResourceId(event.resource);
+                                        : getResourceId(segment.resource);
                                     const draggable = canDropEvents
-                                        && isEventInteractionEnabled(eventDraggable, event);
+                                        && (typeof eventDraggable === "function"
+                                            ? eventDraggable(segment)
+                                            : eventDraggable);
                                     const editable = Boolean(onEventEdit)
-                                        && isEventInteractionEnabled(eventEditable, calendarEvent);
+                                        && (typeof eventEditable === "function"
+                                            ? eventEditable(event)
+                                            : eventEditable);
                                     const hasPrimaryAction = Boolean(onEventSelect);
                                     const selected = event.id != null
                                         && selectedEventIds.includes(event.id);
 
                                     return (
                                         <EventComponent
-                                            key={`${event.id ?? event.title ?? "event"}-${event.start.getTime()}-${event.end.getTime()}-${columnIndex}`}
+                                            key={`${event.id ?? event.title ?? "event"}-${segment.start.getTime()}-${segment.end.getTime()}-${columnIndex}`}
                                             className={`time-grid-view_event${selected ? " is-selected" : ""}`}
                                             event={event}
-                                            dayIndex={event.dayIndex}
+                                            segment={segment}
+                                            dayIndex={segment.dayIndex}
                                             columnIndex={columnIndex}
-                                            laneIndex={event.laneIndex}
-                                            laneCount={event.laneCount}
-                                            resource={event.resource}
+                                            laneIndex={segment.laneIndex}
+                                            laneCount={segment.laneCount}
+                                            resource={segment.resource}
                                             resourceId={resourceId}
                                             draggable={draggable}
-                                            onDragStart={draggable ? () => setDraggedEvent(event) : undefined}
+                                            onDragStart={draggable ? () => setDraggedEvent(segment) : undefined}
                                             onDragEnd={draggable ? () => setDraggedEvent(null) : undefined}
                                             onClick={onEventSelect
-                                                ? (interaction) => onEventSelect(calendarEvent, interaction)
+                                                ? (interaction) => onEventSelect(event, interaction)
                                                 : undefined}
                                             onDoubleClick={editable
-                                                ? (interaction) => onEventEdit?.(calendarEvent, interaction)
+                                                ? (interaction) => onEventEdit?.(event, interaction)
                                                 : undefined}
                                             onKeyDown={editable
                                                 ? (interaction) => {
@@ -491,7 +487,7 @@ export default function TimeGridView<
                                                         : interaction.key === "Enter";
                                                     if (!shouldEdit) return;
                                                     interaction.preventDefault();
-                                                    onEventEdit?.(calendarEvent, interaction);
+                                                    onEventEdit?.(event, interaction);
                                                 }
                                                 : undefined}
                                             aria-keyshortcuts={editable
@@ -505,9 +501,9 @@ export default function TimeGridView<
                                             style={{
                                                 "--color": event.color,
                                                 gridColumn: "1 / 2",
-                                                gridRow: `${event.startRow} / ${event.endRow}`,
+                                                gridRow: `${segment.startRow} / ${segment.endRow}`,
                                                 overflow: "hidden",
-                                                ...getLaneStyle(event),
+                                                ...getLaneStyle(segment),
                                                 ...event.style
                                             }}
                                             titleStyle={event.titleStyle}

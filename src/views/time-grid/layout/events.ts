@@ -36,7 +36,8 @@ const belongsToColumn = <Resource>(
  * Clips normalized events to every visible day and matching resource column.
  *
  * Multi-day and multi-resource events can produce multiple independent
- * segments. Original boundaries are retained for later interactions.
+ * segments. Each segment retains its normalized source event for renderers and
+ * interactions that require unclipped boundaries and resource data.
  *
  * @param options - Events, columns, visible times, and resource accessors.
  * @returns Positioned event segments without overlap-lane assignments.
@@ -76,10 +77,10 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
 
             return [{
                 ...event,
-                originalStart: event.start,
-                originalEnd: event.end,
+                event,
                 start: visibleStart,
                 end: visibleEnd,
+                day: column.day,
                 dayIndex: column.dayIndex,
                 columnIndex,
                 resource: column.resource,

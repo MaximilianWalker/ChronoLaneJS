@@ -60,6 +60,8 @@ export type {
     TimeGridBackgroundEventProps,
     TimeGridColumn,
     TimeGridColumnHeaderProps,
+    TimeGridEventDrop,
+    TimeGridEventDropPosition,
     TimeGridEventLayout,
     TimeGridEventProps,
     TimeGridEventSegment,
