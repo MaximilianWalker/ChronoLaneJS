@@ -82,7 +82,7 @@ export function InteractionHarness({
     onEventDrop,
     onEventEdit,
     onEventSelect,
-    onSelectSlot,
+    onSlotSelect,
     ...props
 }: StoryCalendarProps) {
     const [selectedEventIds, setSelectedEventIds] = useState<Array<string | number>>([]);
@@ -105,10 +105,10 @@ export function InteractionHarness({
                     setLastAction(`Selected ${event.title ?? "event"}`);
                     onEventSelect?.(event, interaction);
                 }}
-                onSelectSlot={(slot, interaction) => {
+                onSlotSelect={(slot, interaction) => {
                     setSelectedRange({ start: slot.start, end: slot.end });
                     setLastAction(`Selected slot at ${format(slot.start, "HH:mm")}`);
-                    onSelectSlot?.(slot, interaction);
+                    onSlotSelect?.(slot, interaction);
                 }}
                 onEventEdit={(event, interaction) => {
                     setLastAction(`Editing ${event.title ?? "event"}`);

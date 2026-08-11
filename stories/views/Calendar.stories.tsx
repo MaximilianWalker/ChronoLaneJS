@@ -35,8 +35,7 @@ const meta = {
         backgroundEvents: { control: false },
         resources: { control: false },
         views: { control: false },
-        viewProps: { control: false },
-        weekViewProps: { control: false }
+        viewProps: { control: false }
     },
     parameters: {
         docs: {

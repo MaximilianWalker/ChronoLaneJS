@@ -77,7 +77,6 @@ export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
     backgroundEvents?: Event[];
     date?: CalendarDateInput;
     defaultDate?: CalendarDateInput;
-    startDate?: CalendarDateInput;
     locale?: CalendarLocale;
     timeZone?: string;
     minDate?: CalendarDateInput | null;

@@ -36,7 +36,6 @@ export interface CalendarProps<
     view?: string;
     views?: Record<string, ElementType | CalendarViewDefinition>;
     viewProps?: Record<string, unknown>;
-    weekViewProps?: Partial<TimeGridViewProps<Event, Resource>>;
     locale?: CalendarLocale;
     localeFallback?: ReactNode;
     resources?: Resource[];
@@ -55,8 +54,7 @@ export interface CalendarProps<
     selectedRange?: { start: Date; end: Date };
     eventDraggable?: TimeGridViewProps<Event, Resource>["eventDraggable"];
     onEventDrop?: TimeGridViewProps<Event, Resource>["onEventDrop"];
-    onSlotClick?: TimeGridViewProps<Event, Resource>["onSlotClick"];
-    onSelectSlot?: TimeGridViewProps<Event, Resource>["onSelectSlot"];
+    onSlotSelect?: TimeGridViewProps<Event, Resource>["onSlotSelect"];
     getResourceId?: TimeGridViewProps<Event, Resource>["getResourceId"];
     getResourceTitle?: TimeGridViewProps<Event, Resource>["getResourceTitle"];
     getEventResourceIds?: TimeGridViewProps<Event, Resource>["getEventResourceIds"];
@@ -68,7 +66,6 @@ interface ResolvedCalendarViewProps<Event extends CalendarEvent> {
     locale: CalendarLocale;
     sharedProps: Record<string, unknown>;
     defaultViewProps: Record<string, unknown>;
-    legacyViewProps: Record<string, unknown>;
     viewProps: Record<string, unknown>;
     events: Event[];
     backgroundEvents: Event[];
@@ -84,7 +81,6 @@ const ResolvedCalendarView = <Event extends CalendarEvent>({
     locale,
     sharedProps,
     defaultViewProps,
-    legacyViewProps,
     viewProps,
     events,
     backgroundEvents,
@@ -93,7 +89,6 @@ const ResolvedCalendarView = <Event extends CalendarEvent>({
     <ViewComponent
         {...sharedProps}
         {...defaultViewProps}
-        {...legacyViewProps}
         {...viewProps}
         locale={readCalendarLocale(locale)}
         events={events}
@@ -115,9 +110,9 @@ const isViewDefinition = (
  *
  * @remarks
  * Caller-provided views override built-ins with the same name. View props are
- * merged in this order: shared calendar props, registered defaults, legacy
- * week props, explicit `viewProps`, and finally events and the resolved locale.
- * Named locales may suspend while their date-fns module loads.
+ * merged in this order: shared calendar props, registered defaults, explicit
+ * `viewProps`, and finally events and the resolved locale. Named locales may
+ * suspend while their date-fns module loads.
  *
  * @throws Error if the requested view is not registered.
  */
@@ -132,7 +127,6 @@ export default function Calendar<
     viewProps = EMPTY_PROPS,
     events = EMPTY_EVENTS,
     backgroundEvents = EMPTY_EVENTS,
-    weekViewProps = EMPTY_PROPS,
     locale = DEFAULT_CALENDAR_LOCALE,
     localeFallback = null,
     ...sharedProps
@@ -148,7 +142,6 @@ export default function Calendar<
     const defaultViewProps = isViewDefinition(viewDefinition)
         ? viewDefinition.defaultProps ?? EMPTY_PROPS
         : EMPTY_PROPS;
-    const legacyViewProps = view === "week" ? weekViewProps : {};
 
     return (
         <div
@@ -162,7 +155,6 @@ export default function Calendar<
                     locale={locale}
                     sharedProps={sharedProps}
                     defaultViewProps={defaultViewProps}
-                    legacyViewProps={legacyViewProps}
                     viewProps={viewProps}
                     events={events}
                     backgroundEvents={backgroundEvents}

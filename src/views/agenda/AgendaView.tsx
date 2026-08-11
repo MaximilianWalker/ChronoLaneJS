@@ -41,7 +41,6 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     events = EMPTY_EVENTS,
     date,
     defaultDate,
-    startDate,
     range = 30,
     navigationStep,
     navigateDate,
@@ -71,7 +70,6 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     const { anchorDate, setDate } = useCalendarViewDate({
         date,
         defaultDate,
-        startDate,
         timeZone,
         onDateChange
     });

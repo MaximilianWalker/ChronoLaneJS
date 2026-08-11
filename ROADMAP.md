@@ -95,17 +95,14 @@ Last reviewed: 2026-08-11
     `view`.
   - Reject misspelled and unsupported props at compile time.
   - Preserve a typed path for application-defined view registries.
-- [ ] **[P0][API-02] Remove legacy prop paths.**
-  - Remove `startDate`; use the standard `date` and `defaultDate` controlled
-    and uncontrolled contract.
-  - Remove `weekViewProps`; use the canonical view configuration path.
-  - Remove the render-time state update used to synchronize `startDate`.
-- [ ] **[P0][API-03] Keep one callback for each user action.**
-  - [x] Replace `onEventClick` and `onSelectEvent` with the consistently
-    ordered `onEventSelect(event, interaction)` callback.
-  - Replace `onSlotClick` and `onSelectSlot` with one slot-selection callback.
-  - Apply the same callback names and payloads across time-grid, month, and
-    agenda views.
+- [x] **[P0][API-02] Use one controlled and uncontrolled configuration path.**
+  - Navigation uses `date` and `defaultDate` consistently.
+  - View-specific configuration uses `viewProps` consistently.
+  - Uncontrolled view state is never updated during render.
+- [x] **[P0][API-03] Keep one callback for each user action.**
+  - Event selection uses `onEventSelect(event, interaction)`.
+  - Slot selection uses `onSlotSelect(slot, interaction)`.
+  - Callback naming and argument order are consistent across views.
 - [ ] **[P0][API-04] Make callback presence enable interactions.**
   - `onEventEdit` should enable editing without a second boolean.
   - `onEventDrop` should enable dragging without a second boolean.

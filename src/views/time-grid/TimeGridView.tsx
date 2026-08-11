@@ -113,8 +113,7 @@ interface TimeGridProps<
     ColumnHeaderComponent: ComponentType<TimeGridColumnHeaderProps<Resource>>;
     onEventSelect?: (event: NormalizedCalendarEvent<Event>, interaction: SyntheticEvent) => void;
     onEventEdit?: (event: NormalizedCalendarEvent<Event>, interaction: SyntheticEvent) => void;
-    onSlotClick?: (interaction: SyntheticEvent, slot: TimeGridSlotValue<Resource>) => void;
-    onSelectSlot?: (slot: TimeGridSlotValue<Resource>, interaction: SyntheticEvent) => void;
+    onSlotSelect?: (slot: TimeGridSlotValue<Resource>, interaction: SyntheticEvent) => void;
     eventDropEnabled: boolean;
     onDrop: (
         interaction: DragEvent<HTMLElement>,
@@ -157,8 +156,7 @@ function Grid<
     ColumnHeaderComponent,
     onEventSelect,
     onEventEdit,
-    onSlotClick,
-    onSelectSlot,
+    onSlotSelect,
     eventDropEnabled,
     onDrop,
     onDragStart,
@@ -260,11 +258,8 @@ function Grid<
                         const selected = selectedRange
                             && selectedRange.start < slot.end
                             && selectedRange.end > slot.start;
-                        const handleSelect = onSelectSlot || onSlotClick
-                            ? (interaction: SyntheticEvent) => {
-                                onSelectSlot?.(slot, interaction);
-                                onSlotClick?.(interaction, slot);
-                            }
+                        const handleSelect = onSlotSelect
+                            ? (interaction: SyntheticEvent) => onSlotSelect(slot, interaction)
                             : undefined;
 
                         return (
@@ -438,7 +433,6 @@ export default function TimeGridView<
     resources = EMPTY_ITEMS,
     date: controlledDate,
     defaultDate,
-    startDate: legacyStartDate,
     range = "week",
     navigationStep,
     navigateDate,
@@ -470,8 +464,7 @@ export default function TimeGridView<
     onEventSelect,
     onEventEdit,
     onEventDrop,
-    onSlotClick,
-    onSelectSlot,
+    onSlotSelect,
     getResourceId = getDefaultResourceId,
     getResourceTitle = getDefaultResourceTitle,
     getEventResourceIds,
@@ -491,7 +484,6 @@ export default function TimeGridView<
     const { anchorDate, setDate } = useCalendarViewDate({
         date: controlledDate,
         defaultDate,
-        startDate: legacyStartDate,
         timeZone,
         onDateChange
     });
@@ -643,8 +635,7 @@ export default function TimeGridView<
                 ColumnHeaderComponent={ColumnHeaderComponent}
                 onEventSelect={onEventSelect}
                 onEventEdit={onEventEdit}
-                onSlotClick={onSlotClick}
-                onSelectSlot={onSelectSlot}
+                onSlotSelect={onSlotSelect}
                 eventDropEnabled={Boolean(onEventDrop)}
                 onDrop={handleDrop}
                 onDragStart={setDraggedEvent}

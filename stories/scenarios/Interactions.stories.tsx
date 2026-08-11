@@ -27,14 +27,14 @@ const meta = {
         onEventDrop: fn(),
         onEventEdit: fn(),
         onEventSelect: fn(),
-        onSelectSlot: fn()
+        onSlotSelect: fn()
     },
     argTypes: {
         events: { control: false },
         onEventDrop: { control: false },
         onEventEdit: { control: false },
         onEventSelect: { control: false },
-        onSelectSlot: { control: false }
+        onSlotSelect: { control: false }
     }
 } satisfies Meta<typeof InteractionHarness>;
 
@@ -55,7 +55,7 @@ export const SelectSlot: Story = {
         const canvas = within(canvasElement);
         await userEvent.click(canvas.getByRole("button", { name: /Calendar slot.*10:00/i }));
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Selected slot at 10:00");
-        await expect(args.onSelectSlot).toHaveBeenCalledOnce();
+        await expect(args.onSlotSelect).toHaveBeenCalledOnce();
     }
 };
 

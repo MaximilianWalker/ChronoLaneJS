@@ -183,11 +183,7 @@ export interface TimeGridViewProps<
         end: Date;
         nextEvent: TimeGridEventLayout<Event, Resource>;
     }) => void;
-    onSlotClick?: (
-        interaction: SyntheticEvent,
-        slot: TimeGridSlot<Resource>
-    ) => void;
-    onSelectSlot?: (
+    onSlotSelect?: (
         slot: TimeGridSlot<Resource>,
         interaction: SyntheticEvent
     ) => void;

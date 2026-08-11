@@ -44,7 +44,6 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     backgroundEvents = EMPTY_EVENTS,
     date,
     defaultDate,
-    startDate,
     weekStart: weekStartProp,
     minDate,
     maxDate,
@@ -76,7 +75,6 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     const { anchorDate, setDate } = useCalendarViewDate({
         date,
         defaultDate,
-        startDate,
         timeZone,
         onDateChange
     });
