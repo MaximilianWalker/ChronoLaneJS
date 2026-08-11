@@ -149,6 +149,27 @@ export const SelectSlot: Story = {
     }
 };
 
+export const InteractionsWithoutGridLines: Story = {
+    args: {
+        showGridLines: false
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const grid = canvas.getByLabelText("Calendar grid");
+        const selectedSlot = canvas.getByRole("button", { name: /Calendar slot.*10:00/i });
+        const dropSlot = canvas.getByRole("button", { name: /Calendar slot.*13:00/i });
+        const event = canvas.getByRole("button", { name: /Planning/i });
+
+        await expect(grid).not.toHaveClass("has-grid-lines");
+        await userEvent.click(selectedSlot);
+        await expect(args.onSlotSelect).toHaveBeenCalledOnce();
+
+        await fireEvent.dragStart(event);
+        await fireEvent.drop(dropSlot);
+        await expect(args.onEventDrop).toHaveBeenCalledOnce();
+    }
+};
+
 export const DoubleClickToEdit: Story = {
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);

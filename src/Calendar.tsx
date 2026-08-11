@@ -48,7 +48,6 @@ export interface CalendarProps<
     timeLabelWidth?: number;
     cellWidth?: number;
     cellHeight?: number;
-    showGrid?: boolean;
     showGridLines?: boolean;
     weekStart?: TimeGridViewProps<Event, Resource>["weekStart"];
     selectedRange?: { start: Date; end: Date };

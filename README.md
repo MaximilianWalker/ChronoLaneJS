@@ -183,6 +183,10 @@ Providing `onEventEdit` enables editing, and providing `onEventDrop` enables
 dragging. Use `canEditEvent(event)` or `canDragEvent(event, segment)` only when
 individual events or visible resource segments need to be restricted.
 
+Time slots remain selectable and valid drop targets when grid lines are hidden
+with `showGridLines={false}`. Grid-line visibility is presentational and does
+not control the slot interaction layer.
+
 `onEventDrop` receives the source event, its proposed `start` and `end`, and
 explicit `source` and `destination` positions. Each position contains its day
 and concrete resource value, or `null` when the grid has no resources. Dropping

@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-11
+Last reviewed: 2026-08-12
 
 ## Tracking rules
 
@@ -53,11 +53,11 @@ Last reviewed: 2026-08-11
     and destination day/resource positions.
   - Cross-resource drops retain the concrete destination resource.
   - Dragging a clipped segment preserves the source event's full duration.
-- [ ] **[P0][TG-03] Decouple slot interaction from grid visibility.**
-  - Slots must remain selectable and droppable regardless of visual grid-line
+- [x] **[P0][TG-03] Decouple slot interaction from grid visibility.**
+  - Slots remain selectable and droppable regardless of visual grid-line
     styling.
-  - Remove `showGrid`; keep the interaction layer mounted and style it through
-    CSS.
+  - The redundant `showGrid` prop is removed; the interaction layer is always
+    mounted and grid-line presentation is owned by CSS.
 - [ ] **[P0][DATE-01] Replace date-shaped time-of-day inputs.**
   - `minTime` and `maxTime` currently accept complete dates even though their
     date fields are ignored.

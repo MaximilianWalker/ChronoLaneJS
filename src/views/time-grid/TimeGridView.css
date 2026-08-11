@@ -61,7 +61,25 @@
 
     position: relative;
     box-sizing: border-box;
+    border: 0;
     background-color: #f9f9f9;
+}
+
+.time-grid-view_grid.has-grid-lines .time-grid-view_slot {
+    border-right: var(--border);
+    border-bottom: var(--border);
+}
+
+.time-grid-view_grid.has-grid-lines .time-grid-view_slot.is-first-row {
+    border-top: var(--border);
+}
+
+.time-grid-view_grid.has-grid-lines .time-grid-view_slot.is-first-column {
+    border-left: var(--border);
+}
+
+.time-grid-view_grid.has-grid-lines .time-grid-view_slot.is-divider-boundary {
+    border-bottom: var(--divider-border);
 }
 
 button.time-grid-view_slot {

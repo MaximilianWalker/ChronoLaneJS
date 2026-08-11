@@ -104,7 +104,6 @@ export default function TimeGridView<
     timeLabelWidth = 50,
     cellWidth,
     cellHeight = 50,
-    showGrid = true,
     showGridLines = true,
     dayFormat = "EEEE do",
     headerFormat = "MMMM yyyy",
@@ -344,7 +343,7 @@ export default function TimeGridView<
                         ))}
                     </div>
                     <div
-                        className="time-grid-view_grid"
+                        className={`time-grid-view_grid${showGridLines ? " has-grid-lines" : ""}`}
                         style={{
                             flexGrow: 1,
                             display: "grid",
@@ -353,7 +352,7 @@ export default function TimeGridView<
                             height: gridHeight
                         }}
                     >
-                        {showGrid && slots.map((slot) => {
+                        {slots.map((slot) => {
                             const selected = selectedRange
                                 && selectedRange.start < slot.end
                                 && selectedRange.end > slot.start;
@@ -364,7 +363,7 @@ export default function TimeGridView<
                             return (
                                 <SlotComponent
                                     key={`${slot.key}-slot`}
-                                    className={`time-grid-view_slot${selected ? " is-selected" : ""}`}
+                                    className={`time-grid-view_slot${slot.timeIndex === 0 ? " is-first-row" : ""}${slot.columnIndex === 0 ? " is-first-column" : ""}${slot.isDividerBoundary ? " is-divider-boundary" : ""}${selected ? " is-selected" : ""}`}
                                     timeIndex={slot.timeIndex}
                                     dayIndex={slot.dayIndex}
                                     columnIndex={slot.columnIndex}
@@ -383,19 +382,7 @@ export default function TimeGridView<
                                         : undefined}
                                     style={{
                                         gridRow: `${(slot.timeIndex * step) + 1} / ${(slot.timeIndex * step) + 1 + slot.duration}`,
-                                        gridColumn: slot.columnIndex + 1,
-                                        borderTop: showGridLines && slot.timeIndex === 0
-                                            ? "var(--border)"
-                                            : "none",
-                                        borderLeft: showGridLines && slot.columnIndex === 0
-                                            ? "var(--border)"
-                                            : "none",
-                                        borderRight: showGridLines ? "var(--border)" : "none",
-                                        borderBottom: showGridLines
-                                            ? slot.isDividerBoundary
-                                                ? "var(--divider-border)"
-                                                : "var(--border)"
-                                            : "none"
+                                        gridColumn: slot.columnIndex + 1
                                     }}
                                 />
                             );

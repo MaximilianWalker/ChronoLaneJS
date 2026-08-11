@@ -190,7 +190,7 @@ export interface TimeGridViewProps<
     timeLabelWidth?: number;
     cellWidth?: number;
     cellHeight?: number;
-    showGrid?: boolean;
+    /** Controls divider visibility without disabling slot interactions. */
     showGridLines?: boolean;
     dayFormat?: string;
     headerFormat?: string;
