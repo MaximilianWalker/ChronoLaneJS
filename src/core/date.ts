@@ -1,3 +1,4 @@
+import { constructFrom } from "date-fns/constructFrom";
 import { setDate as setDateFn } from "date-fns/setDate";
 import { setHours } from "date-fns/setHours";
 import { setMilliseconds } from "date-fns/setMilliseconds";
@@ -22,7 +23,7 @@ const CALENDAR_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
  * @returns A cloned or newly parsed `Date`.
  */
 export function parseCalendarDate(value: CalendarDateInput): Date {
-    if (value instanceof Date) return new Date(value.getTime());
+    if (value instanceof Date) return constructFrom(value, value);
 
     if (typeof value === "number") return new Date(value);
 

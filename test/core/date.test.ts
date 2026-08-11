@@ -4,6 +4,7 @@ import test from 'node:test';
 import { addDays, format, startOfWeek } from 'date-fns';
 
 import {
+    asCalendarDate,
     calendarDateFromTimestamp,
     parseCalendarDate,
     toCalendarTimeZone
@@ -35,4 +36,13 @@ test('timestamp clones retain the configured time zone', () => {
     assert.equal(clone.timeZone, 'Europe/Lisbon');
     assert.equal(clone.getTime(), zonedDate.getTime());
     assert.equal(format(clone, 'yyyy-MM-dd HH:mm'), '2026-09-01 08:30');
+});
+
+test('zoned dates retain their calendar fields when normalized again', () => {
+    const zonedDate = toCalendarTimeZone(new Date(2026, 8, 14), 'Europe/Lisbon');
+    const nextWeek = addDays(zonedDate, 7);
+    const normalized = asCalendarDate(nextWeek, 'Europe/Lisbon');
+
+    assert.equal(normalized.getTime(), nextWeek.getTime());
+    assert.equal(format(normalized, 'yyyy-MM-dd'), '2026-09-21');
 });

@@ -22,7 +22,10 @@ const isPeerDependency = (id: string): boolean => (
 export default defineConfig({
     plugins: [react()],
     optimizeDeps: {
-        include: ["storybook/theming"]
+        include: [
+            "date-fns/constructFrom",
+            "storybook/theming"
+        ]
     },
     build: {
         lib: {
