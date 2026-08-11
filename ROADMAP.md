@@ -101,11 +101,10 @@ Last reviewed: 2026-08-11
   - Event selection uses `onEventSelect(event, interaction)`.
   - Slot selection uses `onSlotSelect(slot, interaction)`.
   - Callback naming and argument order are consistent across views.
-- [ ] **[P0][API-04] Make callback presence enable interactions.**
-  - `onEventEdit` should enable editing without a second boolean.
-  - `onEventDrop` should enable dragging without a second boolean.
-  - Retain optional `canEditEvent` and `canDragEvent` predicates for
-    event-specific restrictions.
+- [x] **[P0][API-04] Make callback presence enable interactions.**
+  - `onEventEdit` enables editing and `onEventDrop` enables dragging.
+  - Optional `canEditEvent` and `canDragEvent` predicates restrict individual
+    source events or visible drag segments.
 - [ ] **[P1][API-05] Replace flat renderer props with a `components` contract.**
   - Group event, slot, background, column-header, day-header, empty-state, and
     navigation renderers by view.

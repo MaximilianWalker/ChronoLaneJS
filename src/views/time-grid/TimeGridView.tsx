@@ -112,8 +112,8 @@ export default function TimeGridView<
     timeZone,
     selectedRange,
     selectedEventIds = EMPTY_ITEMS,
-    eventDraggable = false,
-    eventEditable = false,
+    canDragEvent,
+    canEditEvent,
     onDateChange,
     onRangeChange,
     onEventSelect,
@@ -448,13 +448,9 @@ export default function TimeGridView<
                                         ? undefined
                                         : getResourceId(segment.resource);
                                     const draggable = canDropEvents
-                                        && (typeof eventDraggable === "function"
-                                            ? eventDraggable(segment)
-                                            : eventDraggable);
-                                    const editable = Boolean(onEventEdit)
-                                        && (typeof eventEditable === "function"
-                                            ? eventEditable(event)
-                                            : eventEditable);
+                                        && (canDragEvent?.(event, segment) ?? true);
+                                    const editable = onEventEdit != null
+                                        && (canEditEvent?.(event) ?? true);
                                     const hasPrimaryAction = Boolean(onEventSelect);
                                     const selected = event.id != null
                                         && selectedEventIds.includes(event.id);

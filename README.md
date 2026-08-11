@@ -179,6 +179,10 @@ Selection and editing callbacks receive the normalized source event, never a
 clipped time-grid segment. Time-grid event renderers receive that source as
 `event` and the visible positioned portion as `segment`.
 
+Providing `onEventEdit` enables editing, and providing `onEventDrop` enables
+dragging. Use `canEditEvent(event)` or `canDragEvent(event, segment)` only when
+individual events or visible resource segments need to be restricted.
+
 `onEventDrop` receives the source event, its proposed `start` and `end`, and
 explicit `source` and `destination` positions. Each position contains its day
 and concrete resource value, or `null` when the grid has no resources. Dropping

@@ -52,7 +52,7 @@ export interface CalendarProps<
     showGridLines?: boolean;
     weekStart?: TimeGridViewProps<Event, Resource>["weekStart"];
     selectedRange?: { start: Date; end: Date };
-    eventDraggable?: TimeGridViewProps<Event, Resource>["eventDraggable"];
+    canDragEvent?: TimeGridViewProps<Event, Resource>["canDragEvent"];
     onEventDrop?: TimeGridViewProps<Event, Resource>["onEventDrop"];
     onSlotSelect?: TimeGridViewProps<Event, Resource>["onSlotSelect"];
     getResourceId?: TimeGridViewProps<Event, Resource>["getResourceId"];

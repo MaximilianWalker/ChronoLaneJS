@@ -98,8 +98,6 @@ export function InteractionHarness({
                 {...props}
                 selectedEventIds={selectedEventIds}
                 selectedRange={selectedRange}
-                eventEditable
-                eventDraggable
                 onEventSelect={(event, interaction) => {
                     if (event.id != null) setSelectedEventIds([event.id]);
                     setLastAction(`Selected ${event.title ?? "event"}`);

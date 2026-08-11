@@ -83,7 +83,7 @@ export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
     maxDate?: CalendarDateInput | null;
     showControls?: boolean;
     selectedEventIds?: CalendarEventId[];
-    eventEditable?: boolean | ((event: NormalizedCalendarEvent<Event>) => boolean);
+    canEditEvent?: (event: NormalizedCalendarEvent<Event>) => boolean;
     onDateChange?: (date: Date) => void;
     onRangeChange?: (range: CalendarRange) => void;
     onEventSelect?: (

@@ -34,6 +34,8 @@ const meta = {
         onSlotSelect: fn()
     },
     argTypes: {
+        canDragEvent: { control: false },
+        canEditEvent: { control: false },
         events: { control: false },
         onEventDrop: { control: false },
         onEventEdit: { control: false },
@@ -160,6 +162,26 @@ export const KeyboardEdit: Story = {
         event.focus();
         await userEvent.keyboard("{Shift>}{Enter}{/Shift}");
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Editing Planning");
+        await expect(args.onEventEdit).toHaveBeenCalledOnce();
+    }
+};
+
+export const EventSpecificPermissions: Story = {
+    args: {
+        canEditEvent: (event) => event.id === "design-review",
+        canDragEvent: (event) => event.id === "design-review"
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const planning = canvas.getByRole("button", { name: /Planning/i });
+        const designReview = canvas.getByRole("button", { name: /Design review/i });
+
+        await expect(planning).not.toHaveAttribute("draggable", "true");
+        await userEvent.dblClick(planning);
+        await expect(args.onEventEdit).not.toHaveBeenCalled();
+
+        await expect(designReview).toHaveAttribute("draggable", "true");
+        await userEvent.dblClick(designReview);
         await expect(args.onEventEdit).toHaveBeenCalledOnce();
     }
 };

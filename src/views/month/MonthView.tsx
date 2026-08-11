@@ -56,7 +56,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     weekdayFormat = "EEE",
     selectedDate,
     selectedEventIds = EMPTY_EVENTS,
-    eventEditable = false,
+    canEditEvent,
     navigateDate,
     onDateChange,
     onRangeChange,
@@ -201,10 +201,8 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                         {(!outsideMonth || showOutsideDays) && (
                                             <div className="month-view_events">
                                                 {visibleEvents.map((event) => {
-                                                    const editable = Boolean(onEventEdit)
-                                                        && (typeof eventEditable === "function"
-                                                            ? eventEditable(event)
-                                                            : eventEditable);
+                                                    const editable = onEventEdit != null
+                                                        && (canEditEvent?.(event) ?? true);
                                                     const hasPrimaryAction = Boolean(onEventSelect);
                                                     return (
                                                         <EventComponent

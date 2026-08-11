@@ -196,7 +196,10 @@ export interface TimeGridViewProps<
     headerFormat?: string;
     formatHeader?: (range: CalendarRange & { locale: Locale }) => ReactNode;
     selectedRange?: { start: Date; end: Date };
-    eventDraggable?: boolean | ((event: TimeGridEventLayout<Event, Resource>) => boolean);
+    canDragEvent?: (
+        event: NormalizedCalendarEvent<Event>,
+        segment: TimeGridEventLayout<Event, Resource>
+    ) => boolean;
     onEventDrop?: (change: TimeGridEventDrop<Event, Resource>) => void;
     onSlotSelect?: (
         slot: TimeGridSlot<Resource>,

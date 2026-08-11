@@ -53,7 +53,7 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     dayFormat = "EEEE, MMMM do, yyyy",
     headerFormat = "MMMM d, yyyy",
     selectedEventIds = EMPTY_EVENTS,
-    eventEditable = false,
+    canEditEvent,
     onDateChange,
     onRangeChange,
     onEventSelect,
@@ -153,10 +153,8 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                         </h3>
                         <div className="agenda-view_day-events">
                             {group.events.map((event) => {
-                                const editable = Boolean(onEventEdit)
-                                    && (typeof eventEditable === "function"
-                                        ? eventEditable(event)
-                                        : eventEditable);
+                                const editable = onEventEdit != null
+                                    && (canEditEvent?.(event) ?? true);
                                 const hasPrimaryAction = Boolean(onEventSelect);
                                 return (
                                     <EventComponent
