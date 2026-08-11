@@ -2,6 +2,11 @@ import type { ComponentType, MouseEventHandler, ReactNode } from "react";
 
 import type { CalendarNavigationButtonProps } from "../types.js";
 
+/**
+ * Renders the default previous or next navigation control.
+ *
+ * Consumers can replace this renderer through the `navigationButton` prop.
+ */
 export const DefaultNavigationButton = ({
     type,
     children,
@@ -24,6 +29,12 @@ interface CalendarNavigationProps {
     className?: string;
 }
 
+/**
+ * Renders the shared range header with previous and next controls.
+ *
+ * Disabled directions remain in the layout but are hidden to keep the header
+ * centered and prevent unavailable navigation.
+ */
 export default function CalendarNavigation({
     header,
     onPrevious,

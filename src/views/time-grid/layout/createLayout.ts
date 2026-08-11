@@ -14,6 +14,7 @@ import type {
 import { assignEventLanes, createEventSegments } from "./events.js";
 import { createTimeScale } from "./timeScale.js";
 
+/** Builds one column per day, or one column per day-resource pair. */
 const createColumns = <Resource>(
     days: Date[],
     resources: Resource[]
@@ -37,6 +38,7 @@ const createColumns = <Resource>(
     })));
 };
 
+/** Inputs required to construct a complete time-grid layout. */
 export interface CreateLayoutOptions<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
@@ -53,6 +55,14 @@ export interface CreateLayoutOptions<
     getEventResourceIds?: (event: NormalizedCalendarEvent<Event>) => unknown[];
 }
 
+/**
+ * Constructs the columns, time scale, visible event segments, and overlap
+ * lanes required to render a time grid.
+ *
+ * @param options - Visible days, events, resources, time bounds, and accessors.
+ * @returns A complete immutable-by-convention layout model for the grid.
+ * @throws RangeError if no day is supplied or the time scale is invalid.
+ */
 export const createLayout = <Event extends CalendarEvent, Resource>({
     days,
     events,

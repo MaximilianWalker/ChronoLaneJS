@@ -22,6 +22,7 @@ interface CreateEventSegmentsOptions<
     getEventResourceIds: (event: NormalizedCalendarEvent<Event>) => unknown[];
 }
 
+/** Tests whether an event's resource assignments include a grid column. */
 const belongsToColumn = <Resource>(
     eventResourceIds: unknown[],
     column: TimeGridColumn<Resource>,
@@ -31,6 +32,15 @@ const belongsToColumn = <Resource>(
     || eventResourceIds.includes(getResourceId(column.resource))
 );
 
+/**
+ * Clips normalized events to every visible day and matching resource column.
+ *
+ * Multi-day and multi-resource events can produce multiple independent
+ * segments. Original boundaries are retained for later interactions.
+ *
+ * @param options - Events, columns, visible times, and resource accessors.
+ * @returns Positioned event segments without overlap-lane assignments.
+ */
 export const createEventSegments = <Event extends CalendarEvent, Resource>({
     events,
     columns,
@@ -80,6 +90,16 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
     });
 };
 
+/**
+ * Assigns horizontal lanes to overlapping event segments within each column.
+ *
+ * Lanes are reused after an event ends. Every connected overlap cluster shares
+ * the same `laneCount`, so its events calculate consistent widths.
+ *
+ * @param events - Positioned event segments to arrange.
+ * @param columnCount - Number of columns available in the layout.
+ * @returns Event segments augmented with lane indexes and cluster lane counts.
+ */
 export const assignEventLanes = <Event extends CalendarEvent, Resource>(
     events: TimeGridEventSegment<Event, Resource>[],
     columnCount: number
@@ -96,6 +116,7 @@ export const assignEventLanes = <Event extends CalendarEvent, Resource>(
         let clusterEnd = -1;
         let laneEnds: number[] = [];
 
+        /** Flushes the current overlap cluster with its final lane count. */
         const finishCluster = () => {
             if (cluster.length === 0) return;
 

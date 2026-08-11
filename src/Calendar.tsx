@@ -26,6 +26,7 @@ const EMPTY_EVENTS: never[] = [];
 const EMPTY_PROPS = Object.freeze({});
 const EMPTY_VIEWS = Object.freeze({});
 
+/** Props accepted by the root {@link Calendar} component. */
 export interface CalendarProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
@@ -74,6 +75,10 @@ interface ResolvedCalendarViewProps<Event extends CalendarEvent> {
     view: string;
 }
 
+/**
+ * Resolves a locale inside `Suspense` and applies the ordered prop layers to a
+ * registered view component.
+ */
 const ResolvedCalendarView = <Event extends CalendarEvent>({
     ViewComponent,
     locale,
@@ -97,12 +102,25 @@ const ResolvedCalendarView = <Event extends CalendarEvent>({
     />
 );
 
+/** Distinguishes a view registration with defaults from a bare component. */
 const isViewDefinition = (
     value: ElementType | CalendarViewDefinition
 ): value is CalendarViewDefinition => (
     typeof value === "object" && value !== null && "component" in value
 );
 
+/**
+ * Renders the selected calendar view from the built-in and caller-provided
+ * view registries.
+ *
+ * @remarks
+ * Caller-provided views override built-ins with the same name. View props are
+ * merged in this order: shared calendar props, registered defaults, legacy
+ * week props, explicit `viewProps`, and finally events and the resolved locale.
+ * Named locales may suspend while their date-fns module loads.
+ *
+ * @throws Error if the requested view is not registered.
+ */
 export default function Calendar<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown

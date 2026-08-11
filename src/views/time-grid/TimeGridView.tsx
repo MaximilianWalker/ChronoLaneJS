@@ -41,6 +41,15 @@ import type {
 
 const EMPTY_ITEMS: never[] = [];
 
+/**
+ * Renders a configurable time grid across arbitrary days and resource columns.
+ *
+ * @remarks
+ * The view owns range navigation, time-zone normalization, slot generation,
+ * event clipping, overlap lanes, and drag-and-drop calculations. Markup for
+ * slots, events, background events, and column headers can be replaced through
+ * renderer props without replacing layout behavior.
+ */
 export default function TimeGridView<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown

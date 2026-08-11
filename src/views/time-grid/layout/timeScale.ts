@@ -7,6 +7,7 @@ import type {
     TimeGridSlot
 } from "../types.js";
 
+/** Converts visible time fields to a fractional minute offset after midnight. */
 const wallClockMinutes = (date: Date): number => (
     (date.getHours() * 60)
     + date.getMinutes()
@@ -14,6 +15,13 @@ const wallClockMinutes = (date: Date): number => (
     + (date.getMilliseconds() / 60_000)
 );
 
+/**
+ * Combines the calendar fields of one date with the time fields of another.
+ *
+ * @param day - Date providing year, month, and day.
+ * @param time - Date providing hours through milliseconds.
+ * @returns A new date using `day`'s date implementation and the combined fields.
+ */
 export const atDayTime = (day: Date, time: Date): Date => setTime(
     day,
     time.getHours(),
@@ -22,6 +30,14 @@ export const atDayTime = (day: Date, time: Date): Date => setTime(
     time.getMilliseconds()
 );
 
+/**
+ * Maps a visible interval to one-based, end-exclusive CSS grid row lines.
+ *
+ * @param start - Visible event start.
+ * @param end - Visible event end.
+ * @param visibleStart - Start of the grid's daily time window.
+ * @returns Start and end row lines at minute precision.
+ */
 export const getGridRows = (
     start: Date,
     end: Date,
@@ -51,6 +67,17 @@ interface TimeScale<Resource> {
     dividerInterval: number;
 }
 
+/**
+ * Creates grid slots, divider labels, and minute dimensions for a time window.
+ *
+ * The scale uses wall-clock minutes so rows remain stable across daylight-saving
+ * transitions. A divider interval that is smaller than or indivisible by the
+ * slot step falls back to the step.
+ *
+ * @param options - Columns, visible times, slot step, and divider interval.
+ * @returns The slots and dividers shared by every grid column.
+ * @throws RangeError if the time window or step is invalid.
+ */
 export const createTimeScale = <Resource>({
     firstDay,
     columns,

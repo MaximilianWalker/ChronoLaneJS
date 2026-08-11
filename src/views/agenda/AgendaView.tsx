@@ -29,6 +29,14 @@ import type { AgendaViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
 
+/**
+ * Renders events grouped by their first visible day within a configurable range.
+ *
+ * @remarks
+ * Multi-day events appear once, under the earliest visible day they overlap.
+ * The view supports controlled or uncontrolled navigation, event selection and
+ * editing callbacks, locale-aware formatting, and replaceable renderers.
+ */
 export default function AgendaView<Event extends CalendarEvent = CalendarEvent>({
     events = EMPTY_EVENTS,
     date,

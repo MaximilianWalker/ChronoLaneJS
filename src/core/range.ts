@@ -9,6 +9,7 @@ import type {
     CalendarWeekStart
 } from "../types.js";
 
+/** Resolves a range option that may be a literal or an anchor-aware callback. */
 const resolveValue = <Value>(
     value: Value | ((anchorDate: Date, context: CalendarRangeContext) => Value),
     anchorDate: Date,
@@ -22,6 +23,11 @@ const resolveValue = <Value>(
         : value
 );
 
+/**
+ * Normalizes dates to day boundaries, removes duplicates, and sorts ascending.
+ *
+ * @throws TypeError if any value is not a valid `Date`.
+ */
 const uniqueSortedDays = (days: Date[]): Date[] => {
     const uniqueDays = new Map<number, Date>();
 
@@ -44,6 +50,15 @@ interface CreateCalendarRangeOptions {
     includeDay?: (day: Date) => boolean;
 }
 
+/**
+ * Creates an inclusive sequence of calendar days from a start and either an
+ * end date or a day count.
+ *
+ * @param options - Range boundaries and optional day predicate.
+ * @returns Normalized days in chronological order.
+ * @throws TypeError if a boundary is not a valid `Date`.
+ * @throws RangeError if the day count is invalid or the end precedes the start.
+ */
 export const createCalendarRange = ({
     start,
     end,
@@ -77,6 +92,19 @@ export const createCalendarRange = ({
     return includeDay ? rangeDays.filter(includeDay) : rangeDays;
 };
 
+/**
+ * Resolves any supported range definition relative to an anchor date.
+ *
+ * Supports day and week presets, consecutive day counts, explicit date arrays,
+ * configurable range objects, and callbacks returning any of those forms.
+ *
+ * @param range - Range definition, or `null`/`undefined` to use the default.
+ * @param anchorDate - Date used to resolve relative ranges and callbacks.
+ * @param options - Week convention and fallback range.
+ * @returns At least one unique, normalized day in chronological order.
+ * @throws TypeError if the definition or any included date is invalid.
+ * @throws RangeError if the resolved range is empty or has invalid boundaries.
+ */
 export const resolveCalendarRange = (
     range: CalendarRangeDefinition | null | undefined,
     anchorDate: Date,
@@ -140,6 +168,13 @@ export const resolveCalendarRange = (
     throw new TypeError("Unsupported calendar range definition.");
 };
 
+/**
+ * Returns the first and last day of a resolved calendar range.
+ *
+ * @param days - Non-empty, chronologically ordered range days.
+ * @returns The range's inclusive start and end days.
+ * @throws RangeError if `days` is empty.
+ */
 export const getCalendarRangeBounds = (days: Date[]): { start: Date; end: Date } => {
     const start = days[0];
     const end = days.at(-1);
@@ -149,6 +184,15 @@ export const getCalendarRangeBounds = (days: Date[]): { start: Date; end: Date }
     return { start, end };
 };
 
+/**
+ * Moves a calendar date forward or backward by a fixed number of days.
+ *
+ * @param date - Navigation anchor.
+ * @param direction - `-1` for previous or `1` for next.
+ * @param stepDays - Positive integer number of days to move.
+ * @returns The shifted date.
+ * @throws RangeError if the direction or step is invalid.
+ */
 export const moveCalendarDate = (
     date: Date,
     direction: -1 | 1,

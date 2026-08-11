@@ -31,6 +31,14 @@ import type { MonthViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
 
+/**
+ * Renders a locale-aware month grid with event overflow and outside-day support.
+ *
+ * @remarks
+ * Each event is shown on every day it overlaps, up to `maxEventsPerDay`.
+ * Background events decorate day cells while event, header, selection, editing,
+ * and navigation behavior remain independently replaceable.
+ */
 export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     events = EMPTY_EVENTS,
     backgroundEvents = EMPTY_EVENTS,

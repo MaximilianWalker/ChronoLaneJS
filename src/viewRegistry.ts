@@ -7,6 +7,12 @@ import TimeGridView from "./views/time-grid/TimeGridView.js";
 
 import type { ElementType } from "react";
 
+/**
+ * Immutable registry of the view names included with ChronoLane.
+ *
+ * Pass a `views` entry with the same key to the root `Calendar` component to
+ * override one.
+ */
 export const defaultCalendarViews: Readonly<Record<string, ElementType>> = Object.freeze({
     agenda: AgendaView,
     day: DayView,

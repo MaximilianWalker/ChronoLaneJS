@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+/** Keeps React, date-fns, and their subpaths external to the library bundle. */
 const isPeerDependency = (id: string): boolean => (
     id === "react"
     || id === "react-dom"

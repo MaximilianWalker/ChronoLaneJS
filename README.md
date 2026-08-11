@@ -192,6 +192,10 @@ ChronoLane exports `Calendar` as the default plus:
 Time-grid layout internals and default renderer implementations are private so
 they can evolve without expanding the package compatibility surface.
 
+Public functions and components include TSDoc in the generated declarations,
+so their behavior, parameters, return values, and failure conditions are
+available through TypeScript-aware editors.
+
 ## Architecture
 
 ```text
@@ -223,9 +227,10 @@ never depend on a view, and one view never imports another view's internals.
 
 Public and cross-feature components retain explicit domain names such as
 `TimeGridView.tsx`. Private components rely on their feature directory and use
-concise role names such as `Event.tsx` and `Slot.tsx`. Hooks and pure modules use camelCase,
-and component styles use the same basename as their owner. Feature-specific
-types stay with their feature and are re-exported from the package entry.
+concise role names such as `Event.tsx` and `Slot.tsx`. Hooks and pure modules
+use camelCase, and component styles use the same basename as their owner.
+Feature-specific types stay with their feature and are re-exported from the
+package entry.
 
 ## Development
 

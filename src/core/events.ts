@@ -4,6 +4,15 @@ import { startOfDay } from "date-fns/startOfDay";
 import { asCalendarDate } from "./date.js";
 import type { CalendarEvent, NormalizedCalendarEvent } from "../types.js";
 
+/**
+ * Shallow-copies events and converts their start and end values to validated
+ * calendar dates.
+ *
+ * @param events - Application event values to normalize.
+ * @param timeZone - Optional IANA zone attached to each event's wall-clock fields.
+ * @returns Normalized events in the same order as the input.
+ * @throws TypeError if an event contains an invalid start or end value.
+ */
 export const normalizeEvents = <Event extends CalendarEvent>(
     events: Event[],
     timeZone?: string
@@ -13,15 +22,32 @@ export const normalizeEvents = <Event extends CalendarEvent>(
     end: asCalendarDate(event.end, timeZone)
 }));
 
+/**
+ * Returns a non-mutating chronological sort of normalized events.
+ *
+ * Events with identical start times are ordered by title.
+ *
+ * @param events - Normalized events to sort.
+ * @returns A new sorted array.
+ */
 export const sortEvents = <Event extends NormalizedCalendarEvent>(events: Event[]): Event[] => (
     [...events].sort((first, second) => {
-    if (first.start < second.start) return -1;
-    if (first.start > second.start) return 1;
+        if (first.start < second.start) return -1;
+        if (first.start > second.start) return 1;
 
-    return (first.title ?? "").localeCompare(second.title ?? "");
+        return (first.title ?? "").localeCompare(second.title ?? "");
     })
 );
 
+/**
+ * Tests whether an event intersects a calendar day using half-open intervals.
+ *
+ * An event ending exactly at midnight does not overlap the following day.
+ *
+ * @param event - Normalized event to test.
+ * @param day - Calendar day whose local boundaries should be used.
+ * @returns Whether any part of the event falls within the day.
+ */
 export const eventOverlapsDay = (event: NormalizedCalendarEvent, day: Date): boolean => {
     const dayStart = startOfDay(day);
     const nextDayStart = addDays(dayStart, 1);

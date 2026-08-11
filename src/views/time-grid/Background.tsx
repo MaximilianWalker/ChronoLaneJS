@@ -1,5 +1,6 @@
 import type { TimeGridBackgroundEventProps } from "./types.js";
 
+/** Renders the default non-interactive background event region. */
 export default function Background({
     className,
     event,

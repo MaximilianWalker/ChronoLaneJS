@@ -8,6 +8,12 @@ import type {
 } from "../../types.js";
 import type { MonthEventProps } from "./types.js";
 
+/**
+ * Renders the default compact event representation used in a month cell.
+ *
+ * The event time is shown only on the day the event starts. The root becomes a
+ * button when click or edit behavior is available.
+ */
 export default function Event<EventType extends CalendarEvent = CalendarEvent>({
     event,
     day,

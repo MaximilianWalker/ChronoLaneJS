@@ -12,6 +12,18 @@ interface UseCalendarViewDateOptions {
     onDateChange?: (date: Date) => void;
 }
 
+/**
+ * Manages the anchor date shared by controlled and uncontrolled calendar views.
+ *
+ * @remarks
+ * `date` enables controlled mode. Otherwise the hook initializes from
+ * `startDate`, `defaultDate`, or the current time, in that order. A changed
+ * legacy `startDate` also resets uncontrolled state. Every exposed date is
+ * validated and normalized for the configured time zone.
+ *
+ * @param options - Controlled value, initial values, time zone, and change callback.
+ * @returns The normalized anchor date and a setter that respects controlled mode.
+ */
 export const useCalendarViewDate = ({
     date: controlledDate,
     defaultDate,

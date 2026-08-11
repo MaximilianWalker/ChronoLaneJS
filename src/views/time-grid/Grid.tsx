@@ -26,8 +26,10 @@ import type {
 } from "./types.js";
 import { isEventInteractionEnabled } from "./interactions.js";
 
+/** Rounds percentages to stable CSS values without visible precision noise. */
 const percentage = (value: number): number => Number(value.toFixed(6));
 
+/** Calculates the width and horizontal offset of one overlapping event lane. */
 const getLaneStyle = ({
     laneIndex,
     laneCount
@@ -41,6 +43,7 @@ const getLaneStyle = ({
     };
 };
 
+/** Groups positioned items by column for direct rendering lookups. */
 const groupByColumn = <Item extends { columnIndex: number }>(
     items: Item[],
     columnCount: number
@@ -85,6 +88,14 @@ interface TimeGridProps<
     onDragEnd: DragEventHandler<HTMLElement>;
 }
 
+/**
+ * Renders a prepared time-grid layout and connects its renderer components to
+ * selection, editing, and drag-and-drop interactions.
+ *
+ * @remarks
+ * This component performs no date normalization or event placement; callers
+ * provide a complete {@link TimeGridLayout}.
+ */
 export default function Grid<
     Event extends CalendarEvent,
     Resource

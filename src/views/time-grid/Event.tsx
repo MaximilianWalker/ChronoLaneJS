@@ -2,6 +2,12 @@ import type { ElementType } from "react";
 
 import type { TimeGridEventProps } from "./types.js";
 
+/**
+ * Renders the default positioned time-grid event.
+ *
+ * Layout styles are supplied by the grid. The root becomes a button when click
+ * or edit behavior is available and retains native drag support when enabled.
+ */
 export default function Event({
     className,
     event,
