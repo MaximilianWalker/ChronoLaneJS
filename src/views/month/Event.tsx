@@ -1,4 +1,3 @@
-import { format } from "date-fns/format";
 import { isSameDay } from "date-fns/isSameDay";
 import type { ElementType } from "react";
 
@@ -17,12 +16,13 @@ import type { MonthEventProps } from "./types.js";
 export default function Event<EventType extends CalendarEvent = CalendarEvent>({
     event,
     day,
-    locale,
+    timeLabel,
     className,
     selected,
     onClick,
     onDoubleClick,
     onKeyDown,
+    "aria-label": ariaLabel,
     "aria-keyshortcuts": ariaKeyShortcuts
 }: MonthEventProps<EventType>) {
     const isInteractive = Boolean(onClick || onDoubleClick);
@@ -35,10 +35,7 @@ export default function Event<EventType extends CalendarEvent = CalendarEvent>({
             type={isInteractive ? "button" : undefined}
             className={`${className}${selected ? " is-selected" : ""}`}
             data-event-id={event.id}
-            aria-label={isInteractive ? [
-                event.title ?? "Calendar event",
-                `${format(event.start, "EEEE, MMMM do, HH:mm", { locale })} to ${format(event.end, "EEEE, MMMM do, HH:mm", { locale })}`
-            ].join(", ") : undefined}
+            aria-label={isInteractive ? ariaLabel : undefined}
             onClick={onClick}
             onDoubleClick={onDoubleClick}
             onKeyDown={onKeyDown}
@@ -47,7 +44,7 @@ export default function Event<EventType extends CalendarEvent = CalendarEvent>({
         >
             {startsToday && (
                 <time className="month-view_event-time">
-                    {format(event.start, "HH:mm", { locale })}
+                    {timeLabel}
                 </time>
             )}
             <span className="month-view_event-title">{event.title}</span>

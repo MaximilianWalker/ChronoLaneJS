@@ -131,11 +131,11 @@ Last reviewed: 2026-08-12
   - Keep resource items and their ID, title, and event-assignment accessors in
     one typed resource contract.
   - Preserve generic inference from the resource items.
-- [ ] **[P1][API-10] Group formatting and messages.**
-  - Replace `dayFormat`, `headerFormat`, and `formatHeader` with a coherent
-    `formats` contract.
-  - Replace individual previous/next labels and hardcoded text with a
-    `messages` contract.
+- [x] **[P1][API-10] Group formatting and messages.**
+  - Complete `formatters` and `messages` registries replace scattered format
+    strings, header callbacks, labels, and hardcoded text.
+  - Exported immutable English defaults support explicit consumer-side
+    extension without hidden partial-object merging.
 - [ ] **[P1][API-11] Remove the redundant resource preset.**
   - Resource columns are already a capability of every time-grid range.
   - Remove `ResourceView` and the `resource` view name; document resources on
@@ -173,10 +173,10 @@ Last reviewed: 2026-08-12
 
 ## Localization and accessibility
 
-- [ ] **[P0][I18N-01] Use locale-aware time formatting.**
+- [x] **[P0][I18N-01] Use locale-aware time formatting.**
   - Remove hardcoded `HH:mm` from visible and accessible text.
   - Provide locale-aware defaults and explicit formatter overrides.
-- [ ] **[P0][I18N-02] Make all library-owned text configurable.**
+- [x] **[P0][I18N-02] Make all library-owned text configurable.**
   - Cover navigation, grid labels, slot labels, event ranges, empty states,
     and month overflow text.
   - Do not require replacing a renderer solely to translate a string.

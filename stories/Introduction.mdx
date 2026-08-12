@@ -38,6 +38,32 @@ import "@chronolanejs/react/styles.css";
 />
 ```
 
+## Localization
+
+`locale` selects date-fns conventions, including weekday names and 12- or
+24-hour time formatting. Calendar-owned language is configured separately
+through complete `formatters` and `messages` registries. English defaults are
+exported for stable, explicit extension outside render:
+
+```tsx
+import {
+    defaultCalendarMessages,
+    type CalendarMessages
+} from "@chronolanejs/react";
+
+const messages: CalendarMessages = {
+    ...defaultCalendarMessages,
+    previous: () => "Período anterior",
+    next: () => "Período seguinte",
+    agendaEmpty: () => "Não existem eventos neste período."
+};
+
+<Calendar locale="pt-PT" messages={messages} />
+```
+
+The registries are intentionally complete rather than `Partial`: TypeScript
+reports missing text, and the library does not perform hidden merge behavior.
+
 ## Testing model
 
 Stories are render tests by default. Interaction stories execute browser-level

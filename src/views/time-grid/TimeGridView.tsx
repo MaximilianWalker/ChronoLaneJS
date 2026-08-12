@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DragEvent, SyntheticEvent } from "react";
 import { format } from "date-fns/format";
-import { isSameMonth } from "date-fns/isSameMonth";
 import { startOfDay } from "date-fns/startOfDay";
 
 import CalendarNavigation from "../../components/CalendarNavigation.js";
@@ -15,6 +14,10 @@ import {
     readCalendarLocale,
     resolveCalendarWeekStart
 } from "../../core/locale.js";
+import {
+    defaultCalendarFormatters,
+    defaultCalendarMessages
+} from "../../core/localization.js";
 import {
     getCalendarRangeBounds,
     moveCalendarDate,
@@ -104,10 +107,10 @@ export default function TimeGridView<
     cellWidth,
     cellHeight = 50,
     showGridLines = true,
-    dayFormat = "EEEE do",
-    headerFormat = "MMMM yyyy",
-    formatHeader,
     locale = DEFAULT_CALENDAR_LOCALE,
+    formatters = defaultCalendarFormatters,
+    messages = defaultCalendarMessages,
+    viewName = "time-grid",
     timeZone,
     selectedRange,
     selectedEventIds = EMPTY_ITEMS,
@@ -126,9 +129,7 @@ export default function TimeGridView<
     eventComponent: EventComponent = Event,
     backgroundEventComponent: BackgroundEventComponent = Background,
     columnHeaderComponent: ColumnHeaderComponent = ColumnHeader,
-    navigationButton,
-    previousLabel = "Previous range",
-    nextLabel = "Next range"
+    navigationButton
 }: TimeGridViewProps<Event, Resource>) {
     const [draggedEvent, setDraggedEvent] = useState<
         TimeGridEventLayout<Event, Resource> | null
@@ -208,14 +209,10 @@ export default function TimeGridView<
     const gridHeight = `${(totalMinutes / slotDuration) * cellHeight}px`;
     const gridRows = `repeat(${totalMinutes}, minmax(0, 1fr))`;
 
-    const firstHeaderDate = format(rangeStart, headerFormat, { locale: calendarLocale });
-    const secondHeaderDate = format(rangeEnd, headerFormat, { locale: calendarLocale });
-    const defaultHeader = isSameMonth(rangeStart, rangeEnd)
-        ? firstHeaderDate
-        : `${firstHeaderDate} - ${secondHeaderDate}`;
-    const header = formatHeader
-        ? formatHeader({ start: rangeStart, end: rangeEnd, days, locale: calendarLocale })
-        : defaultHeader;
+    const calendarRange = { start: rangeStart, end: rangeEnd, days };
+    const formatContext = { locale: calendarLocale, view: viewName };
+    const navigationContext = { view: viewName, range: calendarRange };
+    const header = formatters.rangeHeader(calendarRange, formatContext);
     const effectiveNavigationStep = navigationStep
         ?? (range && typeof range === "object" && !Array.isArray(range)
             ? range.navigationStep
@@ -271,14 +268,14 @@ export default function TimeGridView<
                     onNext={() => navigate(1)}
                     previousDisabled={Boolean(minBoundary && rangeStart <= minBoundary)}
                     nextDisabled={Boolean(maxBoundary && rangeEnd >= maxBoundary)}
-                    previousLabel={previousLabel}
-                    nextLabel={nextLabel}
+                    previousLabel={messages.previous(navigationContext)}
+                    nextLabel={messages.next(navigationContext)}
                     navigationButton={navigationButton}
                 />
             )}
             <div
                 className="time-grid-view_grid-wrapper"
-                aria-label="Calendar grid"
+                aria-label={messages.timeGridLabel({ view: viewName })}
                 tabIndex={0}
             >
                 <div
@@ -302,11 +299,10 @@ export default function TimeGridView<
                                 dayIndex={column.dayIndex}
                                 resource={column.resource}
                                 resourceIndex={column.resourceIndex}
+                                title={formatters.dayHeader(column.day, formatContext)}
                                 resourceTitle={column.resource == null
                                     ? null
                                     : getResourceTitle(column.resource)}
-                                locale={calendarLocale}
-                                dayFormat={dayFormat}
                             />
                         </div>
                     ))}
@@ -328,7 +324,7 @@ export default function TimeGridView<
                                 style={{ gridRow: `${startRow} / span ${rowSpan}` }}
                             >
                                 <time dateTime={format(time, "HH:mm")}>
-                                    {format(time, "HH:mm", { locale: calendarLocale })}
+                                    {formatters.time(time, formatContext)}
                                 </time>
                             </div>
                         ))}
@@ -363,7 +359,11 @@ export default function TimeGridView<
                                     resource={slot.resource}
                                     startTime={slot.start}
                                     endTime={slot.end}
-                                    aria-label={`Calendar slot, ${format(slot.start, "EEEE, MMMM do, HH:mm", { locale: calendarLocale })}`}
+                                    aria-label={messages.slotLabel({
+                                        view: viewName,
+                                        date: formatters.date(slot.start, formatContext),
+                                        time: formatters.time(slot.start, formatContext)
+                                    })}
                                     onClick={handleSelect}
                                     onDragOver={canDropEvents
                                         ? (interaction) => interaction.preventDefault()
@@ -436,6 +436,10 @@ export default function TimeGridView<
                                     });
                                     const selected = event.id != null
                                         && selectedEventIds.includes(event.id);
+                                    const startDate = formatters.date(event.start, formatContext);
+                                    const startTime = formatters.time(event.start, formatContext);
+                                    const endDate = formatters.date(event.end, formatContext);
+                                    const endTime = formatters.time(event.end, formatContext);
 
                                     return (
                                         <EventComponent
@@ -453,11 +457,15 @@ export default function TimeGridView<
                                             onDragStart={draggable ? () => setDraggedEvent(segment) : undefined}
                                             onDragEnd={draggable ? () => setDraggedEvent(null) : undefined}
                                             {...interactionProps}
-                                            aria-label={[
-                                                event.title ?? "Calendar event",
-                                                `${format(event.start, "EEEE, MMMM do, HH:mm", { locale: calendarLocale })} to ${format(event.end, "EEEE, MMMM do, HH:mm", { locale: calendarLocale })}`,
-                                                event.description
-                                            ].filter(Boolean).join(", ")}
+                                            aria-label={messages.eventLabel({
+                                                view: viewName,
+                                                title: event.title,
+                                                description: event.description,
+                                                startDate,
+                                                startTime,
+                                                endDate,
+                                                endTime
+                                            })}
                                             style={{
                                                 "--color": event.color,
                                                 gridColumn: "1 / 2",

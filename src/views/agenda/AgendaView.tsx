@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { format } from "date-fns/format";
 import { startOfDay } from "date-fns/startOfDay";
 import {
     getCalendarRangeBounds,
@@ -21,6 +20,10 @@ import {
     readCalendarLocale,
     resolveCalendarWeekStart
 } from "../../core/locale.js";
+import {
+    defaultCalendarFormatters,
+    defaultCalendarMessages
+} from "../../core/localization.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type { CalendarEvent } from "../../types.js";
 import DayHeader from "./DayHeader.js";
@@ -50,9 +53,10 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     maxDate,
     showControls = true,
     locale = DEFAULT_CALENDAR_LOCALE,
+    formatters = defaultCalendarFormatters,
+    messages = defaultCalendarMessages,
+    viewName = "agenda",
     timeZone,
-    dayFormat = "EEEE, MMMM do, yyyy",
-    headerFormat = "MMMM d, yyyy",
     selectedEventIds = EMPTY_EVENTS,
     canEditEvent,
     onDateChange,
@@ -62,9 +66,7 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     eventComponent: EventComponent = Event,
     dayHeaderComponent: DayHeaderComponent = DayHeader,
     emptyComponent: EmptyComponent = EmptyState,
-    navigationButton,
-    previousLabel = "Previous agenda range",
-    nextLabel = "Next agenda range"
+    navigationButton
 }: AgendaViewProps<Event>) {
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
@@ -106,7 +108,10 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     const maxBoundary = maxDate == null
         ? null
         : startOfDay(asCalendarDate(maxDate, timeZone));
-    const header = `${format(rangeStart, headerFormat, { locale: calendarLocale })} – ${format(rangeEnd, headerFormat, { locale: calendarLocale })}`;
+    const calendarRange = { start: rangeStart, end: rangeEnd, days };
+    const formatContext = { locale: calendarLocale, view: viewName };
+    const navigationContext = { view: viewName, range: calendarRange };
+    const header = formatters.rangeHeader(calendarRange, formatContext);
 
     const navigate = useCallback((direction: -1 | 1) => {
         const nextDate = navigateDate
@@ -136,20 +141,21 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                     onNext={() => navigate(1)}
                     previousDisabled={Boolean(minBoundary && rangeStart <= minBoundary)}
                     nextDisabled={Boolean(maxBoundary && rangeEnd >= maxBoundary)}
-                    previousLabel={previousLabel}
-                    nextLabel={nextLabel}
+                    previousLabel={messages.previous(navigationContext)}
+                    nextLabel={messages.next(navigationContext)}
                     navigationButton={navigationButton}
                 />
             )}
             <div className="agenda-view_list">
-                {groups.length === 0 && <EmptyComponent />}
+                {groups.length === 0 && (
+                    <EmptyComponent message={messages.agendaEmpty(navigationContext)} />
+                )}
                 {groups.map((group) => (
                     <section key={group.day.getTime()} className="agenda-view_day">
                         <h3 className="agenda-view_day-heading">
                             <DayHeaderComponent
                                 day={group.day}
-                                locale={calendarLocale}
-                                format={dayFormat}
+                                label={formatters.dayHeader(group.day, formatContext)}
                             />
                         </h3>
                         <div className="agenda-view_day-events">
@@ -160,12 +166,29 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                                     onEventEdit,
                                     canEditEvent
                                 });
+                                const startDate = formatters.date(event.start, formatContext);
+                                const startTime = formatters.time(event.start, formatContext);
+                                const endDate = formatters.date(event.end, formatContext);
+                                const endTime = formatters.time(event.end, formatContext);
                                 return (
                                     <EventComponent
                                         key={`${event.id ?? event.title}-${event.start.getTime()}`}
                                         className="agenda-view_event"
                                         event={event}
-                                        locale={calendarLocale}
+                                        timeLabel={messages.timeRange({
+                                            view: viewName,
+                                            startTime,
+                                            endTime
+                                        })}
+                                        aria-label={messages.eventLabel({
+                                            view: viewName,
+                                            title: event.title,
+                                            description: event.description,
+                                            startDate,
+                                            startTime,
+                                            endDate,
+                                            endTime
+                                        })}
                                         selected={event.id != null && selectedEventIds.includes(event.id)}
                                         {...interactionProps}
                                     />

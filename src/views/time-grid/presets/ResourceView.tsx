@@ -14,8 +14,7 @@ export default function ResourceView<
 >({
     range = "day",
     navigationStep = 1,
-    previousLabel = "Previous resource range",
-    nextLabel = "Next resource range",
+    viewName = "resource",
     ...props
 }: TimeGridViewProps<Event, Resource>) {
     return (
@@ -23,8 +22,7 @@ export default function ResourceView<
             {...props}
             range={range}
             navigationStep={navigationStep}
-            previousLabel={previousLabel}
-            nextLabel={nextLabel}
+            viewName={viewName}
         />
     );
 }

@@ -157,7 +157,7 @@ export const InteractionsWithoutGridLines: Story = {
         const canvas = within(canvasElement);
         const grid = canvas.getByLabelText("Calendar grid");
         const selectedSlot = canvas.getByRole("button", { name: /Calendar slot.*10:00/i });
-        const dropSlot = canvas.getByRole("button", { name: /Calendar slot.*13:00/i });
+        const dropSlot = canvas.getByRole("button", { name: /Calendar slot.*1:00 PM/i });
         const event = canvas.getByRole("button", { name: /Planning/i });
 
         await expect(grid).not.toHaveClass("has-grid-lines");
@@ -256,7 +256,7 @@ export const DragToSlot: Story = {
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
         const event = canvas.getByRole("button", { name: /Planning/i });
-        const slot = canvas.getByRole("button", { name: /Calendar slot.*13:00/i });
+        const slot = canvas.getByRole("button", { name: /Calendar slot.*1:00 PM/i });
         await fireEvent.dragStart(event);
         await fireEvent.drop(slot);
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Dropped Planning at 13:00");
@@ -268,7 +268,7 @@ export const CancelledDrag: Story = {
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
         const event = canvas.getByRole("button", { name: /Planning/i });
-        const slot = canvas.getByRole("button", { name: /Calendar slot.*13:00/i });
+        const slot = canvas.getByRole("button", { name: /Calendar slot.*1:00 PM/i });
         await fireEvent.dragStart(event);
         await fireEvent.dragEnd(event);
         await fireEvent.drop(slot);

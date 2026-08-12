@@ -13,10 +13,7 @@ export default function DayView<
 >({
     range = "day",
     navigationStep = 1,
-    dayFormat = "EEEE, MMMM do",
-    headerFormat = "MMMM do, yyyy",
-    previousLabel = "Previous day",
-    nextLabel = "Next day",
+    viewName = "day",
     ...props
 }: TimeGridViewProps<Event, Resource>) {
     return (
@@ -24,10 +21,7 @@ export default function DayView<
             {...props}
             range={range}
             navigationStep={navigationStep}
-            dayFormat={dayFormat}
-            headerFormat={headerFormat}
-            previousLabel={previousLabel}
-            nextLabel={nextLabel}
+            viewName={viewName}
         />
     );
 }

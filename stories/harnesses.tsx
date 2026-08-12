@@ -11,6 +11,7 @@ import Calendar, {
 } from "../src/index.js";
 import type {
     AgendaDayHeaderProps,
+    AgendaEmptyProps,
     AgendaEventProps,
     CalendarDateInput,
     CalendarLocale,
@@ -277,15 +278,13 @@ export function CustomBackground({
 
 /** Renderer replacement showing both the calendar day and resource grouping. */
 export function CustomColumnHeader({
-    day,
-    dayFormat,
-    locale,
+    title,
     resource,
     resourceTitle
 }: TimeGridColumnHeaderProps<StoryResource>) {
     return (
         <span className="story-header">
-            <strong>{format(day, dayFormat, { locale })}</strong>
+            <strong>{title}</strong>
             {resourceTitle != null && <span>{resource?.group}: {resourceTitle}</span>}
         </span>
     );
@@ -308,10 +307,11 @@ export function CustomNavigationButton({
 export function CustomAgendaEvent({
     className,
     event,
-    locale,
+    timeLabel,
     onClick,
     onDoubleClick,
     onKeyDown,
+    "aria-label": ariaLabel,
     "aria-keyshortcuts": ariaKeyShortcuts,
     selected
 }: AgendaEventProps<StoryEvent>) {
@@ -325,25 +325,23 @@ export function CustomAgendaEvent({
             onClick={onClick}
             onDoubleClick={onDoubleClick}
             onKeyDown={onKeyDown}
+            aria-label={interactive ? ariaLabel : undefined}
             aria-keyshortcuts={ariaKeyShortcuts}
             style={{ "--color": event.color } as CalendarStyle}
         >
             <strong>{event.title}</strong>
-            <span>{format(event.start, "p", { locale })}</span>
+            <span>{timeLabel}</span>
         </Component>
     );
 }
 
-/** Agenda heading renderer with an explicit short weekday. */
+/** Agenda heading renderer demonstrating the prepared-label contract. */
 export function CustomAgendaDayHeader({
-    day,
-    locale,
-    format: dayFormat
+    label
 }: AgendaDayHeaderProps) {
     return (
         <span className="story-header">
-            <strong>{format(day, dayFormat, { locale })}</strong>
-            <span>{format(day, "EEEE", { locale })}</span>
+            <strong>{label}</strong>
         </span>
     );
 }
@@ -352,10 +350,11 @@ export function CustomAgendaDayHeader({
 export function CustomMonthEvent({
     className,
     event,
-    locale,
+    timeLabel,
     onClick,
     onDoubleClick,
     onKeyDown,
+    "aria-label": ariaLabel,
     "aria-keyshortcuts": ariaKeyShortcuts,
     selected
 }: MonthEventProps<StoryEvent>) {
@@ -369,34 +368,34 @@ export function CustomMonthEvent({
             onClick={onClick}
             onDoubleClick={onDoubleClick}
             onKeyDown={onKeyDown}
+            aria-label={interactive ? ariaLabel : undefined}
             aria-keyshortcuts={ariaKeyShortcuts}
             style={{ "--color": event.color } as CalendarStyle}
         >
             <strong>{event.title}</strong>
-            <span>{format(event.start, "p", { locale })}</span>
+            <span>{timeLabel}</span>
         </Component>
     );
 }
 
 /** Month heading renderer that visually distinguishes outside days. */
 export function CustomMonthDayHeader({
-    day,
-    locale,
+    label,
     outsideMonth
 }: MonthDayHeaderProps) {
     return (
         <span title={outsideMonth ? "Outside active month" : undefined}>
-            {outsideMonth ? "·" : ""}{format(day, "d", { locale })}
+            {outsideMonth ? "·" : ""}{label}
         </span>
     );
 }
 
 /** Empty-state renderer used by the agenda customization example. */
-export function CustomEmptyState() {
+export function CustomEmptyState({ message }: AgendaEmptyProps) {
     return (
         <div className="story-panel" role="status">
             <strong>The schedule is clear.</strong>
-            <p>Add an event or move to another range.</p>
+            <p>{message}</p>
         </div>
     );
 }

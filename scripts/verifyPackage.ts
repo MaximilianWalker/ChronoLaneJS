@@ -10,6 +10,8 @@ const {
     default: Calendar,
     DayView,
     TimeGridView,
+    defaultCalendarFormatters,
+    defaultCalendarMessages,
     parseCalendarDate
 } = packageModule;
 
@@ -22,6 +24,8 @@ assert.match(styles, /\.time-grid-view/);
 assert.equal(parseCalendarDate("2026-09-01").getDate(), 1);
 assert.equal(typeof DayView, "function");
 assert.equal(typeof TimeGridView, "function");
+assert.equal(typeof defaultCalendarFormatters.time, "function");
+assert.equal(typeof defaultCalendarMessages.eventLabel, "function");
 
 const markup = renderToStaticMarkup(createElement(Calendar, {
     view: "day",

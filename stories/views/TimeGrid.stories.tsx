@@ -1,12 +1,23 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { TimeGridView } from "../../src/index.js";
+import {
+    TimeGridView,
+    defaultCalendarFormatters
+} from "../../src/index.js";
+import type { CalendarFormatters } from "../../src/index.js";
 import {
     ANCHOR_DATE,
     MAX_TIME,
     MIN_TIME,
     basicEvents
 } from "../fixtures.js";
+
+const headerFormatters: CalendarFormatters = {
+    ...defaultCalendarFormatters,
+    rangeHeader: ({ start, end }) => (
+        <span>{start.toDateString()} → {end.toDateString()}</span>
+    )
+};
 
 const meta = {
     title: "Views/Time Grid",
@@ -69,8 +80,6 @@ export const FifteenMinuteScale: Story = {
 export const HeaderFormatter: Story = {
     args: {
         range: 3,
-        formatHeader: ({ start, end }) => (
-            <span>{start.toDateString()} → {end.toDateString()}</span>
-        )
+        formatters: headerFormatters
     }
 };

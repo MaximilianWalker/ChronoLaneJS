@@ -5,7 +5,6 @@ import { addMonths } from "date-fns/addMonths";
 import { eachDayOfInterval } from "date-fns/eachDayOfInterval";
 import { endOfMonth } from "date-fns/endOfMonth";
 import { endOfWeek } from "date-fns/endOfWeek";
-import { format } from "date-fns/format";
 import { isSameDay } from "date-fns/isSameDay";
 import { isSameMonth } from "date-fns/isSameMonth";
 import { startOfDay } from "date-fns/startOfDay";
@@ -24,6 +23,10 @@ import {
     readCalendarLocale,
     resolveCalendarWeekStart
 } from "../../core/locale.js";
+import {
+    defaultCalendarFormatters,
+    defaultCalendarMessages
+} from "../../core/localization.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type { CalendarEvent, CalendarStyle } from "../../types.js";
 import DayHeader from "./DayHeader.js";
@@ -52,9 +55,10 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     showOutsideDays = true,
     maxEventsPerDay = 4,
     locale = DEFAULT_CALENDAR_LOCALE,
+    formatters = defaultCalendarFormatters,
+    messages = defaultCalendarMessages,
+    viewName = "month",
     timeZone,
-    headerFormat = "MMMM yyyy",
-    weekdayFormat = "EEE",
     selectedDate,
     selectedEventIds = EMPTY_EVENTS,
     canEditEvent,
@@ -67,9 +71,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     onShowMore,
     eventComponent: EventComponent = Event,
     dayHeaderComponent: DayHeaderComponent = DayHeader,
-    navigationButton,
-    previousLabel = "Previous month",
-    nextLabel = "Next month"
+    navigationButton
 }: MonthViewProps<Event>) {
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
@@ -113,6 +115,10 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     const maxBoundary = maxDate == null
         ? null
         : startOfDay(asCalendarDate(maxDate, timeZone));
+    const calendarRange = { start: rangeStart, end: rangeEnd, days };
+    const headerRange = { start: monthStart, end: monthEnd, days };
+    const formatContext = { locale: calendarLocale, view: viewName };
+    const navigationContext = { view: viewName, range: calendarRange };
 
     const navigate = useCallback((direction: -1 | 1) => {
         const nextDate = navigateDate
@@ -141,26 +147,26 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
         <div className="month-view" data-time-zone={timeZone}>
             {showControls && (
                 <CalendarNavigation
-                    header={format(anchorDate, headerFormat, { locale: calendarLocale })}
+                    header={formatters.rangeHeader(headerRange, formatContext)}
                     onPrevious={() => navigate(-1)}
                     onNext={() => navigate(1)}
                     previousDisabled={Boolean(minBoundary && monthStart <= minBoundary)}
                     nextDisabled={Boolean(maxBoundary && monthEnd >= maxBoundary)}
-                    previousLabel={previousLabel}
-                    nextLabel={nextLabel}
+                    previousLabel={messages.previous(navigationContext)}
+                    nextLabel={messages.next(navigationContext)}
                     navigationButton={navigationButton}
                 />
             )}
             <div
                 className="month-view_grid-wrapper"
-                aria-label="Month calendar grid"
+                aria-label={messages.monthGridLabel({ view: viewName })}
                 tabIndex={0}
             >
                 <div className="month-view_grid" role="grid">
                     <div className="month-view_weekdays" role="row">
                         {weekdayHeaders.map((day) => (
                             <div key={`weekday-${day.getDay()}`} className="month-view_weekday" role="columnheader">
-                                {format(day, weekdayFormat, { locale: calendarLocale })}
+                                {formatters.weekday(day, formatContext)}
                             </div>
                         ))}
                     </div>
@@ -182,7 +188,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                             daySelected ? "is-selected" : ""
                                         ].filter(Boolean).join(" ")}
                                         role="gridcell"
-                                        aria-label={format(day, "EEEE, MMMM do, yyyy", { locale: calendarLocale })}
+                                        aria-label={formatters.date(day, formatContext)}
                                     >
                                         {dayBackgrounds.map((event) => (
                                             <div
@@ -197,7 +203,11 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                             disabled={!onSelectDay}
                                             onClick={onSelectDay ? (clickEvent) => onSelectDay(day, clickEvent) : undefined}
                                         >
-                                            <DayHeaderComponent day={day} locale={calendarLocale} outsideMonth={outsideMonth} />
+                                            <DayHeaderComponent
+                                                day={day}
+                                                label={formatters.dayHeader(day, formatContext)}
+                                                outsideMonth={outsideMonth}
+                                            />
                                         </button>
                                         {(!outsideMonth || showOutsideDays) && (
                                             <div className="month-view_events">
@@ -208,13 +218,26 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                                         onEventEdit,
                                                         canEditEvent
                                                     });
+                                                    const startDate = formatters.date(event.start, formatContext);
+                                                    const startTime = formatters.time(event.start, formatContext);
+                                                    const endDate = formatters.date(event.end, formatContext);
+                                                    const endTime = formatters.time(event.end, formatContext);
                                                     return (
                                                         <EventComponent
                                                             key={`${event.id ?? event.title}-${event.start.getTime()}-${day.getTime()}`}
                                                             className="month-view_event"
                                                             event={event}
                                                             day={day}
-                                                            locale={calendarLocale}
+                                                            timeLabel={startTime}
+                                                            aria-label={messages.eventLabel({
+                                                                view: viewName,
+                                                                title: event.title,
+                                                                description: event.description,
+                                                                startDate,
+                                                                startTime,
+                                                                endDate,
+                                                                endTime
+                                                            })}
                                                             selected={event.id != null && selectedEventIds.includes(event.id)}
                                                             {...interactionProps}
                                                         />
@@ -229,7 +252,11 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                                             events: dayEvents
                                                         }, clickEvent)}
                                                     >
-                                                        +{hiddenEvents.length} more
+                                                        {messages.moreEvents({
+                                                            view: viewName,
+                                                            count: hiddenEvents.length,
+                                                            date: formatters.date(day, formatContext)
+                                                        })}
                                                     </button>
                                                 )}
                                             </div>

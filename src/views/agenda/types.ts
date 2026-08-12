@@ -3,7 +3,6 @@ import type {
     KeyboardEventHandler,
     MouseEventHandler
 } from "react";
-import type { Locale } from "date-fns";
 
 import type {
     CalendarDateInput,
@@ -17,19 +16,23 @@ import type {
 
 export interface AgendaDayHeaderProps {
     day: Date;
-    locale: Locale;
-    format: string;
+    label: string;
 }
 
 export interface AgendaEventProps<Event extends CalendarEvent = CalendarEvent> {
     event: NormalizedCalendarEvent<Event>;
     className: string;
-    locale: Locale;
+    timeLabel: string;
     selected: boolean;
+    "aria-label": string;
     "aria-keyshortcuts"?: string;
     onClick?: MouseEventHandler<HTMLElement>;
     onDoubleClick?: MouseEventHandler<HTMLElement>;
     onKeyDown?: KeyboardEventHandler<HTMLElement>;
+}
+
+export interface AgendaEmptyProps {
+    message: string;
 }
 
 export interface AgendaViewProps<Event extends CalendarEvent = CalendarEvent>
@@ -42,9 +45,7 @@ export interface AgendaViewProps<Event extends CalendarEvent = CalendarEvent>
         range: CalendarRange
     ) => CalendarDateInput;
     weekStart?: CalendarWeekStart;
-    dayFormat?: string;
-    headerFormat?: string;
     eventComponent?: ComponentType<AgendaEventProps<Event>>;
     dayHeaderComponent?: ComponentType<AgendaDayHeaderProps>;
-    emptyComponent?: ComponentType;
+    emptyComponent?: ComponentType<AgendaEmptyProps>;
 }

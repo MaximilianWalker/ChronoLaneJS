@@ -11,10 +11,16 @@ import {
     DEFAULT_CALENDAR_LOCALE,
     readCalendarLocale
 } from "./core/locale.js";
+import {
+    defaultCalendarFormatters,
+    defaultCalendarMessages
+} from "./core/localization.js";
 import { defaultCalendarViews } from "./viewRegistry.js";
 import type {
     CalendarEvent,
+    CalendarFormatters,
     CalendarLocale,
+    CalendarMessages,
     CalendarRangeDefinition,
     CalendarViewDefinition,
     SharedViewProps
@@ -62,6 +68,8 @@ export interface CalendarProps<
 interface ResolvedCalendarViewProps<Event extends CalendarEvent> {
     ViewComponent: ElementType;
     locale: CalendarLocale;
+    formatters: CalendarFormatters;
+    messages: CalendarMessages;
     sharedProps: Record<string, unknown>;
     defaultViewProps: Record<string, unknown>;
     viewProps: Record<string, unknown>;
@@ -77,6 +85,8 @@ interface ResolvedCalendarViewProps<Event extends CalendarEvent> {
 const ResolvedCalendarView = <Event extends CalendarEvent>({
     ViewComponent,
     locale,
+    formatters,
+    messages,
     sharedProps,
     defaultViewProps,
     viewProps,
@@ -89,6 +99,8 @@ const ResolvedCalendarView = <Event extends CalendarEvent>({
         {...defaultViewProps}
         {...viewProps}
         locale={readCalendarLocale(locale)}
+        formatters={formatters}
+        messages={messages}
         events={events}
         backgroundEvents={backgroundEvents}
         viewName={view}
@@ -109,8 +121,9 @@ const isViewDefinition = (
  * @remarks
  * Caller-provided views override built-ins with the same name. View props are
  * merged in this order: shared calendar props, registered defaults, explicit
- * `viewProps`, and finally events and the resolved locale. Named locales may
- * suspend while their date-fns module loads.
+ * `viewProps`, and finally events, the resolved locale, and the root
+ * localization registries. Named locales may suspend while their date-fns
+ * module loads.
  *
  * @throws Error if the requested view is not registered.
  */
@@ -126,6 +139,8 @@ export default function Calendar<
     events = EMPTY_EVENTS,
     backgroundEvents = EMPTY_EVENTS,
     locale = DEFAULT_CALENDAR_LOCALE,
+    formatters = defaultCalendarFormatters,
+    messages = defaultCalendarMessages,
     localeFallback = null,
     ...sharedProps
 }: CalendarProps<Event, Resource>): ReactElement {
@@ -151,6 +166,8 @@ export default function Calendar<
                 <ResolvedCalendarView
                     ViewComponent={ViewComponent}
                     locale={locale}
+                    formatters={formatters}
+                    messages={messages}
                     sharedProps={sharedProps}
                     defaultViewProps={defaultViewProps}
                     viewProps={viewProps}

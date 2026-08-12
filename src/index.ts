@@ -16,6 +16,10 @@ export {
     resolveCalendarLocaleName
 } from "./core/locale.js";
 export {
+    defaultCalendarFormatters,
+    defaultCalendarMessages
+} from "./core/localization.js";
+export {
     createCalendarRange,
     getCalendarRangeBounds,
     moveCalendarDate,
@@ -32,15 +36,24 @@ export type {
     CalendarDateInput,
     CalendarEvent,
     CalendarEventId,
+    CalendarEventMessageContext,
+    CalendarFormatContext,
+    CalendarFormatters,
     CalendarLocale,
+    CalendarMessageContext,
+    CalendarMessages,
+    CalendarMoreEventsMessageContext,
     CalendarNavigationButton,
     CalendarNavigationButtonProps,
+    CalendarNavigationMessageContext,
     CalendarRange,
     CalendarRangeContext,
     CalendarRangeDefinition,
     CalendarRangeOptions,
     CalendarResourceId,
     CalendarStyle,
+    CalendarSlotMessageContext,
+    CalendarTimeRangeMessageContext,
     CalendarViewDefinition,
     CalendarWeekStart,
     NormalizedCalendarEvent,
@@ -48,6 +61,7 @@ export type {
 } from "./types.js";
 export type {
     AgendaDayHeaderProps,
+    AgendaEmptyProps,
     AgendaEventProps,
     AgendaViewProps
 } from "./views/agenda/types.js";

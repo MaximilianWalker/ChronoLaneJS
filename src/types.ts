@@ -3,6 +3,7 @@ import type {
     ComponentType,
     CSSProperties,
     ElementType,
+    ReactNode,
     SyntheticEvent
 } from "react";
 import type { Locale } from "date-fns";
@@ -60,6 +61,75 @@ export interface CalendarRange {
     [key: string]: unknown;
 }
 
+/** Context supplied to every calendar date and time formatter. */
+export interface CalendarFormatContext {
+    locale: Locale;
+    view: string;
+}
+
+/** Complete registry for rendering calendar-owned dates and times. */
+export interface CalendarFormatters {
+    time: (date: Date, context: CalendarFormatContext) => string;
+    date: (date: Date, context: CalendarFormatContext) => string;
+    weekday: (date: Date, context: CalendarFormatContext) => string;
+    dayHeader: (date: Date, context: CalendarFormatContext) => string;
+    rangeHeader: (
+        range: CalendarRange,
+        context: CalendarFormatContext
+    ) => ReactNode;
+}
+
+/** View identity available to every configurable calendar message. */
+export interface CalendarMessageContext {
+    view: string;
+}
+
+/** Values available when formatting a navigation control label. */
+export interface CalendarNavigationMessageContext extends CalendarMessageContext {
+    range: CalendarRange;
+}
+
+/** Prepared values available when formatting a time-slot label. */
+export interface CalendarSlotMessageContext extends CalendarMessageContext {
+    date: string;
+    time: string;
+}
+
+/** Prepared values available when formatting an event's accessible label. */
+export interface CalendarEventMessageContext extends CalendarMessageContext {
+    title?: string;
+    description?: string;
+    startDate: string;
+    startTime: string;
+    endDate: string;
+    endTime: string;
+}
+
+/** Prepared values available when formatting a visible event time range. */
+export interface CalendarTimeRangeMessageContext extends CalendarMessageContext {
+    startTime: string;
+    endTime: string;
+}
+
+/** Prepared values available when formatting a month-cell overflow control. */
+export interface CalendarMoreEventsMessageContext extends CalendarMessageContext {
+    count: number;
+    date: string;
+}
+
+/** Complete registry for calendar-owned visible and accessible text. */
+export interface CalendarMessages {
+    previous: (context: CalendarNavigationMessageContext) => string;
+    next: (context: CalendarNavigationMessageContext) => string;
+    timeGridLabel: (context: CalendarMessageContext) => string;
+    monthGridLabel: (context: CalendarMessageContext) => string;
+    slotLabel: (context: CalendarSlotMessageContext) => string;
+    eventLabel: (context: CalendarEventMessageContext) => string;
+    timeRange: (context: CalendarTimeRangeMessageContext) => string;
+    agendaEmpty: (context: CalendarNavigationMessageContext) => string;
+    moreEvents: (context: CalendarMoreEventsMessageContext) => string;
+}
+
 export interface CalendarViewDefinition {
     component: ElementType;
     defaultProps?: Record<string, unknown>;
@@ -78,6 +148,9 @@ export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
     date?: CalendarDateInput;
     defaultDate?: CalendarDateInput;
     locale?: CalendarLocale;
+    formatters?: CalendarFormatters;
+    messages?: CalendarMessages;
+    viewName?: string;
     timeZone?: string;
     minDate?: CalendarDateInput | null;
     maxDate?: CalendarDateInput | null;
@@ -95,6 +168,4 @@ export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
         interaction: SyntheticEvent
     ) => void;
     navigationButton?: CalendarNavigationButton;
-    previousLabel?: string;
-    nextLabel?: string;
 }

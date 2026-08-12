@@ -7,7 +7,6 @@ import type {
     ReactNode,
     SyntheticEvent
 } from "react";
-import type { Locale } from "date-fns";
 
 import type {
     CalendarDateInput,
@@ -170,9 +169,8 @@ export interface TimeGridColumnHeaderProps<Resource = unknown> {
     dayIndex: number;
     resource: Resource | null;
     resourceIndex: number | null;
+    title: string;
     resourceTitle: ReactNode;
-    locale: Locale;
-    dayFormat: string;
 }
 
 export interface TimeGridViewProps<
@@ -197,9 +195,6 @@ export interface TimeGridViewProps<
     cellWidth?: number;
     cellHeight?: number;
     showGridLines?: boolean;
-    dayFormat?: string;
-    headerFormat?: string;
-    formatHeader?: (range: CalendarRange & { locale: Locale }) => ReactNode;
     selectedRange?: { start: Date; end: Date };
     canDragEvent?: (
         event: NormalizedCalendarEvent<Event>,

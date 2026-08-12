@@ -1,12 +1,22 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn, userEvent, within } from "storybook/test";
+import { format } from "date-fns/format";
 
-import { MonthView } from "../../src/index.js";
+import {
+    MonthView,
+    defaultCalendarFormatters
+} from "../../src/index.js";
+import type { CalendarFormatters } from "../../src/index.js";
 import {
     MONTH_DATE,
     backgroundEvents,
     monthEvents
 } from "../fixtures.js";
+
+const compactFormatters: CalendarFormatters = {
+    ...defaultCalendarFormatters,
+    weekday: (day, { locale }) => format(day, "EEEEE", { locale })
+};
 
 const meta = {
     title: "Views/Month",
@@ -60,6 +70,6 @@ export const BackgroundAvailability: Story = {
 export const Compact: Story = {
     args: {
         maxEventsPerDay: 1,
-        weekdayFormat: "EEEEE"
+        formatters: compactFormatters
     }
 };

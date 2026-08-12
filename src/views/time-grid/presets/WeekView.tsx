@@ -13,8 +13,7 @@ export default function WeekView<
 >({
     range = "week",
     navigationStep = 7,
-    previousLabel = "Previous week",
-    nextLabel = "Next week",
+    viewName = "week",
     ...props
 }: TimeGridViewProps<Event, Resource>) {
     return (
@@ -22,8 +21,7 @@ export default function WeekView<
             {...props}
             range={range}
             navigationStep={navigationStep}
-            previousLabel={previousLabel}
-            nextLabel={nextLabel}
+            viewName={viewName}
         />
     );
 }

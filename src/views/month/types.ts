@@ -4,7 +4,6 @@ import type {
     MouseEventHandler,
     SyntheticEvent
 } from "react";
-import type { Locale } from "date-fns";
 
 import type {
     CalendarDateInput,
@@ -17,7 +16,7 @@ import type {
 
 export interface MonthDayHeaderProps {
     day: Date;
-    locale: Locale;
+    label: string;
     outsideMonth: boolean;
 }
 
@@ -25,8 +24,9 @@ export interface MonthEventProps<Event extends CalendarEvent = CalendarEvent> {
     event: NormalizedCalendarEvent<Event>;
     className: string;
     day: Date;
-    locale: Locale;
+    timeLabel: string;
     selected: boolean;
+    "aria-label": string;
     "aria-keyshortcuts"?: string;
     onClick?: MouseEventHandler<HTMLElement>;
     onDoubleClick?: MouseEventHandler<HTMLElement>;
@@ -43,8 +43,6 @@ export interface MonthViewProps<Event extends CalendarEvent = CalendarEvent>
     weekStart?: CalendarWeekStart;
     showOutsideDays?: boolean;
     maxEventsPerDay?: number;
-    headerFormat?: string;
-    weekdayFormat?: string;
     selectedDate?: CalendarDateInput;
     navigateDate?: (
         anchorDate: Date,

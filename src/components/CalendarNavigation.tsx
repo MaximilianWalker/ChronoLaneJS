@@ -23,8 +23,8 @@ interface CalendarNavigationProps {
     onNext: MouseEventHandler<HTMLButtonElement>;
     previousDisabled?: boolean;
     nextDisabled?: boolean;
-    previousLabel?: string;
-    nextLabel?: string;
+    previousLabel: string;
+    nextLabel: string;
     navigationButton?: ComponentType<CalendarNavigationButtonProps>;
     className?: string;
 }
@@ -41,8 +41,8 @@ export default function CalendarNavigation({
     onNext,
     previousDisabled = false,
     nextDisabled = false,
-    previousLabel = "Previous range",
-    nextLabel = "Next range",
+    previousLabel,
+    nextLabel,
     navigationButton: NavigationButton = DefaultNavigationButton,
     className = ""
 }: CalendarNavigationProps) {
