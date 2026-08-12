@@ -3,7 +3,6 @@
 import { Suspense } from "react";
 import type {
     ComponentProps,
-    CSSProperties,
     ElementType,
     ReactElement,
     ReactNode
@@ -22,6 +21,7 @@ import type {
     CalendarFormatters,
     CalendarLocale,
     CalendarMessages,
+    CalendarStyle,
     CalendarViewDefinition,
     SharedViewProps
 } from "./types.js";
@@ -41,7 +41,7 @@ export type CalendarViewRegistry = Record<string, CalendarViewRegistration>;
 
 interface CalendarRootProps {
     className?: string;
-    style?: CSSProperties;
+    style?: CalendarStyle;
     localeFallback?: ReactNode;
 }
 

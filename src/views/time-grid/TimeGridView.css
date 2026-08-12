@@ -20,8 +20,27 @@
 }
 
 .time-grid-view_header {
+    --header-border-color: #d8e1ec;
+
     flex: 0 0 auto;
     background: #fbfcfe;
+}
+
+.time-grid-view_header::before,
+.time-grid-view_header.has-resource-headers::after {
+    content: "";
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--header-border-color);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.time-grid-view_header::before {
+    grid-row: 1 / -1;
+}
+
+.time-grid-view_header.has-resource-headers::after {
+    grid-row: 1;
 }
 
 .time-grid-view_body {
@@ -36,7 +55,7 @@
     justify-content: center;
     min-width: 0;
     padding: 0 4px;
-    border-left: 1px solid #edf0f4;
+    border-left: 1px solid var(--header-border-color);
     background: #fbfcfe;
     text-align: center;
 }
@@ -55,10 +74,6 @@
 .time-grid-view_header-cell.is-secondary {
     color: #667085;
     font-size: 0.75rem;
-}
-
-.time-grid-view_header.has-resource-headers .time-grid-view_header-cell.is-primary {
-    border-bottom: 1px solid #e4e9f0;
 }
 
 .time-grid-view_time-label {
@@ -91,10 +106,6 @@
 .time-grid-view_grid.has-grid-lines .time-grid-view_slot {
     border-right: var(--border);
     border-bottom: var(--border);
-}
-
-.time-grid-view_grid.has-grid-lines .time-grid-view_slot.is-first-row {
-    border-top: var(--border);
 }
 
 .time-grid-view_grid.has-grid-lines .time-grid-view_slot.is-first-column {
@@ -207,7 +218,7 @@ button.time-grid-view_event {
 
 .time-grid-view_event-title {
     font-size: 0.71rem;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .time-grid-view_event-description {

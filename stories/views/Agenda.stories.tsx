@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect } from "storybook/test";
 
 import { AgendaView } from "../../src/index.js";
 import {
@@ -29,7 +30,15 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Basic: Story = {};
+export const Basic: Story = {
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelector(
+                ".agenda-view_list.calendar-scroll-region"
+            )
+        ).not.toBeNull();
+    }
+};
 
 export const Empty: Story = {
     args: {

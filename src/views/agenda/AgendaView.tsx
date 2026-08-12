@@ -150,7 +150,7 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                     navigation={NavigationComponent}
                 />
             )}
-            <div className="agenda-view_list">
+            <div className="agenda-view_list calendar-scroll-region">
                 {groups.length === 0 && (
                     <EmptyComponent message={messages.agendaEmpty(navigationContext)} />
                 )}

@@ -93,6 +93,9 @@ export const GroupedByDay: Story = {
         const gridWrapper = canvasElement.querySelector<HTMLElement>(
             ".time-grid-view_grid-wrapper"
         );
+        const header = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_header"
+        );
         const headerCell = canvasElement.querySelector<HTMLElement>(
             ".time-grid-view_header-cell"
         );
@@ -102,20 +105,75 @@ export const GroupedByDay: Story = {
         const timeLabel = canvasElement.querySelector<HTMLElement>(
             ".time-grid-view_time-label"
         );
+        const firstSlot = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_slot"
+        );
+        const firstEventTitle = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_event-title"
+        );
 
-        if (!gridWrapper || !headerCell || !timeLabels || !timeLabel) {
+        if (
+            !gridWrapper
+            || !header
+            || !headerCell
+            || !timeLabels
+            || !timeLabel
+            || !firstSlot
+            || !firstEventTitle
+        ) {
             throw new Error("The time-grid presentation did not render.");
         }
 
         const headerStyle = window.getComputedStyle(headerCell);
+        const headerBoundaryStyle = window.getComputedStyle(header, "::before");
+        const headerRowBoundaryStyle = window.getComputedStyle(header, "::after");
+        const scrollbarStyle = window.getComputedStyle(
+            gridWrapper,
+            "::-webkit-scrollbar"
+        );
+        const scrollbarThumbStyle = window.getComputedStyle(
+            gridWrapper,
+            "::-webkit-scrollbar-thumb"
+        );
+        const scrollbarTrackStyle = window.getComputedStyle(
+            gridWrapper,
+            "::-webkit-scrollbar-track"
+        );
+        const scrollbarCornerStyle = window.getComputedStyle(
+            gridWrapper,
+            "::-webkit-scrollbar-corner"
+        );
+        const scrollbarButtonStyle = window.getComputedStyle(
+            gridWrapper,
+            "::-webkit-scrollbar-button"
+        );
 
         await expect(
             window.getComputedStyle(gridWrapper).borderRadius
         ).toBe("14px");
+        await expect(gridWrapper.classList).toContain("calendar-scroll-region");
+        await expect(window.getComputedStyle(gridWrapper).scrollbarWidth).toBe("auto");
+        await expect(window.getComputedStyle(gridWrapper).scrollbarColor).toBe("auto");
+        await expect(scrollbarStyle.height).toBe("12px");
+        await expect(scrollbarThumbStyle.backgroundClip).toBe("padding-box");
+        await expect(
+            Number.parseFloat(scrollbarThumbStyle.borderTopWidth)
+        ).toBeGreaterThan(0);
+        await expect(scrollbarTrackStyle.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+        await expect(scrollbarCornerStyle.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+        await expect(scrollbarButtonStyle.display).toBe("none");
         await expect(headerStyle.borderLeftStyle).toBe("solid");
         await expect(
             Number.parseFloat(headerStyle.borderLeftWidth)
         ).toBeGreaterThan(0);
+        await expect(headerBoundaryStyle.gridColumnStart).toBe("1");
+        await expect(headerBoundaryStyle.gridColumnEnd).toBe("-1");
+        await expect(headerBoundaryStyle.borderBottomStyle).toBe("solid");
+        await expect(headerRowBoundaryStyle.gridColumnStart).toBe("1");
+        await expect(headerRowBoundaryStyle.gridColumnEnd).toBe("-1");
+        await expect(headerRowBoundaryStyle.borderBottomStyle).toBe("solid");
+        await expect(window.getComputedStyle(firstSlot).borderTopWidth).toBe("0px");
+        await expect(window.getComputedStyle(firstEventTitle).fontWeight).toBe("600");
         await expect(
             window.getComputedStyle(timeLabels).gridTemplateColumns
         ).toBe("64px");

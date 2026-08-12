@@ -322,6 +322,33 @@ documented custom-property extension points to adapt that default:
 }
 ```
 
+Scrollable calendar surfaces retain native browser behavior while using a
+compact inset thumb by default. Override the shared scrollbar tokens on the
+`Calendar` root or any ancestor:
+
+```tsx
+<Calendar
+    className="team-schedule"
+    style={{
+        "--calendar-scrollbar-size": "14px",
+        "--calendar-scrollbar-width": "auto",
+        "--calendar-scrollbar-inset": "4px",
+        "--calendar-scrollbar-thumb": "#64748b",
+        "--calendar-scrollbar-thumb-hover": "#475569",
+        "--calendar-scrollbar-track": "transparent",
+        "--calendar-scrollbar-radius": "999px"
+    }}
+/>
+```
+
+The `calendar-scroll-region` class is the stable advanced extension point for
+projects that need to replace the browser-specific scrollbar rules entirely.
+The CSS variables inherit into time-grid, month, and agenda scroll regions, so
+one root override keeps every built-in view consistent. The
+`--calendar-scrollbar-width` token controls the standards-based scrollbar;
+Chromium and Safari use `--calendar-scrollbar-size` so their inset thumb and
+hidden end buttons can be enforced through the WebKit scrollbar API.
+
 ### Interactions
 
 Selection and editing callbacks receive the normalized source event, never a

@@ -17,7 +17,7 @@ export default function Slot({
         <Component
             {...elementProps}
             type={interactive ? "button" : undefined}
-            className={`${elementProps.className}${slot.timeIndex === 0 ? " is-first-row" : ""}${slot.columnIndex === 0 ? " is-first-column" : ""}${slot.isDividerBoundary ? " is-divider-boundary" : ""}${selected ? " is-selected" : ""}`}
+            className={`${elementProps.className}${slot.columnIndex === 0 ? " is-first-column" : ""}${slot.isDividerBoundary ? " is-divider-boundary" : ""}${selected ? " is-selected" : ""}`}
         />
     );
 }

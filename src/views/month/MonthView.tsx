@@ -162,7 +162,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                 />
             )}
             <div
-                className="month-view_grid-wrapper"
+                className="month-view_grid-wrapper calendar-scroll-region"
                 aria-label={messages.monthGridLabel({ view: viewName })}
                 tabIndex={0}
             >

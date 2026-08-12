@@ -279,7 +279,7 @@ export default function TimeGridView<
                 />
             )}
             <div
-                className="time-grid-view_grid-wrapper"
+                className="time-grid-view_grid-wrapper calendar-scroll-region"
                 aria-label={messages.timeGridLabel({ view: viewName })}
                 data-group-by={hasResourceHeaders ? groupBy : undefined}
                 tabIndex={0}

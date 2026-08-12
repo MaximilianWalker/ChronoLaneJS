@@ -37,7 +37,15 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Basic: Story = {};
+export const Basic: Story = {
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelector(
+                ".month-view_grid-wrapper.calendar-scroll-region"
+            )
+        ).not.toBeNull();
+    }
+};
 
 export const HiddenOutsideDays: Story = {
     args: {

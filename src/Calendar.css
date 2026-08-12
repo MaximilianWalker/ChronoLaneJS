@@ -5,3 +5,46 @@
     height: max-content;
     min-height: 0;
 }
+
+.calendar-scroll-region {
+    scrollbar-color: var(--calendar-scrollbar-thumb, #aab6c5)
+        var(--calendar-scrollbar-track, transparent);
+    scrollbar-width: var(--calendar-scrollbar-width, thin);
+}
+
+@supports selector(::-webkit-scrollbar) {
+    .calendar-scroll-region {
+        scrollbar-color: auto;
+        scrollbar-width: auto;
+    }
+}
+
+.calendar-scroll-region::-webkit-scrollbar {
+    width: var(--calendar-scrollbar-size, 12px);
+    height: var(--calendar-scrollbar-size, 12px);
+}
+
+.calendar-scroll-region::-webkit-scrollbar-track,
+.calendar-scroll-region::-webkit-scrollbar-corner {
+    background: var(--calendar-scrollbar-track, transparent);
+}
+
+.calendar-scroll-region::-webkit-scrollbar-thumb {
+    border: var(--calendar-scrollbar-inset, 3px) solid transparent;
+    border-radius: var(--calendar-scrollbar-radius, 999px);
+    background-color: var(--calendar-scrollbar-thumb, #aab6c5);
+    background-clip: padding-box;
+}
+
+.calendar-scroll-region::-webkit-scrollbar-thumb:hover {
+    background-color: var(--calendar-scrollbar-thumb-hover, #8493a6);
+}
+
+.calendar-scroll-region::-webkit-scrollbar-button {
+    appearance: none;
+    display: none;
+    width: 0;
+    height: 0;
+    border: 0;
+    background: var(--calendar-scrollbar-track, transparent);
+}

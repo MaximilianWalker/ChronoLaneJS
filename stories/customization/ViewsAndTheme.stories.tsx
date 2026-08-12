@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect } from "storybook/test";
 
-import type { CalendarStyle } from "../../src/index.js";
 import {
     CustomViewExample,
     StoryCalendar
@@ -41,6 +41,41 @@ export const CssTheme: Story = {
         className: "story-theme",
         style: {
             "--story-accent": "#0f766e"
-        } as CalendarStyle
+        }
+    }
+};
+
+export const ScrollbarTheme: Story = {
+    args: {
+        view: "week",
+        cellWidth: 180,
+        style: {
+            "--calendar-scrollbar-width": "auto",
+            "--calendar-scrollbar-size": "16px",
+            "--calendar-scrollbar-inset": "4px",
+            "--calendar-scrollbar-thumb": "#0f766e",
+            "--calendar-scrollbar-thumb-hover": "#115e59",
+            "--calendar-scrollbar-track": "transparent"
+        }
+    },
+    play: async ({ canvasElement }) => {
+        const scrollRegion = canvasElement.querySelector<HTMLElement>(
+            ".calendar-scroll-region"
+        );
+
+        if (!scrollRegion) {
+            throw new Error("The themed scroll region did not render.");
+        }
+
+        const style = window.getComputedStyle(scrollRegion);
+        const scrollbarStyle = window.getComputedStyle(
+            scrollRegion,
+            "::-webkit-scrollbar"
+        );
+
+        await expect(
+            style.getPropertyValue("--calendar-scrollbar-thumb").trim()
+        ).toBe("#0f766e");
+        await expect(scrollbarStyle.height).toBe("16px");
     }
 };

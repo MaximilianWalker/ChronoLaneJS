@@ -107,6 +107,14 @@ void <Calendar view="time-grid" events={events} range={[new Date()]} />;
 void <Calendar view="week" events={events} slotDuration={30} labelInterval={60} />;
 void (
     <Calendar
+        style={{
+            "--calendar-scrollbar-size": "12px",
+            "--calendar-scrollbar-thumb": "#64748b"
+        }}
+    />
+);
+void (
+    <Calendar
         view="week"
         events={events}
         resources={{ items: resources }}
