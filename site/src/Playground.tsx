@@ -4,10 +4,12 @@ import Calendar from "../../src/Calendar.js";
 import type {
     CalendarEvent,
     CalendarEventId,
+    CalendarResourceConfig,
     NormalizedCalendarEvent
 } from "../../src/types.js";
+import type { TimeGridGroupBy } from "../../src/views/time-grid/types.js";
 
-type PlaygroundView = "day" | "week" | "month" | "agenda" | "resource" | "time-grid";
+type PlaygroundView = "day" | "week" | "month" | "agenda" | "resource-grouping" | "time-grid";
 
 interface PlaygroundResource {
     id: string;
@@ -25,15 +27,24 @@ const views: readonly { id: PlaygroundView; label: string; detail: string }[] = 
     { id: "week", label: "Week", detail: "Seven-day planning" },
     { id: "month", label: "Month", detail: "Compact calendar overview" },
     { id: "agenda", label: "Agenda", detail: "Readable event chronology" },
-    { id: "resource", label: "Resources", detail: "Parallel team lanes" },
+    {
+        id: "resource-grouping",
+        label: "Resource grouping",
+        detail: "Week grouped by day or resource"
+    },
     { id: "time-grid", label: "Custom", detail: "Flexible work-week range" }
 ] as const;
+const RESOURCE_GROUPING_OPTIONS: readonly TimeGridGroupBy[] = ["day", "resource"];
 
 const resources: PlaygroundResource[] = [
     { id: "studio", name: "Studio" },
     { id: "workshop", name: "Workshop" },
     { id: "terrace", name: "Terrace" }
 ];
+
+const resourceConfig: CalendarResourceConfig<PlaygroundEvent, PlaygroundResource> = {
+    items: resources
+};
 
 const events: PlaygroundEvent[] = [
     {
@@ -121,10 +132,34 @@ const resourceEvents: PlaygroundEvent[] = [
     {
         id: "prototype",
         title: "Prototype lab",
-        start: "2026-09-14T15:00:00",
-        end: "2026-09-14T17:00:00",
+        start: "2026-09-15T10:00:00",
+        end: "2026-09-15T12:00:00",
         color: "#0891b2",
         resourceId: "workshop"
+    },
+    {
+        id: "community-session",
+        title: "Community session",
+        start: "2026-09-16T14:00:00",
+        end: "2026-09-16T15:30:00",
+        color: "#ea580c",
+        resourceId: "terrace"
+    },
+    {
+        id: "cross-team-review",
+        title: "Cross-team review",
+        start: "2026-09-17T09:30:00",
+        end: "2026-09-17T10:30:00",
+        color: "#db2777",
+        resourceIds: ["studio", "terrace"]
+    },
+    {
+        id: "editing",
+        title: "Editing session",
+        start: "2026-09-18T13:00:00",
+        end: "2026-09-18T15:00:00",
+        color: "#4f46e5",
+        resourceId: "studio"
     }
 ];
 
@@ -145,14 +180,15 @@ const customRange = {
     navigationStep: 7
 };
 
-const getResourceId = (resource: PlaygroundResource) => resource.id;
-const getResourceTitle = (resource: PlaygroundResource) => resource.name;
-
 export default function Playground() {
     const [view, setView] = useState<PlaygroundView>("week");
+    const [resourceGroupBy, setResourceGroupBy] = useState<TimeGridGroupBy>("day");
     const [selectedEventIds, setSelectedEventIds] = useState<CalendarEventId[]>([]);
     const activeView = views.find(({ id }) => id === view) ?? views[0]!;
-    const visibleEvents = view === "resource"
+    const activeViewDetail = view === "resource-grouping"
+        ? `Week grouped by ${resourceGroupBy}`
+        : activeView.detail;
+    const visibleEvents = view === "resource-grouping"
         ? resourceEvents
         : view === "month"
             ? monthEvents
@@ -206,16 +242,16 @@ export default function Playground() {
                         maxEventsPerDay={2}
                     />
                 );
-            case "resource":
+            case "resource-grouping":
                 return (
                     <Calendar<PlaygroundEvent, PlaygroundResource>
                         {...calendarProps}
                         {...timeGridProps}
                         key={view}
-                        view="resource"
-                        resources={resources}
-                        getResourceId={getResourceId}
-                        getResourceTitle={getResourceTitle}
+                        view="week"
+                        resources={resourceConfig}
+                        groupBy={resourceGroupBy}
+                        cellWidth={88}
                     />
                 );
             case "time-grid":
@@ -273,9 +309,34 @@ export default function Playground() {
                             </button>
                         ))}
                     </div>
-                    <div className="playground-context" aria-live="polite">
-                        <span>{activeView.label}</span>
-                        <span>{activeView.detail}</span>
+                    <div className="playground-toolbar-controls">
+                        {view === "resource-grouping"
+                            ? (
+                                <div
+                                    className="resource-grouping-control"
+                                    role="group"
+                                    aria-label="Group resource schedule by"
+                                >
+                                    <span aria-hidden="true">Group by</span>
+                                    <div className="resource-grouping-options">
+                                        {RESOURCE_GROUPING_OPTIONS.map((groupBy) => (
+                                            <button
+                                                key={groupBy}
+                                                type="button"
+                                                aria-pressed={resourceGroupBy === groupBy}
+                                                onClick={() => setResourceGroupBy(groupBy)}
+                                            >
+                                                {groupBy === "day" ? "Day" : "Resource"}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )
+                            : null}
+                        <div className="playground-context" aria-live="polite">
+                            <span>{activeView.label}</span>
+                            <span>{activeViewDetail}</span>
+                        </div>
                     </div>
                 </div>
 

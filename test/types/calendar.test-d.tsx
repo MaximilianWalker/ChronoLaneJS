@@ -5,8 +5,9 @@ import type {
     CalendarEvent,
     CalendarProps,
     SharedViewProps,
-    TimeGridColumnHeaderProps,
+    TimeGridDayHeaderProps,
     TimeGridEventProps,
+    TimeGridResourceHeaderProps,
     TimeGridSlotProps
 } from "../../src/index.js";
 
@@ -31,6 +32,8 @@ const ProjectEventRenderer = ({
 }: TimeGridEventProps<ProjectEvent, ProjectResource>) => {
     void event.category;
     void segment.dayIndex;
+    void segment.columnResourceId;
+    void segment.resource?.name;
     void selected;
     void elementProps.onClick;
     return null;
@@ -42,18 +45,37 @@ const ProjectSlotRenderer = ({
     elementProps
 }: TimeGridSlotProps<ProjectResource>) => {
     void slot.dayIndex;
+    void slot.resourceId;
     void slot.resource?.name;
     void selected;
     void elementProps.style;
     return null;
 };
 
-const ProjectColumnHeader = ({
-    column,
+const ProjectDayHeader = ({
+    day,
+    dayIndex,
+    columns,
     title
-}: TimeGridColumnHeaderProps<ProjectResource>) => {
-    void column.dayIndex;
-    void column.resource?.name;
+}: TimeGridDayHeaderProps<ProjectResource>) => {
+    void day;
+    void dayIndex;
+    void columns[0]?.resource?.name;
+    void title;
+    return null;
+};
+
+const ProjectResourceHeader = ({
+    resource,
+    resourceId,
+    resourceIndex,
+    columns,
+    title
+}: TimeGridResourceHeaderProps<ProjectResource>) => {
+    void resource.name;
+    void resourceId;
+    void resourceIndex;
+    void columns[0]?.dayIndex;
     void title;
     return null;
 };
@@ -71,11 +93,14 @@ void <Calendar view="day" events={events} minTime="08:00" maxTime="18:00" />;
 void <Calendar view="month" events={events} maxEventsPerDay={3} />;
 void (
     <Calendar
-        view="resource"
+        view="day"
         events={events}
-        resources={resources}
-        getResourceId={(resource) => resource.id}
-        getResourceTitle={(resource) => resource.name}
+        resources={{
+            items: resources,
+            getId: (resource) => resource.id,
+            getTitle: (resource) => resource.name,
+            getEventIds: (event) => [event.category]
+        }}
     />
 );
 void <Calendar view="time-grid" events={events} range={[new Date()]} />;
@@ -84,11 +109,13 @@ void (
     <Calendar
         view="week"
         events={events}
-        resources={resources}
+        resources={{ items: resources }}
+        groupBy="resource"
         components={{
             event: ProjectEventRenderer,
             slot: ProjectSlotRenderer,
-            columnHeader: ProjectColumnHeader
+            dayHeader: ProjectDayHeader,
+            resourceHeader: ProjectResourceHeader
         }}
     />
 );
@@ -97,6 +124,24 @@ void <Calendar view="month" viewProps={{ maxEventsPerDay: 2 }} />;
 
 // @ts-expect-error Unknown root props must not bypass the public contract.
 void <Calendar view="week" eventz={events} />;
+
+// @ts-expect-error The redundant resource view is not a built-in view.
+void <Calendar view="resource" />;
+
+// @ts-expect-error Resource items and accessors must use the grouped contract.
+void <Calendar view="day" resources={resources} />;
+
+// @ts-expect-error Resource ID accessors must return stable string or number IDs.
+void <Calendar view="day" resources={{ items: resources, getId: () => ({}) }} />;
+
+// @ts-expect-error Flat resource accessors are removed.
+void <Calendar view="day" getResourceId={(resource: ProjectResource) => resource.id} />;
+
+// @ts-expect-error Resource grouping only accepts the two supported dimensions.
+void <Calendar view="week" groupBy="team" />;
+
+// @ts-expect-error The combined time-grid column header was removed.
+void <Calendar view="week" components={{ columnHeader: ProjectDayHeader }} />;
 
 // @ts-expect-error Renderer replacements must be grouped under components.
 void <Calendar view="week" eventComponent={ProjectEventRenderer} />;

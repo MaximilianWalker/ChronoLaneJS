@@ -20,8 +20,8 @@ import {
     basicEvents,
     multiDayEvents,
     overnightEvents,
+    resourceConfig,
     resourceEvents,
-    resources
 } from "../fixtures.js";
 
 const CUSTOM_RENDERER_COMPONENTS = {
@@ -127,9 +127,9 @@ export const SelectOvernightEvent: Story = {
 
 export const SelectMultiResourceEvent: Story = {
     args: {
-        view: "resource",
+        view: "day",
         events: resourceEvents.filter(({ id }) => id === "shared-briefing"),
-        resources
+        resources: resourceConfig
     },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);

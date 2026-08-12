@@ -20,9 +20,8 @@
     overflow: visible;
 }
 
-.time-grid-view_column-header {
+.time-grid-view_header-cell {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-width: 0;
@@ -30,17 +29,24 @@
     text-align: center;
 }
 
-.time-grid-view_column-header time,
-.time-grid-view_resource-title {
+.time-grid-view_header-cell > * {
     overflow: hidden;
     max-width: 100%;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.time-grid-view_resource-title {
+.time-grid-view_header-cell.is-primary {
+    font-weight: 600;
+}
+
+.time-grid-view_header-cell.is-secondary {
     color: #545454;
     font-size: 0.75rem;
+}
+
+.time-grid-view_header.has-resource-headers .time-grid-view_header-cell.is-primary {
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .time-grid-view_time-label {

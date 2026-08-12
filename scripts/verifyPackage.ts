@@ -10,6 +10,7 @@ const {
     default: Calendar,
     DayView,
     TimeGridView,
+    defaultCalendarViews,
     defaultCalendarFormatters,
     defaultCalendarMessages,
     parseCalendarDate
@@ -24,6 +25,8 @@ assert.match(styles, /\.time-grid-view/);
 assert.equal(parseCalendarDate("2026-09-01").getDate(), 1);
 assert.equal(typeof DayView, "function");
 assert.equal(typeof TimeGridView, "function");
+assert.equal("ResourceView" in packageModule, false);
+assert.equal("resource" in defaultCalendarViews, false);
 assert.equal(typeof defaultCalendarFormatters.time, "function");
 assert.equal(typeof defaultCalendarMessages.eventLabel, "function");
 
@@ -38,5 +41,34 @@ const markup = renderToStaticMarkup(createElement(Calendar, {
 
 assert.match(markup, /class="calendar"/);
 assert.match(markup, /class="time-grid-view"/);
+assert.match(markup, /time-grid-view_day-header is-primary/);
+assert.doesNotMatch(markup, /time-grid-view_resource-header/);
+assert.doesNotMatch(styles, /\.time-grid-view_column-header/);
+
+const groupedMarkup = renderToStaticMarkup(createElement(Calendar, {
+    view: "week",
+    date: new Date(2026, 8, 1),
+    events: [{
+        id: "planning",
+        title: "Planning",
+        start: new Date(2026, 8, 1, 9),
+        end: new Date(2026, 8, 1, 10),
+        resourceId: "room-a"
+    }],
+    resources: {
+        items: [
+            { id: "room-a", name: "Room A" },
+            { id: "room-b", name: "Room B" }
+        ]
+    },
+    groupBy: "resource",
+    showControls: false,
+    minTime: "08:00",
+    maxTime: "10:00"
+}));
+
+assert.match(groupedMarkup, /data-group-by="resource"/);
+assert.match(groupedMarkup, /time-grid-view_resource-header is-primary/);
+assert.match(groupedMarkup, /time-grid-view_day-header is-secondary/);
 
 console.log("Verified the built ChronoLaneJS package entry, styles, exports, and render path.");

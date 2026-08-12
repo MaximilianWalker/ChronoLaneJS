@@ -13,6 +13,7 @@ import type { Locale } from "date-fns";
 export type CalendarDateInput = Date | string | number;
 export type CalendarLocale = string | Locale;
 export type CalendarEventId = string | number;
+/** Stable non-empty string or finite number used for resource identity. */
 export type CalendarResourceId = string | number;
 export type CalendarWeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type CalendarStyle = CSSProperties & Partial<Record<`--${string}`, string | number>>;
@@ -31,8 +32,8 @@ export interface CalendarEvent {
     end: CalendarDateInput;
     color?: string;
     variant?: string;
-    resourceId?: unknown;
-    resourceIds?: unknown[];
+    resourceId?: CalendarResourceId;
+    resourceIds?: CalendarResourceId[];
     resource?: unknown;
     style?: CalendarStyle;
     titleStyle?: CSSProperties;
@@ -41,6 +42,23 @@ export interface CalendarEvent {
 
 export type NormalizedCalendarEvent<Event extends CalendarEvent = CalendarEvent> =
     Omit<Event, "start" | "end"> & { start: Date; end: Date };
+
+/** Resource columns and accessors supplied to a time-grid view. */
+export interface CalendarResourceConfig<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> {
+    /** Concrete resources rendered once per visible day. */
+    items: Resource[];
+    /** Returns the stable identity used to match resources and events. */
+    getId?: (resource: Resource) => CalendarResourceId;
+    /** Returns the prepared heading content for a resource column. */
+    getTitle?: (resource: Resource) => ReactNode;
+    /** Returns every resource ID to which an event is assigned. */
+    getEventIds?: (
+        event: NormalizedCalendarEvent<Event>
+    ) => CalendarResourceId[];
+}
 
 export interface CalendarRangeContext {
     weekStartsOn: CalendarWeekStart;

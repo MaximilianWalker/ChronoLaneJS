@@ -29,14 +29,13 @@ import type {
     CalendarStyle
 } from "../../types.js";
 import Background from "./Background.js";
-import ColumnHeader from "./ColumnHeader.js";
+import DayHeader from "./DayHeader.js";
 import { createEventDrop } from "./drop.js";
 import Event from "./Event.js";
 import { createLayout } from "./layout/createLayout.js";
-import {
-    getDefaultResourceId,
-    getDefaultResourceTitle
-} from "./resources.js";
+import { createTimeGridHeaderRows } from "./layout/headers.js";
+import ResourceHeader from "./ResourceHeader.js";
+import { resolveCalendarResourceTitle } from "./resources.js";
 import Slot from "./Slot.js";
 import type {
     TimeGridEventLayout,
@@ -80,8 +79,8 @@ const groupByColumn = <Item extends { columnIndex: number }>(
  * @remarks
  * The view owns range navigation, time-zone normalization, slot generation,
  * event clipping, overlap lanes, and drag-and-drop calculations. Markup for
- * slots, events, background events, and column headers can be replaced through
- * `components` without replacing layout behavior.
+ * slots, events, background events, and hierarchical headers can be replaced
+ * through `components` without replacing layout behavior.
  */
 export default function TimeGridView<
     Event extends CalendarEvent = CalendarEvent,
@@ -89,7 +88,8 @@ export default function TimeGridView<
 >({
     events = EMPTY_ITEMS,
     backgroundEvents = EMPTY_ITEMS,
-    resources = EMPTY_ITEMS,
+    resources,
+    groupBy = "day",
     date: controlledDate,
     defaultDate,
     range = "week",
@@ -123,16 +123,14 @@ export default function TimeGridView<
     onEventEdit,
     onEventDrop,
     onSlotSelect,
-    getResourceId = getDefaultResourceId,
-    getResourceTitle = getDefaultResourceTitle,
-    getEventResourceIds,
     components = EMPTY_COMPONENTS
 }: TimeGridViewProps<Event, Resource>) {
     const {
         slot: SlotComponent = Slot,
         event: EventComponent = Event,
         backgroundEvent: BackgroundEventComponent = Background,
-        columnHeader: ColumnHeaderComponent = ColumnHeader,
+        dayHeader: DayHeaderComponent = DayHeader,
+        resourceHeader: ResourceHeaderComponent = ResourceHeader,
         navigation: NavigationComponent
     } = components;
     const [draggedEvent, setDraggedEvent] = useState<
@@ -171,18 +169,16 @@ export default function TimeGridView<
         events: calendarEvents,
         backgroundEvents: calendarBackgroundEvents,
         resources,
+        groupBy,
         minTime,
         maxTime,
         slotDuration,
-        labelInterval,
-        getResourceId,
-        ...(getEventResourceIds ? { getEventResourceIds } : {})
+        labelInterval
     }), [
         calendarBackgroundEvents,
         calendarEvents,
         days,
-        getEventResourceIds,
-        getResourceId,
+        groupBy,
         labelInterval,
         maxTime,
         minTime,
@@ -205,7 +201,12 @@ export default function TimeGridView<
         () => groupByColumn(positionedBackgroundEvents, columns.length),
         [columns.length, positionedBackgroundEvents]
     );
-    const headerHeightValue = `${headerHeight}px`;
+    const headerRows = useMemo(
+        () => createTimeGridHeaderRows(columns, groupBy),
+        [columns, groupBy]
+    );
+    const hasResourceHeaders = headerRows.secondary.length > 0;
+    const headerRowHeightValue = `${headerHeight / (hasResourceHeaders ? 2 : 1)}px`;
     const timeLabelWidthValue = `${timeLabelWidth}px`;
     const cellWidthValue = cellWidth
         ? `${cellWidth}px`
@@ -280,31 +281,59 @@ export default function TimeGridView<
             <div
                 className="time-grid-view_grid-wrapper"
                 aria-label={messages.timeGridLabel({ view: viewName })}
+                data-group-by={hasResourceHeaders ? groupBy : undefined}
                 tabIndex={0}
             >
                 <div
-                    className="time-grid-view_header"
+                    className={`time-grid-view_header${hasResourceHeaders
+                        ? " has-resource-headers"
+                        : ""}`}
                     style={{
                         display: "grid",
                         gridTemplateColumns: `${timeLabelWidthValue} repeat(${columns.length}, ${cellWidthValue})`,
-                        gridTemplateRows: headerHeightValue
+                        gridTemplateRows: `repeat(${hasResourceHeaders ? 2 : 1}, ${headerRowHeightValue})`
                     }}
                 >
-                    {columns.map((column, columnIndex) => (
-                        <div
-                            key={column.key}
-                            className="time-grid-view_column-header"
-                            style={{ gridColumn: columnIndex + 2 }}
-                        >
-                            <ColumnHeaderComponent
-                                column={column}
-                                title={formatters.dayHeader(column.day, formatContext)}
-                                resourceTitle={column.resource == null
-                                    ? null
-                                    : getResourceTitle(column.resource)}
-                            />
-                        </div>
-                    ))}
+                    {[headerRows.primary, headerRows.secondary].map(
+                        (headers, rowIndex) => headers.map((headerCell) => (
+                            <div
+                                key={`${rowIndex}-${headerCell.key}`}
+                                className={`time-grid-view_header-cell time-grid-view_${headerCell.kind}-header is-${rowIndex === 0
+                                    ? "primary"
+                                    : "secondary"}`}
+                                style={{
+                                    gridColumn: `${headerCell.columnIndex + 2} / span ${headerCell.columns.length}`,
+                                    gridRow: rowIndex + 1
+                                }}
+                            >
+                                {headerCell.kind === "day"
+                                    ? (
+                                        <DayHeaderComponent
+                                            day={headerCell.day}
+                                            dayIndex={headerCell.dayIndex}
+                                            columns={headerCell.columns}
+                                            title={formatters.dayHeader(
+                                                headerCell.day,
+                                                formatContext
+                                            )}
+                                        />
+                                    )
+                                    : (
+                                        <ResourceHeaderComponent
+                                            resource={headerCell.resource}
+                                            resourceId={headerCell.resourceId}
+                                            resourceIndex={headerCell.resourceIndex}
+                                            columns={headerCell.columns}
+                                            title={resolveCalendarResourceTitle(
+                                                resources,
+                                                headerCell.resource,
+                                                headerCell.resourceId
+                                            )}
+                                        />
+                                    )}
+                            </div>
+                        ))
+                    )}
                 </div>
                 <div className="time-grid-view_body">
                     <div

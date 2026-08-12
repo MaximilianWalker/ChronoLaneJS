@@ -28,7 +28,6 @@ export {
 export { default as AgendaView } from "./views/agenda/AgendaView.js";
 export { default as MonthView } from "./views/month/MonthView.js";
 export { default as DayView } from "./views/time-grid/presets/DayView.js";
-export { default as ResourceView } from "./views/time-grid/presets/ResourceView.js";
 export { default as WeekView } from "./views/time-grid/presets/WeekView.js";
 export { default as TimeGridView } from "./views/time-grid/TimeGridView.js";
 export type {
@@ -56,6 +55,7 @@ export type {
     CalendarRangeDefinition,
     CalendarRangeOptions,
     CalendarRendererElementProps,
+    CalendarResourceConfig,
     CalendarResourceId,
     CalendarStyle,
     CalendarSlotMessageContext,
@@ -81,13 +81,15 @@ export type {
 export type {
     TimeGridBackgroundEventProps,
     TimeGridColumn,
-    TimeGridColumnHeaderProps,
     TimeGridComponents,
+    TimeGridDayHeaderProps,
     TimeGridEventDrop,
     TimeGridEventDropPosition,
     TimeGridEventLayout,
     TimeGridEventProps,
     TimeGridEventSegment,
+    TimeGridGroupBy,
+    TimeGridResourceHeaderProps,
     TimeGridSlot,
     TimeGridSlotProps,
     TimeGridViewProps,

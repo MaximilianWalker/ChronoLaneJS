@@ -52,7 +52,6 @@ interface CalendarBuiltInViewProps<
     agenda: AgendaViewProps<Event>;
     day: TimeGridViewProps<Event, Resource>;
     month: MonthViewProps<Event>;
-    resource: TimeGridViewProps<Event, Resource>;
     "time-grid": TimeGridViewProps<Event, Resource>;
     week: TimeGridViewProps<Event, Resource>;
 }

@@ -10,6 +10,8 @@ import type {
     CalendarEvent,
     CalendarRange,
     CalendarRangeDefinition,
+    CalendarResourceConfig,
+    CalendarResourceId,
     CalendarRendererElementProps,
     CalendarWeekStart,
     NormalizedCalendarEvent,
@@ -23,11 +25,15 @@ type TimeMinute = `${"0" | "1" | "2" | "3" | "4" | "5"}${DecimalDigit}`;
 /** A zero-padded 24-hour wall-clock time with minute precision. */
 export type TimeOfDay = `${TimeHour}:${TimeMinute}`;
 
+/** Outer grouping dimension used when both days and resources are visible. */
+export type TimeGridGroupBy = "day" | "resource";
+
 export interface TimeGridColumn<Resource = unknown> {
     key: string;
     day: Date;
     dayIndex: number;
     resource: Resource | null;
+    resourceId: CalendarResourceId | null;
     resourceIndex: number | null;
 }
 
@@ -41,6 +47,7 @@ export interface TimeGridSlot<Resource = unknown> {
     dayIndex: number;
     columnIndex: number;
     resource: Resource | null;
+    resourceId: CalendarResourceId | null;
     isDividerBoundary: boolean;
 }
 
@@ -53,6 +60,7 @@ export type TimeGridEventSegment<
     dayIndex: number;
     columnIndex: number;
     resource: Resource | null;
+    columnResourceId: CalendarResourceId | null;
     resourceIndex: number | null;
     startRow: number;
     endRow: number;
@@ -70,6 +78,7 @@ export type TimeGridEventLayout<
 export interface TimeGridEventDropPosition<Resource = unknown> {
     day: Date;
     resource: Resource | null;
+    resourceId: CalendarResourceId | null;
 }
 
 /** Complete application-facing result of dropping a time-grid event. */
@@ -128,10 +137,19 @@ export interface TimeGridBackgroundEventProps<
     elementProps: CalendarRendererElementProps;
 }
 
-export interface TimeGridColumnHeaderProps<Resource = unknown> {
-    column: TimeGridColumn<Resource>;
+export interface TimeGridDayHeaderProps<Resource = unknown> {
+    day: Date;
+    dayIndex: number;
+    columns: TimeGridColumn<Resource>[];
     title: string;
-    resourceTitle: ReactNode;
+}
+
+export interface TimeGridResourceHeaderProps<Resource = unknown> {
+    resource: Resource;
+    resourceId: CalendarResourceId;
+    resourceIndex: number;
+    columns: TimeGridColumn<Resource>[];
+    title: ReactNode;
 }
 
 /** Replaceable render boundaries owned by time-grid views and presets. */
@@ -142,14 +160,16 @@ export interface TimeGridComponents<
     event?: ComponentType<TimeGridEventProps<Event, Resource>>;
     slot?: ComponentType<TimeGridSlotProps<Resource>>;
     backgroundEvent?: ComponentType<TimeGridBackgroundEventProps<Event, Resource>>;
-    columnHeader?: ComponentType<TimeGridColumnHeaderProps<Resource>>;
+    dayHeader?: ComponentType<TimeGridDayHeaderProps<Resource>>;
+    resourceHeader?: ComponentType<TimeGridResourceHeaderProps<Resource>>;
 }
 
 export interface TimeGridViewProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > extends SharedViewProps<Event> {
-    resources?: Resource[];
+    resources?: CalendarResourceConfig<Event, Resource>;
+    groupBy?: TimeGridGroupBy;
     range?: CalendarRangeDefinition;
     navigationStep?: number;
     navigateDate?: (
@@ -177,8 +197,5 @@ export interface TimeGridViewProps<
         slot: TimeGridSlot<Resource>,
         interaction: SyntheticEvent
     ) => void;
-    getResourceId?: (resource: Resource) => unknown;
-    getResourceTitle?: (resource: Resource) => ReactNode;
-    getEventResourceIds?: (event: NormalizedCalendarEvent<Event>) => unknown[];
     components?: TimeGridComponents<Event, Resource>;
 }

@@ -25,9 +25,10 @@ import type {
     MonthViewProps,
     SharedViewProps,
     TimeGridBackgroundEventProps,
-    TimeGridColumnHeaderProps,
     TimeGridComponents,
+    TimeGridDayHeaderProps,
     TimeGridEventProps,
+    TimeGridResourceHeaderProps,
     TimeGridSlotProps,
     TimeGridViewProps
 } from "../src/index.js";
@@ -289,16 +290,28 @@ export function CustomBackground({
     );
 }
 
-/** Renderer replacement showing both the calendar day and resource grouping. */
-export function CustomColumnHeader({
-    column,
-    title,
-    resourceTitle
-}: TimeGridColumnHeaderProps<StoryResource>) {
+/** Renderer replacement for one grouped time-grid day heading. */
+export function CustomTimeGridDayHeader({
+    columns,
+    title
+}: TimeGridDayHeaderProps<StoryResource>) {
     return (
         <span className="story-header">
             <strong>{title}</strong>
-            {resourceTitle != null && <span>{column.resource?.group}: {resourceTitle}</span>}
+            <span>{columns.length} column{columns.length === 1 ? "" : "s"}</span>
+        </span>
+    );
+}
+
+/** Renderer replacement for one grouped time-grid resource heading. */
+export function CustomTimeGridResourceHeader({
+    resource,
+    title
+}: TimeGridResourceHeaderProps<StoryResource>) {
+    return (
+        <span className="story-header">
+            <strong>{title}</strong>
+            <span>{resource.group}</span>
         </span>
     );
 }
@@ -375,7 +388,8 @@ const customTimeGridComponents: TimeGridComponents<StoryEvent, StoryResource> = 
     event: CustomTimeGridEvent,
     slot: CustomSlot,
     backgroundEvent: CustomBackground,
-    columnHeader: CustomColumnHeader,
+    dayHeader: CustomTimeGridDayHeader,
+    resourceHeader: CustomTimeGridResourceHeader,
     navigation: CustomNavigationButton
 };
 

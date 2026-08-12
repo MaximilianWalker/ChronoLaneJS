@@ -11,7 +11,7 @@ import {
     MIN_TIME,
     backgroundEvents,
     basicEvents,
-    resources,
+    resourceConfig,
     resourceEvents
 } from "../fixtures.js";
 
@@ -29,7 +29,7 @@ const meta = {
     argTypes: {
         view: {
             control: "select",
-            options: ["day", "week", "month", "agenda", "resource", "time-grid"]
+            options: ["day", "week", "month", "agenda", "time-grid"]
         },
         events: { control: false },
         backgroundEvents: { control: false },
@@ -57,21 +57,13 @@ export const WithBackgroundEvents: Story = {
     }
 };
 
-export const ResourceCalendar: Story = {
+export const ResourceGrouping: Story = {
     args: {
-        view: "resource",
+        view: "week",
         events: resourceEvents,
-        resources,
-        getResourceId: (resource) => (
-            resource && typeof resource === "object" && "id" in resource
-                ? resource.id
-                : undefined
-        ),
-        getResourceTitle: (resource) => (
-            resource && typeof resource === "object" && "name" in resource
-                ? String(resource.name)
-                : "Unknown resource"
-        )
+        resources: resourceConfig,
+        groupBy: "resource",
+        cellWidth: 92
     }
 };
 

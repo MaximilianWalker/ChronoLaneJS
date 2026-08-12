@@ -1,6 +1,7 @@
 import { sortEvents } from "../../../core/events.js";
 import type {
     CalendarEvent,
+    CalendarResourceId,
     NormalizedCalendarEvent
 } from "../../../types.js";
 import type {
@@ -14,6 +15,8 @@ import {
 } from "./timeScale.js";
 import type { ResolvedTimeWindow } from "./timeScale.js";
 
+const EMPTY_RESOURCE_IDS = new Set<CalendarResourceId>();
+
 interface CreateEventSegmentsOptions<
     Event extends CalendarEvent,
     Resource
@@ -21,18 +24,17 @@ interface CreateEventSegmentsOptions<
     events: NormalizedCalendarEvent<Event>[];
     columns: TimeGridColumn<Resource>[];
     timeWindow: ResolvedTimeWindow;
-    getResourceId: (resource: Resource) => unknown;
-    getEventResourceIds: (event: NormalizedCalendarEvent<Event>) => unknown[];
+    getEventIds: (
+        event: NormalizedCalendarEvent<Event>
+    ) => Set<CalendarResourceId>;
 }
 
 /** Tests whether an event's resource assignments include a grid column. */
 const belongsToColumn = <Resource>(
-    eventResourceIds: unknown[],
-    column: TimeGridColumn<Resource>,
-    getResourceId: (resource: Resource) => unknown
+    eventResourceIds: Set<CalendarResourceId>,
+    column: TimeGridColumn<Resource>
 ): boolean => (
-    column.resource == null
-    || eventResourceIds.includes(getResourceId(column.resource))
+    column.resourceId == null || eventResourceIds.has(column.resourceId)
 );
 
 /**
@@ -49,13 +51,11 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
     events,
     columns,
     timeWindow,
-    getResourceId,
-    getEventResourceIds
+    getEventIds
 }: CreateEventSegmentsOptions<Event, Resource>): TimeGridEventSegment<Event, Resource>[] => {
-    const resourceIdsByEvent = new Map(events.map((event) => [
-        event,
-        getEventResourceIds(event)
-    ]));
+    const resourceIdsByEvent = columns.some(({ resourceId }) => resourceId != null)
+        ? new Map(events.map((event) => [event, getEventIds(event)]))
+        : null;
 
     return columns.flatMap((column, columnIndex) => {
         const visibleDayStart = atDayMinute(column.day, timeWindow.startMinute);
@@ -63,9 +63,8 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
 
         return events.flatMap((event) => {
             if (!belongsToColumn(
-                resourceIdsByEvent.get(event) ?? [],
-                column,
-                getResourceId
+                resourceIdsByEvent?.get(event) ?? EMPTY_RESOURCE_IDS,
+                column
             )) return [];
 
             const visibleStart = event.start > visibleDayStart
@@ -86,6 +85,7 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
                 dayIndex: column.dayIndex,
                 columnIndex,
                 resource: column.resource,
+                columnResourceId: column.resourceId,
                 resourceIndex: column.resourceIndex,
                 ...getGridRows(
                     visibleStart,

@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  Day, week, month, agenda, resource, and custom time-grid views<br />
+  Day, week, month, agenda, and custom time-grid views with resource columns<br />
   with flexible rendering and controlled or uncontrolled state.
 </p>
 
@@ -35,7 +35,7 @@
 ---
 
 ChronoLaneJS is a customizable React calendar with day, week, month, agenda,
-resource, and custom time-grid views. It provides timezone-aware date handling,
+and custom time-grid views. It provides timezone-aware date handling,
 range navigation, event layout, interactions, and accessible defaults while
 keeping state management and persistence outside the component.
 
@@ -47,7 +47,7 @@ keeping state management and persistence outside the component.
 
 ## Why ChronoLaneJS?
 
-- **Views that share one model:** day, week, month, agenda, resource, and
+- **Views that share one model:** day, week, month, agenda, and
   arbitrary time-grid ranges use the same event and navigation contracts.
 - **Correct across time:** IANA timezones, daylight-saving transitions, lazy
   date-fns locales, and explicit week-start behavior are built in.
@@ -63,7 +63,7 @@ keeping state management and persistence outside the component.
 ## Interactive documentation
 
 The [project website](https://maximilianwalker.github.io/ChronoLaneJS/) includes
-a compact playground with every built-in view. The exhaustive
+a compact playground with every built-in view and resource-column mode. The exhaustive
 [Storybook](https://maximilianwalker.github.io/ChronoLaneJS/storybook/) covers
 every public customization point, including:
 
@@ -141,11 +141,11 @@ Next.js client component without a framework-specific wrapper.
 | `week` | Seven-day time-grid preset |
 | `month` | Month grid with optional outside days |
 | `agenda` | Event groups across a configurable date range |
-| `resource` | One-day time grid with resource columns |
 | `time-grid` | Generic, configurable time-grid renderer |
 
-`day`, `week`, and `resource` are presets over `TimeGridView`; they share its
-layout and interaction behavior rather than maintaining separate engines.
+`day` and `week` are presets over `TimeGridView`; they share its layout and
+interaction behavior rather than maintaining separate engines. Resource
+columns are available on both presets and on every custom time-grid range.
 
 The root `Calendar` props are a discriminated TypeScript union keyed by
 `view`. Each built-in name accepts only the props supported by that view, and
@@ -221,18 +221,53 @@ as navigation and empty-state text remain caller-controlled through
 Resources are arbitrary values rather than a room-specific abstraction:
 
 ```tsx
+import type { CalendarResourceConfig } from "@chronolanejs/react";
+
+const calendarResources: CalendarResourceConfig<ScheduleEvent, Person> = {
+    items: people,
+    getId: (person) => person.uuid,
+    getTitle: (person) => person.displayName,
+    getEventIds: (event) => event.assigneeUuids
+};
+
 <Calendar
-    view="resource"
-    resources={people}
+    view="day"
     events={events}
-    getResourceId={(person) => person.uuid}
-    getResourceTitle={(person) => person.displayName}
-    getEventResourceIds={(event) => event.assigneeUuids}
+    resources={calendarResources}
 />
 ```
 
-The defaults read `resource.id` and `event.resourceId`, `event.resourceIds`, or
-`event.resource.id`.
+The `resources` object keeps its items and accessors under one inferred generic
+contract. The defaults read `resource.id`, select a title from
+`resource.title`, `resource.name`, or `resource.id`, and read assignments from
+`event.resourceIds`, `event.resourceId`, or `event.resource.id`.
+
+Resource IDs are `CalendarResourceId` values: non-empty strings or finite
+numbers. Equality uses JavaScript `Map`/`Set` SameValueZero semantics: `1` and
+`"1"` identify different resources, while `0` and `-0` identify the same one.
+Missing or duplicate item IDs throw before layout is rendered.
+Event assignments use set behavior: repeated IDs produce one segment per
+matching column, while IDs absent from `items` do not produce a segment.
+
+Omitting `resources`, or supplying an empty `items` array, creates one
+ungrouped column per visible day and does not render a resource-header row.
+When resource columns are configured, `groupBy="day"` (the default) renders
+each day above its resources. Set `groupBy="resource"` to render each resource
+above its visible days:
+
+```tsx
+<Calendar
+    view="week"
+    events={events}
+    resources={calendarResources}
+    groupBy="resource"
+/>
+```
+
+Both orders use the same day-resource columns and event assignments; only the
+outer grouping and physical column order change. The concrete item remains
+available as `column.resource`, `slot.resource`, `segment.resource`, and in
+both event-drop positions. Stable IDs are available alongside those values.
 
 ## Customization
 
@@ -244,7 +279,7 @@ Views expose intentional renderer boundaries where applicable:
 | --- | --- |
 | Agenda | `event`, `dayHeader`, `empty`, `navigation` |
 | Month | `event`, `dayHeader`, `navigation` |
-| Time grid and presets | `event`, `slot`, `backgroundEvent`, `columnHeader`, `navigation` |
+| Time grid and presets | `event`, `slot`, `backgroundEvent`, `dayHeader`, `resourceHeader`, `navigation` |
 
 ```tsx
 <Calendar
@@ -259,11 +294,12 @@ Views expose intentional renderer boundaries where applicable:
 ```
 
 Time-grid event renderers receive `{ event, segment, selected, elementProps }`,
-slot renderers receive `{ slot, selected, elementProps }`, and column-header
-renderers receive `{ column, title, resourceTitle }`. Positional values remain
-available without duplication: use `segment.dayIndex`, `slot.dayIndex`, or
-`column.dayIndex`. Agenda and month event renderers receive the normalized
-`event`, their prepared visible values, `selected`, and `elementProps`.
+slot renderers receive `{ slot, selected, elementProps }`, and day/resource
+header renderers receive their concrete value, indexes, covered columns, and
+prepared title. Positional values remain available without duplication on the
+segment, slot, or covered columns. Agenda and month event renderers receive the
+normalized `event`, their prepared visible values, `selected`, and
+`elementProps`.
 
 Spread `elementProps` onto the renderer's root element to retain layout,
 accessibility, drag, selection, and editing behavior. ChronoLaneJS owns those
@@ -294,7 +330,8 @@ restrict individual events or visible resource segments.
 
 `onEventDrop` receives the source event, proposed `start` and `end`, and
 explicit `source` and `destination` positions. Dropping a clipped multi-day
-event preserves the source event's complete duration.
+event preserves the source event's complete duration. Each position includes
+both the concrete `resource` value and its stable `resourceId`.
 
 ### Custom views
 
@@ -323,8 +360,7 @@ allowed custom view names and `viewProps` from the supplied registry.
 
 ChronoLaneJS exports `Calendar` as the default, together with:
 
-- `AgendaView`, `DayView`, `MonthView`, `ResourceView`, `TimeGridView`, and
-  `WeekView`;
+- `AgendaView`, `DayView`, `MonthView`, `TimeGridView`, and `WeekView`;
 - `defaultCalendarViews`;
 - date parsing and timezone helpers;
 - range construction and navigation helpers;

@@ -77,7 +77,7 @@ Last reviewed: 2026-08-12
   - Ensure callback-produced and non-contiguous ranges carry their navigation
     behavior after resolution.
   - Replace or remove `navigateDate` once the range strategy owns navigation.
-- [ ] **[P1][RESOURCE-01] Use stable resource identifier types.**
+- [x] **[P1][RESOURCE-01] Use stable resource identifier types.**
   - Replace `unknown` resource identifiers with `CalendarResourceId` or a
     constrained generic identifier.
   - Detect missing or duplicate resource identifiers.
@@ -106,8 +106,8 @@ Last reviewed: 2026-08-12
   - Optional `canEditEvent` and `canDragEvent` predicates restrict individual
     source events or visible drag segments.
 - [x] **[P1][API-05] Replace flat renderer props with a `components` contract.**
-  - Group event, slot, background, column-header, day-header, empty-state, and
-    navigation renderers by view.
+  - Group event, slot, background, day-header, resource-header, empty-state,
+    and navigation renderers by view.
   - Keep only renderer extension points that own meaningful markup.
 - [x] **[P1][API-06] Simplify renderer payloads.**
   - Slot renderers should receive a `slot`, selection state, and element props
@@ -115,8 +115,8 @@ Last reviewed: 2026-08-12
   - Event renderers should receive the original event, visible segment,
     selection state, and element props instead of layout fields repeated both
     inside and outside `event`.
-  - Column-header renderers should receive a column and its prepared title
-    rather than duplicate day/resource/index fields.
+  - Time-grid day and resource headers receive their concrete grouping value,
+    covered columns, and prepared title without conflating both levels.
 - [ ] **[P1][API-07] Move visual dimensions to typed CSS variables.**
   - Remove `headerHeight`, `timeLabelWidth`, `cellWidth`, and `cellHeight`.
   - Replace `showGridLines` with styling or one semantic appearance variant.
@@ -127,7 +127,7 @@ Last reviewed: 2026-08-12
     object identities when callers override one value.
   - `slotDuration` and `labelInterval` replace the ambiguous `step` and
     presentation-oriented `dividerInterval` names.
-- [ ] **[P1][API-09] Group resource configuration.**
+- [x] **[P1][API-09] Group resource configuration.**
   - Keep resource items and their ID, title, and event-assignment accessors in
     one typed resource contract.
   - Preserve generic inference from the resource items.
@@ -136,7 +136,7 @@ Last reviewed: 2026-08-12
     strings, header callbacks, labels, and hardcoded text.
   - Exported immutable English defaults support explicit consumer-side
     extension without hidden partial-object merging.
-- [ ] **[P1][API-11] Remove the redundant resource preset.**
+- [x] **[P1][API-11] Remove the redundant resource preset.**
   - Resource columns are already a capability of every time-grid range.
   - Remove `ResourceView` and the `resource` view name; document resources on
     day, week, and custom time-grid ranges.
@@ -148,6 +148,10 @@ Last reviewed: 2026-08-12
 - [ ] **[P2][API-13] Accept readonly consumer collections.**
   - Events, background events, resources, selected IDs, and explicit range
     days should accept readonly arrays without requiring copies.
+- [x] **[P1][API-14] Make time-grid grouping hierarchy explicit.**
+  - Render separate day and resource header levels when resources are present.
+  - Allow callers to choose day-first or resource-first column grouping.
+  - Omit the resource-header level when no resources are configured.
 
 ## Time-grid implementation
 

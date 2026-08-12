@@ -12,7 +12,7 @@ import {
     backgroundEvents,
     basicEvents,
     monthEvents,
-    resources,
+    resourceConfig,
     resourceEvents
 } from "../fixtures.js";
 
@@ -40,7 +40,7 @@ export const TimeGridRenderers: Story = {};
 export const ResourceHeaders: Story = {
     args: {
         events: resourceEvents,
-        resources
+        resources: resourceConfig
     }
 };
 

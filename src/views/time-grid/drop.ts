@@ -33,11 +33,13 @@ export const createEventDrop = <
         end: addMilliseconds(slot.start, duration),
         source: {
             day: segment.day,
-            resource: segment.resource
+            resource: segment.resource,
+            resourceId: segment.columnResourceId
         },
         destination: {
             day: slot.day,
-            resource: slot.resource
+            resource: slot.resource,
+            resourceId: slot.resourceId
         }
     };
 };

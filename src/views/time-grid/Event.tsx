@@ -27,7 +27,7 @@ export default function Event({
             data-column-index={segment.columnIndex}
             data-lane-index={segment.laneIndex}
             data-lane-count={segment.laneCount}
-            data-resource-index={segment.resourceIndex ?? undefined}
+            data-resource-id={segment.columnResourceId ?? undefined}
         >
             <div className="time-grid-view_event-color-bar" />
             <div className="time-grid-view_event-content">
