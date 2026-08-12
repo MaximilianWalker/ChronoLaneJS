@@ -1,4 +1,4 @@
-name: Storybook
+name: Website
 
 on:
   push:
@@ -25,10 +25,10 @@ jobs:
           cache: npm
       - run: npm ci
       - uses: actions/configure-pages@v5
-      - run: npm run storybook:build
+      - run: npm run site:bundle
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: storybook-static
+          path: site-dist
 
   deploy:
     environment:

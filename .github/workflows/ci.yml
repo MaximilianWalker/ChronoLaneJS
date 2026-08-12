@@ -21,4 +21,5 @@ jobs:
       - run: npm run check
       - run: npx playwright install --with-deps chromium
       - run: npm run check:storybook
+      - run: npm run site:build
       - run: npm pack --dry-run

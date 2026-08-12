@@ -11,6 +11,7 @@ export default tseslint.config(
             "coverage/**",
             "dist/**",
             "node_modules/**",
+            "site-dist/**",
             "src/core/localeLoaders.generated.ts",
             "storybook-static/**"
         ]
@@ -30,7 +31,11 @@ export default tseslint.config(
                 ...globals.node
             },
             parserOptions: {
-                project: ["./tsconfig.json", "./tsconfig.storybook.json"],
+                project: [
+                    "./tsconfig.json",
+                    "./tsconfig.site.json",
+                    "./tsconfig.storybook.json"
+                ],
                 tsconfigRootDir: import.meta.dirname,
                 sourceType: "module"
             }
