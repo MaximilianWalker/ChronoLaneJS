@@ -1,14 +1,14 @@
 import type {
     ComponentType,
-    KeyboardEventHandler,
-    MouseEventHandler,
     SyntheticEvent
 } from "react";
 
 import type {
+    CalendarComponents,
     CalendarDateInput,
     CalendarEvent,
     CalendarRange,
+    CalendarRendererElementProps,
     CalendarWeekStart,
     NormalizedCalendarEvent,
     SharedViewProps
@@ -22,15 +22,17 @@ export interface MonthDayHeaderProps {
 
 export interface MonthEventProps<Event extends CalendarEvent = CalendarEvent> {
     event: NormalizedCalendarEvent<Event>;
-    className: string;
     day: Date;
     timeLabel: string;
     selected: boolean;
-    "aria-label": string;
-    "aria-keyshortcuts"?: string;
-    onClick?: MouseEventHandler<HTMLElement>;
-    onDoubleClick?: MouseEventHandler<HTMLElement>;
-    onKeyDown?: KeyboardEventHandler<HTMLElement>;
+    elementProps: CalendarRendererElementProps;
+}
+
+/** Replaceable render boundaries owned by the month view. */
+export interface MonthComponents<Event extends CalendarEvent = CalendarEvent>
+    extends CalendarComponents {
+    event?: ComponentType<MonthEventProps<Event>>;
+    dayHeader?: ComponentType<MonthDayHeaderProps>;
 }
 
 export interface MonthRange extends CalendarRange {
@@ -54,6 +56,5 @@ export interface MonthViewProps<Event extends CalendarEvent = CalendarEvent>
         group: { day: Date; events: NormalizedCalendarEvent<Event>[] },
         interaction: SyntheticEvent
     ) => void;
-    eventComponent?: ComponentType<MonthEventProps<Event>>;
-    dayHeaderComponent?: ComponentType<MonthDayHeaderProps>;
+    components?: MonthComponents<Event>;
 }

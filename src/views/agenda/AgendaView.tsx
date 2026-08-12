@@ -32,6 +32,7 @@ import Event from "./Event.js";
 import type { AgendaViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
+const EMPTY_COMPONENTS = Object.freeze({});
 
 /**
  * Renders events grouped by their first visible day within a configurable range.
@@ -63,11 +64,14 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     onRangeChange,
     onEventSelect,
     onEventEdit,
-    eventComponent: EventComponent = Event,
-    dayHeaderComponent: DayHeaderComponent = DayHeader,
-    emptyComponent: EmptyComponent = EmptyState,
-    navigationButton
+    components = EMPTY_COMPONENTS
 }: AgendaViewProps<Event>) {
+    const {
+        event: EventComponent = Event,
+        dayHeader: DayHeaderComponent = DayHeader,
+        empty: EmptyComponent = EmptyState,
+        navigation: NavigationComponent
+    } = components;
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
     const { anchorDate, setDate } = useCalendarViewDate({
@@ -143,7 +147,7 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                     nextDisabled={Boolean(maxBoundary && rangeEnd >= maxBoundary)}
                     previousLabel={messages.previous(navigationContext)}
                     nextLabel={messages.next(navigationContext)}
-                    navigationButton={navigationButton}
+                    navigation={NavigationComponent}
                 />
             )}
             <div className="agenda-view_list">
@@ -170,27 +174,34 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                                 const startTime = formatters.time(event.start, formatContext);
                                 const endDate = formatters.date(event.end, formatContext);
                                 const endTime = formatters.time(event.end, formatContext);
+                                const interactive = interactionProps.onClick != null
+                                    || interactionProps.onDoubleClick != null;
                                 return (
                                     <EventComponent
                                         key={`${event.id ?? event.title}-${event.start.getTime()}`}
-                                        className="agenda-view_event"
                                         event={event}
                                         timeLabel={messages.timeRange({
                                             view: viewName,
                                             startTime,
                                             endTime
                                         })}
-                                        aria-label={messages.eventLabel({
-                                            view: viewName,
-                                            title: event.title,
-                                            description: event.description,
-                                            startDate,
-                                            startTime,
-                                            endDate,
-                                            endTime
-                                        })}
                                         selected={event.id != null && selectedEventIds.includes(event.id)}
-                                        {...interactionProps}
+                                        elementProps={{
+                                            className: "agenda-view_event",
+                                            ...interactionProps,
+                                            "aria-label": interactive
+                                                ? messages.eventLabel({
+                                                    view: viewName,
+                                                    title: event.title,
+                                                    description: event.description,
+                                                    startDate,
+                                                    startTime,
+                                                    endDate,
+                                                    endTime
+                                                })
+                                                : undefined,
+                                            style: { "--color": event.color }
+                                        }}
                                     />
                                 );
                             })}

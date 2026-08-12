@@ -37,6 +37,7 @@ export type {
     CalendarViewRegistry
 } from "./Calendar.js";
 export type {
+    CalendarComponents,
     CalendarDateInput,
     CalendarEvent,
     CalendarEventId,
@@ -54,6 +55,7 @@ export type {
     CalendarRangeContext,
     CalendarRangeDefinition,
     CalendarRangeOptions,
+    CalendarRendererElementProps,
     CalendarResourceId,
     CalendarStyle,
     CalendarSlotMessageContext,
@@ -64,12 +66,14 @@ export type {
     SharedViewProps
 } from "./types.js";
 export type {
+    AgendaComponents,
     AgendaDayHeaderProps,
     AgendaEmptyProps,
     AgendaEventProps,
     AgendaViewProps
 } from "./views/agenda/types.js";
 export type {
+    MonthComponents,
     MonthDayHeaderProps,
     MonthEventProps,
     MonthViewProps
@@ -78,6 +82,7 @@ export type {
     TimeGridBackgroundEventProps,
     TimeGridColumn,
     TimeGridColumnHeaderProps,
+    TimeGridComponents,
     TimeGridEventDrop,
     TimeGridEventDropPosition,
     TimeGridEventLayout,

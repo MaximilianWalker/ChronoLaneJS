@@ -1,14 +1,12 @@
-import type {
-    ComponentType,
-    KeyboardEventHandler,
-    MouseEventHandler
-} from "react";
+import type { ComponentType } from "react";
 
 import type {
+    CalendarComponents,
     CalendarDateInput,
     CalendarEvent,
     CalendarRange,
     CalendarRangeDefinition,
+    CalendarRendererElementProps,
     CalendarWeekStart,
     NormalizedCalendarEvent,
     SharedViewProps
@@ -21,18 +19,21 @@ export interface AgendaDayHeaderProps {
 
 export interface AgendaEventProps<Event extends CalendarEvent = CalendarEvent> {
     event: NormalizedCalendarEvent<Event>;
-    className: string;
     timeLabel: string;
     selected: boolean;
-    "aria-label": string;
-    "aria-keyshortcuts"?: string;
-    onClick?: MouseEventHandler<HTMLElement>;
-    onDoubleClick?: MouseEventHandler<HTMLElement>;
-    onKeyDown?: KeyboardEventHandler<HTMLElement>;
+    elementProps: CalendarRendererElementProps;
 }
 
 export interface AgendaEmptyProps {
     message: string;
+}
+
+/** Replaceable render boundaries owned by the agenda view. */
+export interface AgendaComponents<Event extends CalendarEvent = CalendarEvent>
+    extends CalendarComponents {
+    event?: ComponentType<AgendaEventProps<Event>>;
+    dayHeader?: ComponentType<AgendaDayHeaderProps>;
+    empty?: ComponentType<AgendaEmptyProps>;
 }
 
 export interface AgendaViewProps<Event extends CalendarEvent = CalendarEvent>
@@ -45,7 +46,5 @@ export interface AgendaViewProps<Event extends CalendarEvent = CalendarEvent>
         range: CalendarRange
     ) => CalendarDateInput;
     weekStart?: CalendarWeekStart;
-    eventComponent?: ComponentType<AgendaEventProps<Event>>;
-    dayHeaderComponent?: ComponentType<AgendaDayHeaderProps>;
-    emptyComponent?: ComponentType<AgendaEmptyProps>;
+    components?: AgendaComponents<Event>;
 }

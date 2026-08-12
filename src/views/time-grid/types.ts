@@ -1,19 +1,16 @@
 import type {
     ComponentType,
-    CSSProperties,
-    DragEventHandler,
-    KeyboardEventHandler,
-    MouseEventHandler,
     ReactNode,
     SyntheticEvent
 } from "react";
 
 import type {
+    CalendarComponents,
     CalendarDateInput,
     CalendarEvent,
-    CalendarStyle,
     CalendarRange,
     CalendarRangeDefinition,
+    CalendarRendererElementProps,
     CalendarWeekStart,
     NormalizedCalendarEvent,
     SharedViewProps
@@ -107,70 +104,45 @@ export interface TimeGridLayout<
 }
 
 export interface TimeGridSlotProps<Resource = unknown> {
-    className: string;
-    timeIndex: number;
-    dayIndex: number;
-    columnIndex: number;
-    slotDuration: number;
-    day: Date;
-    resource: Resource | null;
-    startTime: Date;
-    endTime: Date;
-    "aria-label": string;
-    onClick?: MouseEventHandler<HTMLElement>;
-    onDragOver?: DragEventHandler<HTMLElement>;
-    onDrop?: DragEventHandler<HTMLElement>;
-    style: CalendarStyle;
+    slot: TimeGridSlot<Resource>;
+    selected: boolean;
+    elementProps: CalendarRendererElementProps;
 }
 
 export interface TimeGridEventProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > {
-    className: string;
     event: NormalizedCalendarEvent<Event>;
     segment: TimeGridEventLayout<Event, Resource>;
-    dayIndex: number;
-    columnIndex: number;
-    laneIndex: number;
-    laneCount: number;
-    resource: Resource | null;
-    resourceId?: unknown;
-    draggable: boolean;
-    onClick?: MouseEventHandler<HTMLElement>;
-    onDoubleClick?: MouseEventHandler<HTMLElement>;
-    onKeyDown?: KeyboardEventHandler<HTMLElement>;
-    onDragStart?: DragEventHandler<HTMLElement>;
-    onDragEnd?: DragEventHandler<HTMLElement>;
-    "aria-label": string;
-    "aria-keyshortcuts"?: string;
-    style: CalendarStyle;
-    titleStyle?: CSSProperties;
-    descriptionStyle?: CSSProperties;
+    selected: boolean;
+    elementProps: CalendarRendererElementProps;
 }
 
 export interface TimeGridBackgroundEventProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > {
-    className: string;
     event: NormalizedCalendarEvent<Event>;
     segment: TimeGridEventSegment<Event, Resource>;
-    dayIndex: number;
-    columnIndex: number;
-    resource: Resource | null;
-    style: CalendarStyle;
+    elementProps: CalendarRendererElementProps;
 }
 
 export interface TimeGridColumnHeaderProps<Resource = unknown> {
     column: TimeGridColumn<Resource>;
-    columnIndex: number;
-    day: Date;
-    dayIndex: number;
-    resource: Resource | null;
-    resourceIndex: number | null;
     title: string;
     resourceTitle: ReactNode;
+}
+
+/** Replaceable render boundaries owned by time-grid views and presets. */
+export interface TimeGridComponents<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> extends CalendarComponents {
+    event?: ComponentType<TimeGridEventProps<Event, Resource>>;
+    slot?: ComponentType<TimeGridSlotProps<Resource>>;
+    backgroundEvent?: ComponentType<TimeGridBackgroundEventProps<Event, Resource>>;
+    columnHeader?: ComponentType<TimeGridColumnHeaderProps<Resource>>;
 }
 
 export interface TimeGridViewProps<
@@ -208,8 +180,5 @@ export interface TimeGridViewProps<
     getResourceId?: (resource: Resource) => unknown;
     getResourceTitle?: (resource: Resource) => ReactNode;
     getEventResourceIds?: (event: NormalizedCalendarEvent<Event>) => unknown[];
-    slotComponent?: ComponentType<TimeGridSlotProps<Resource>>;
-    eventComponent?: ComponentType<TimeGridEventProps<Event, Resource>>;
-    backgroundEventComponent?: ComponentType<TimeGridBackgroundEventProps<Event, Resource>>;
-    columnHeaderComponent?: ComponentType<TimeGridColumnHeaderProps<Resource>>;
+    components?: TimeGridComponents<Event, Resource>;
 }

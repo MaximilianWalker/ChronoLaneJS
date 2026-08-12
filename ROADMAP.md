@@ -105,11 +105,11 @@ Last reviewed: 2026-08-12
   - `onEventEdit` enables editing and `onEventDrop` enables dragging.
   - Optional `canEditEvent` and `canDragEvent` predicates restrict individual
     source events or visible drag segments.
-- [ ] **[P1][API-05] Replace flat renderer props with a `components` contract.**
+- [x] **[P1][API-05] Replace flat renderer props with a `components` contract.**
   - Group event, slot, background, column-header, day-header, empty-state, and
     navigation renderers by view.
   - Keep only renderer extension points that own meaningful markup.
-- [ ] **[P1][API-06] Simplify renderer payloads.**
+- [x] **[P1][API-06] Simplify renderer payloads.**
   - Slot renderers should receive a `slot`, selection state, and element props
     instead of fourteen duplicated fields.
   - Event renderers should receive the original event, visible segment,
@@ -216,7 +216,7 @@ Last reviewed: 2026-08-12
   - Controlled and uncontrolled dates.
   - Date and range change callbacks.
   - Min/max boundaries, non-contiguous ranges, and custom navigation.
-- [ ] **[P1][TEST-05] Cover interaction enablement and renderer contracts.**
+- [x] **[P1][TEST-05] Cover interaction enablement and renderer contracts.**
   - Callback-presence defaults and event-specific predicates.
   - Selection, editing, and slot interaction with customized renderers.
   - Interaction remains available when grid lines are visually hidden.

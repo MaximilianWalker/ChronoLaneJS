@@ -34,6 +34,7 @@ import Event from "./Event.js";
 import type { MonthViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
+const EMPTY_COMPONENTS = Object.freeze({});
 
 /**
  * Renders a locale-aware month grid with event overflow and outside-day support.
@@ -69,10 +70,13 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     onEventSelect,
     onEventEdit,
     onShowMore,
-    eventComponent: EventComponent = Event,
-    dayHeaderComponent: DayHeaderComponent = DayHeader,
-    navigationButton
+    components = EMPTY_COMPONENTS
 }: MonthViewProps<Event>) {
+    const {
+        event: EventComponent = Event,
+        dayHeader: DayHeaderComponent = DayHeader,
+        navigation: NavigationComponent
+    } = components;
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
     const { anchorDate, setDate } = useCalendarViewDate({
@@ -154,7 +158,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                     nextDisabled={Boolean(maxBoundary && monthEnd >= maxBoundary)}
                     previousLabel={messages.previous(navigationContext)}
                     nextLabel={messages.next(navigationContext)}
-                    navigationButton={navigationButton}
+                    navigation={NavigationComponent}
                 />
             )}
             <div
@@ -222,24 +226,31 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                                     const startTime = formatters.time(event.start, formatContext);
                                                     const endDate = formatters.date(event.end, formatContext);
                                                     const endTime = formatters.time(event.end, formatContext);
+                                                    const interactive = interactionProps.onClick != null
+                                                        || interactionProps.onDoubleClick != null;
                                                     return (
                                                         <EventComponent
                                                             key={`${event.id ?? event.title}-${event.start.getTime()}-${day.getTime()}`}
-                                                            className="month-view_event"
                                                             event={event}
                                                             day={day}
                                                             timeLabel={startTime}
-                                                            aria-label={messages.eventLabel({
-                                                                view: viewName,
-                                                                title: event.title,
-                                                                description: event.description,
-                                                                startDate,
-                                                                startTime,
-                                                                endDate,
-                                                                endTime
-                                                            })}
                                                             selected={event.id != null && selectedEventIds.includes(event.id)}
-                                                            {...interactionProps}
+                                                            elementProps={{
+                                                                className: "month-view_event",
+                                                                ...interactionProps,
+                                                                "aria-label": interactive
+                                                                    ? messages.eventLabel({
+                                                                        view: viewName,
+                                                                        title: event.title,
+                                                                        description: event.description,
+                                                                        startDate,
+                                                                        startTime,
+                                                                        endDate,
+                                                                        endTime
+                                                                    })
+                                                                    : undefined,
+                                                                style: { "--color": event.color }
+                                                            }}
                                                         />
                                                     );
                                                 })}

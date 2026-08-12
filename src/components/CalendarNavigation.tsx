@@ -5,7 +5,7 @@ import type { CalendarNavigationButtonProps } from "../types.js";
 /**
  * Renders the default previous or next navigation control.
  *
- * Consumers can replace this renderer through the `navigationButton` prop.
+ * Consumers can replace this renderer through `components.navigation`.
  */
 export const DefaultNavigationButton = ({
     type,
@@ -25,7 +25,7 @@ interface CalendarNavigationProps {
     nextDisabled?: boolean;
     previousLabel: string;
     nextLabel: string;
-    navigationButton?: ComponentType<CalendarNavigationButtonProps>;
+    navigation?: ComponentType<CalendarNavigationButtonProps>;
     className?: string;
 }
 
@@ -43,7 +43,7 @@ export default function CalendarNavigation({
     nextDisabled = false,
     previousLabel,
     nextLabel,
-    navigationButton: NavigationButton = DefaultNavigationButton,
+    navigation: NavigationButton = DefaultNavigationButton,
     className = ""
 }: CalendarNavigationProps) {
     return (

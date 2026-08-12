@@ -240,17 +240,34 @@ The defaults read `resource.id` and `event.resourceId`, `event.resourceIds`, or
 
 Views expose intentional renderer boundaries where applicable:
 
-- `navigationButton`
-- `eventComponent`
-- `slotComponent`
-- `backgroundEventComponent`
-- `columnHeaderComponent`
-- `dayHeaderComponent`
-- `emptyComponent`
+| View | `components` keys |
+| --- | --- |
+| Agenda | `event`, `dayHeader`, `empty`, `navigation` |
+| Month | `event`, `dayHeader`, `navigation` |
+| Time grid and presets | `event`, `slot`, `backgroundEvent`, `columnHeader`, `navigation` |
 
-Custom renderers receive normalized calendar values plus the semantic and
-interaction props required by their view. ChronoLaneJS continues to own layout
-and behavior; the renderer owns markup and presentation.
+```tsx
+<Calendar
+    view="week"
+    events={events}
+    components={{
+        event: ScheduleEvent,
+        slot: ScheduleSlot,
+        navigation: ScheduleNavigation
+    }}
+/>
+```
+
+Time-grid event renderers receive `{ event, segment, selected, elementProps }`,
+slot renderers receive `{ slot, selected, elementProps }`, and column-header
+renderers receive `{ column, title, resourceTitle }`. Positional values remain
+available without duplication: use `segment.dayIndex`, `slot.dayIndex`, or
+`column.dayIndex`. Agenda and month event renderers receive the normalized
+`event`, their prepared visible values, `selected`, and `elementProps`.
+
+Spread `elementProps` onto the renderer's root element to retain layout,
+accessibility, drag, selection, and editing behavior. ChronoLaneJS owns those
+behaviors while the renderer owns markup and presentation.
 
 ### Styling
 

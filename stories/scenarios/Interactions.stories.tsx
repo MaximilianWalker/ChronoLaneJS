@@ -8,6 +8,7 @@ import {
 } from "storybook/test";
 
 import {
+    CustomSlot,
     CustomTimeGridEvent,
     InteractionHarness
 } from "../harnesses.js";
@@ -22,6 +23,11 @@ import {
     resourceEvents,
     resources
 } from "../fixtures.js";
+
+const CUSTOM_RENDERER_COMPONENTS = {
+    event: CustomTimeGridEvent,
+    slot: CustomSlot
+};
 
 const meta = {
     title: "Scenarios/Interactions",
@@ -241,7 +247,7 @@ export const MonthKeyboardEdit: Story = {
 
 export const CustomRendererKeyboardEdit: Story = {
     args: {
-        eventComponent: CustomTimeGridEvent
+        components: CUSTOM_RENDERER_COMPONENTS
     },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
@@ -250,6 +256,27 @@ export const CustomRendererKeyboardEdit: Story = {
         event.focus();
         await userEvent.keyboard("{Shift>}{Enter}{/Shift}");
         await expect(args.onEventEdit).toHaveBeenCalledOnce();
+    }
+};
+
+export const CustomRendererSelection: Story = {
+    args: {
+        components: CUSTOM_RENDERER_COMPONENTS
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const event = canvas.getByRole("button", { name: /Planning/i });
+        const slot = canvas.getByRole("button", { name: /Calendar slot.*10:00/i });
+
+        await expect(event).toHaveClass("story-event");
+        await expect(event).toHaveAttribute("data-story-day-index", "0");
+        await userEvent.click(event);
+        await expect(args.onEventSelect).toHaveBeenCalledOnce();
+
+        await expect(slot).toHaveClass("story-slot");
+        await expect(slot).toHaveAttribute("data-story-day-index", "0");
+        await userEvent.click(slot);
+        await expect(args.onSlotSelect).toHaveBeenCalledOnce();
     }
 };
 

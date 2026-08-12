@@ -4,6 +4,7 @@ import type {
     ComponentType,
     CSSProperties,
     ElementType,
+    HTMLAttributes,
     ReactNode,
     SyntheticEvent
 } from "react";
@@ -15,6 +16,12 @@ export type CalendarEventId = string | number;
 export type CalendarResourceId = string | number;
 export type CalendarWeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type CalendarStyle = CSSProperties & Partial<Record<`--${string}`, string | number>>;
+
+/** Prepared attributes and interaction handlers for a renderer's root element. */
+export interface CalendarRendererElementProps extends HTMLAttributes<HTMLElement> {
+    className: string;
+    style?: CalendarStyle;
+}
 
 export interface CalendarEvent {
     id?: CalendarEventId;
@@ -143,6 +150,11 @@ export interface CalendarNavigationButtonProps
 
 export type CalendarNavigationButton = ComponentType<CalendarNavigationButtonProps>;
 
+/** Renderer replacements shared by every built-in calendar view. */
+export interface CalendarComponents {
+    navigation?: CalendarNavigationButton;
+}
+
 export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
     events?: Event[];
     backgroundEvents?: Event[];
@@ -168,5 +180,4 @@ export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
         event: NormalizedCalendarEvent<Event>,
         interaction: SyntheticEvent
     ) => void;
-    navigationButton?: CalendarNavigationButton;
 }

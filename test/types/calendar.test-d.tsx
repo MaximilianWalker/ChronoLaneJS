@@ -4,7 +4,10 @@ import Calendar from "../../src/index.js";
 import type {
     CalendarEvent,
     CalendarProps,
-    SharedViewProps
+    SharedViewProps,
+    TimeGridColumnHeaderProps,
+    TimeGridEventProps,
+    TimeGridSlotProps
 } from "../../src/index.js";
 
 interface ProjectEvent extends CalendarEvent {
@@ -19,6 +22,41 @@ interface ProjectResource {
 
 const events: ProjectEvent[] = [];
 const resources: ProjectResource[] = [];
+
+const ProjectEventRenderer = ({
+    event,
+    segment,
+    selected,
+    elementProps
+}: TimeGridEventProps<ProjectEvent, ProjectResource>) => {
+    void event.category;
+    void segment.dayIndex;
+    void selected;
+    void elementProps.onClick;
+    return null;
+};
+
+const ProjectSlotRenderer = ({
+    slot,
+    selected,
+    elementProps
+}: TimeGridSlotProps<ProjectResource>) => {
+    void slot.dayIndex;
+    void slot.resource?.name;
+    void selected;
+    void elementProps.style;
+    return null;
+};
+
+const ProjectColumnHeader = ({
+    column,
+    title
+}: TimeGridColumnHeaderProps<ProjectResource>) => {
+    void column.dayIndex;
+    void column.resource?.name;
+    void title;
+    return null;
+};
 
 const defaultWeekProps: CalendarProps<ProjectEvent, ProjectResource> = {
     events,
@@ -42,11 +80,29 @@ void (
 );
 void <Calendar view="time-grid" events={events} range={[new Date()]} />;
 void <Calendar view="week" events={events} slotDuration={30} labelInterval={60} />;
+void (
+    <Calendar
+        view="week"
+        events={events}
+        resources={resources}
+        components={{
+            event: ProjectEventRenderer,
+            slot: ProjectSlotRenderer,
+            columnHeader: ProjectColumnHeader
+        }}
+    />
+);
 void <Calendar events={events} minTime="08:00" />;
 void <Calendar view="month" viewProps={{ maxEventsPerDay: 2 }} />;
 
 // @ts-expect-error Unknown root props must not bypass the public contract.
 void <Calendar view="week" eventz={events} />;
+
+// @ts-expect-error Renderer replacements must be grouped under components.
+void <Calendar view="week" eventComponent={ProjectEventRenderer} />;
+
+// @ts-expect-error Event renderers receive a segment instead of a top-level dayIndex.
+void <Calendar view="week" components={{ event: (_props: { dayIndex: number }) => null }} />;
 
 // @ts-expect-error Month views do not accept time-grid scale props.
 void <Calendar view="month" minTime="08:00" />;

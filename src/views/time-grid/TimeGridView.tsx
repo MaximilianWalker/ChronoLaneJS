@@ -45,6 +45,7 @@ import type {
 } from "./types.js";
 
 const EMPTY_ITEMS: never[] = [];
+const EMPTY_COMPONENTS = Object.freeze({});
 
 /** Rounds percentages to stable CSS values without visible precision noise. */
 const percentage = (value: number): number => Number(value.toFixed(6));
@@ -80,7 +81,7 @@ const groupByColumn = <Item extends { columnIndex: number }>(
  * The view owns range navigation, time-zone normalization, slot generation,
  * event clipping, overlap lanes, and drag-and-drop calculations. Markup for
  * slots, events, background events, and column headers can be replaced through
- * renderer props without replacing layout behavior.
+ * `components` without replacing layout behavior.
  */
 export default function TimeGridView<
     Event extends CalendarEvent = CalendarEvent,
@@ -125,12 +126,15 @@ export default function TimeGridView<
     getResourceId = getDefaultResourceId,
     getResourceTitle = getDefaultResourceTitle,
     getEventResourceIds,
-    slotComponent: SlotComponent = Slot,
-    eventComponent: EventComponent = Event,
-    backgroundEventComponent: BackgroundEventComponent = Background,
-    columnHeaderComponent: ColumnHeaderComponent = ColumnHeader,
-    navigationButton
+    components = EMPTY_COMPONENTS
 }: TimeGridViewProps<Event, Resource>) {
+    const {
+        slot: SlotComponent = Slot,
+        event: EventComponent = Event,
+        backgroundEvent: BackgroundEventComponent = Background,
+        columnHeader: ColumnHeaderComponent = ColumnHeader,
+        navigation: NavigationComponent
+    } = components;
     const [draggedEvent, setDraggedEvent] = useState<
         TimeGridEventLayout<Event, Resource> | null
     >(null);
@@ -270,7 +274,7 @@ export default function TimeGridView<
                     nextDisabled={Boolean(maxBoundary && rangeEnd >= maxBoundary)}
                     previousLabel={messages.previous(navigationContext)}
                     nextLabel={messages.next(navigationContext)}
-                    navigationButton={navigationButton}
+                    navigation={NavigationComponent}
                 />
             )}
             <div
@@ -294,11 +298,6 @@ export default function TimeGridView<
                         >
                             <ColumnHeaderComponent
                                 column={column}
-                                columnIndex={columnIndex}
-                                day={column.day}
-                                dayIndex={column.dayIndex}
-                                resource={column.resource}
-                                resourceIndex={column.resourceIndex}
                                 title={formatters.dayHeader(column.day, formatContext)}
                                 resourceTitle={column.resource == null
                                     ? null
@@ -350,30 +349,28 @@ export default function TimeGridView<
                             return (
                                 <SlotComponent
                                     key={`${slot.key}-slot`}
-                                    className={`time-grid-view_slot${slot.timeIndex === 0 ? " is-first-row" : ""}${slot.columnIndex === 0 ? " is-first-column" : ""}${slot.isDividerBoundary ? " is-divider-boundary" : ""}${selected ? " is-selected" : ""}`}
-                                    timeIndex={slot.timeIndex}
-                                    dayIndex={slot.dayIndex}
-                                    columnIndex={slot.columnIndex}
-                                    slotDuration={slotDuration}
-                                    day={slot.day}
-                                    resource={slot.resource}
-                                    startTime={slot.start}
-                                    endTime={slot.end}
-                                    aria-label={messages.slotLabel({
-                                        view: viewName,
-                                        date: formatters.date(slot.start, formatContext),
-                                        time: formatters.time(slot.start, formatContext)
-                                    })}
-                                    onClick={handleSelect}
-                                    onDragOver={canDropEvents
-                                        ? (interaction) => interaction.preventDefault()
-                                        : undefined}
-                                    onDrop={canDropEvents
-                                        ? (interaction) => handleDrop(interaction, slot)
-                                        : undefined}
-                                    style={{
-                                        gridRow: `${(slot.timeIndex * slotDuration) + 1} / ${(slot.timeIndex * slotDuration) + 1 + slot.duration}`,
-                                        gridColumn: slot.columnIndex + 1
+                                    slot={slot}
+                                    selected={Boolean(selected)}
+                                    elementProps={{
+                                        className: "time-grid-view_slot",
+                                        "aria-label": handleSelect
+                                            ? messages.slotLabel({
+                                                view: viewName,
+                                                date: formatters.date(slot.start, formatContext),
+                                                time: formatters.time(slot.start, formatContext)
+                                            })
+                                            : undefined,
+                                        onClick: handleSelect,
+                                        onDragOver: canDropEvents
+                                            ? (interaction) => interaction.preventDefault()
+                                            : undefined,
+                                        onDrop: canDropEvents
+                                            ? (interaction) => handleDrop(interaction, slot)
+                                            : undefined,
+                                        style: {
+                                            gridRow: `${(slot.timeIndex * slotDuration) + 1} / ${(slot.timeIndex * slotDuration) + 1 + slot.duration}`,
+                                            gridColumn: slot.columnIndex + 1
+                                        }
                                     }}
                                 />
                             );
@@ -392,17 +389,17 @@ export default function TimeGridView<
                                 {(backgroundEventsByColumn[columnIndex] ?? []).map((segment) => (
                                     <BackgroundEventComponent
                                         key={`${segment.id ?? "background"}-${segment.start.getTime()}-${columnIndex}`}
-                                        className="time-grid-view_background-event"
                                         event={segment.event}
                                         segment={segment}
-                                        dayIndex={segment.dayIndex}
-                                        columnIndex={columnIndex}
-                                        resource={segment.resource}
-                                        style={{
-                                            "--color": segment.event.color,
-                                            gridColumn: "1 / 2",
-                                            gridRow: `${segment.startRow} / ${segment.endRow}`,
-                                            ...segment.event.style
+                                        elementProps={{
+                                            className: "time-grid-view_background-event",
+                                            "aria-hidden": true,
+                                            style: {
+                                                "--color": segment.event.color,
+                                                gridColumn: "1 / 2",
+                                                gridRow: `${segment.startRow} / ${segment.endRow}`,
+                                                ...segment.event.style
+                                            }
                                         }}
                                     />
                                 ))}
@@ -423,9 +420,6 @@ export default function TimeGridView<
                             >
                                 {(eventsByColumn[columnIndex] ?? []).map((segment) => {
                                     const { event } = segment;
-                                    const resourceId = segment.resource == null
-                                        ? undefined
-                                        : getResourceId(segment.resource);
                                     const draggable = canDropEvents
                                         && (canDragEvent?.(event, segment) ?? true);
                                     const interactionProps = createEventInteractionProps({
@@ -440,42 +434,45 @@ export default function TimeGridView<
                                     const startTime = formatters.time(event.start, formatContext);
                                     const endDate = formatters.date(event.end, formatContext);
                                     const endTime = formatters.time(event.end, formatContext);
+                                    const interactive = interactionProps.onClick != null
+                                        || interactionProps.onDoubleClick != null;
 
                                     return (
                                         <EventComponent
                                             key={`${event.id ?? event.title ?? "event"}-${segment.start.getTime()}-${segment.end.getTime()}-${columnIndex}`}
-                                            className={`time-grid-view_event${selected ? " is-selected" : ""}`}
                                             event={event}
                                             segment={segment}
-                                            dayIndex={segment.dayIndex}
-                                            columnIndex={columnIndex}
-                                            laneIndex={segment.laneIndex}
-                                            laneCount={segment.laneCount}
-                                            resource={segment.resource}
-                                            resourceId={resourceId}
-                                            draggable={draggable}
-                                            onDragStart={draggable ? () => setDraggedEvent(segment) : undefined}
-                                            onDragEnd={draggable ? () => setDraggedEvent(null) : undefined}
-                                            {...interactionProps}
-                                            aria-label={messages.eventLabel({
-                                                view: viewName,
-                                                title: event.title,
-                                                description: event.description,
-                                                startDate,
-                                                startTime,
-                                                endDate,
-                                                endTime
-                                            })}
-                                            style={{
-                                                "--color": event.color,
-                                                gridColumn: "1 / 2",
-                                                gridRow: `${segment.startRow} / ${segment.endRow}`,
-                                                overflow: "hidden",
-                                                ...getLaneStyle(segment),
-                                                ...event.style
+                                            selected={selected}
+                                            elementProps={{
+                                                className: "time-grid-view_event",
+                                                draggable,
+                                                onDragStart: draggable
+                                                    ? () => setDraggedEvent(segment)
+                                                    : undefined,
+                                                onDragEnd: draggable
+                                                    ? () => setDraggedEvent(null)
+                                                    : undefined,
+                                                ...interactionProps,
+                                                "aria-label": interactive
+                                                    ? messages.eventLabel({
+                                                        view: viewName,
+                                                        title: event.title,
+                                                        description: event.description,
+                                                        startDate,
+                                                        startTime,
+                                                        endDate,
+                                                        endTime
+                                                    })
+                                                    : undefined,
+                                                style: {
+                                                    "--color": event.color,
+                                                    gridColumn: "1 / 2",
+                                                    gridRow: `${segment.startRow} / ${segment.endRow}`,
+                                                    overflow: "hidden",
+                                                    ...getLaneStyle(segment),
+                                                    ...event.style
+                                                }
                                             }}
-                                            titleStyle={event.titleStyle}
-                                            descriptionStyle={event.descriptionStyle}
                                         />
                                     );
                                 })}
