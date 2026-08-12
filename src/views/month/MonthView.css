@@ -3,10 +3,15 @@
     flex-direction: column;
     width: 100%;
     min-height: 0;
+    color: #273346;
+    font-size: 0.78rem;
 }
 
 .month-view_grid-wrapper {
     min-height: 0;
+    border: 1px solid #e1e7ef;
+    border-radius: 14px;
+    background: #fff;
     overflow: auto;
 }
 
@@ -22,25 +27,30 @@
 }
 
 .month-view_weekday {
-    padding: 8px;
-    border-bottom: 1px solid #c6c6c6;
+    padding: 10px 8px;
+    border-bottom: 1px solid #e4e9f0;
+    background: #fbfcfe;
+    color: #667085;
+    font-size: 0.69rem;
+    letter-spacing: 0.05em;
     text-align: center;
     font-weight: 600;
+    text-transform: uppercase;
 }
 
 .month-view_day {
     position: relative;
     box-sizing: border-box;
-    min-height: 128px;
+    min-height: 96px;
     padding: 4px;
-    border-right: 1px solid #e0e0e0;
-    border-bottom: 1px solid #e0e0e0;
+    border-right: 1px solid #edf0f4;
+    border-bottom: 1px solid #edf0f4;
     background: #fff;
     overflow: hidden;
 }
 
 .month-view_day:nth-of-type(7n + 1) {
-    border-left: 1px solid #e0e0e0;
+    border-left: 1px solid #edf0f4;
 }
 
 .month-view_day.is-outside {
@@ -101,11 +111,11 @@
     padding: 3px 5px;
     border: 0;
     border-left: 3px solid var(--color, #1e293c);
-    border-radius: 3px;
+    border-radius: 5px;
     background: color-mix(in srgb, var(--color, #1e293c) 9%, white);
     color: inherit;
     font: inherit;
-    font-size: 0.75rem;
+    font-size: 0.67rem;
     text-align: left;
 }
 

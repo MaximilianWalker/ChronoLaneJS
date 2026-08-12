@@ -307,9 +307,13 @@ behaviors while the renderer owns markup and presentation.
 
 ### Styling
 
-The bundled CSS is application-independent. Use `className`, `style`, event
-colors and styles, renderer overrides, or the documented custom-property
-extension points:
+The bundled CSS provides the same neutral, product-ready presentation used by
+the Storybook examples and website playground. Time grids include bordered
+surfaces, aligned header dividers, centered time labels, and compact event
+cards without requiring application CSS.
+
+Use `className`, `style`, event colors and styles, renderer overrides, or the
+documented custom-property extension points to adapt that default:
 
 ```css
 .team-schedule {

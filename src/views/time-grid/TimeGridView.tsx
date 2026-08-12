@@ -104,7 +104,7 @@ export default function TimeGridView<
     slotDuration = 60,
     labelInterval = slotDuration,
     headerHeight = 50,
-    timeLabelWidth = 50,
+    timeLabelWidth = 64,
     cellWidth,
     cellHeight = 50,
     showGridLines = true,

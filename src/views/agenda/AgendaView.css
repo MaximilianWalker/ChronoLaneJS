@@ -3,6 +3,8 @@
     flex-direction: column;
     width: 100%;
     min-height: 0;
+    color: #273346;
+    font-size: 0.78rem;
 }
 
 .agenda-view_list {
@@ -10,18 +12,20 @@
     flex-direction: column;
     min-height: 0;
     gap: 24px;
+    padding: 6px;
     overflow: auto;
 }
 
 .agenda-view_day {
     display: grid;
-    grid-template-columns: minmax(180px, 0.3fr) minmax(0, 1fr);
+    grid-template-columns: minmax(140px, 0.25fr) minmax(0, 1fr);
     gap: 24px;
 }
 
 .agenda-view_day-heading {
     margin: 0;
-    font-size: 1rem;
+    color: #526075;
+    font-size: 0.78rem;
 }
 
 .agenda-view_day-events {
@@ -36,10 +40,11 @@
     width: 100%;
     gap: 16px;
     padding: 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e3e8ef;
     border-left: 4px solid var(--color, #1e293c);
-    border-radius: 4px;
+    border-radius: 9px;
     background: #fff;
+    box-shadow: 0 3px 8px rgba(36, 52, 77, 0.035);
     color: inherit;
     font: inherit;
     text-align: left;

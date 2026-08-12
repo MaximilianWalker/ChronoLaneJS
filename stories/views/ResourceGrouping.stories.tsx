@@ -90,6 +90,38 @@ type Story = StoryObj<typeof meta>;
 
 export const GroupedByDay: Story = {
     play: async ({ canvasElement }) => {
+        const gridWrapper = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_grid-wrapper"
+        );
+        const headerCell = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_header-cell"
+        );
+        const timeLabels = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_time-labels"
+        );
+        const timeLabel = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_time-label"
+        );
+
+        if (!gridWrapper || !headerCell || !timeLabels || !timeLabel) {
+            throw new Error("The time-grid presentation did not render.");
+        }
+
+        const headerStyle = window.getComputedStyle(headerCell);
+
+        await expect(
+            window.getComputedStyle(gridWrapper).borderRadius
+        ).toBe("14px");
+        await expect(headerStyle.borderLeftStyle).toBe("solid");
+        await expect(
+            Number.parseFloat(headerStyle.borderLeftWidth)
+        ).toBeGreaterThan(0);
+        await expect(
+            window.getComputedStyle(timeLabels).gridTemplateColumns
+        ).toBe("64px");
+        await expect(
+            window.getComputedStyle(timeLabel).justifyContent
+        ).toBe("center");
         await expect(
             canvasElement.querySelectorAll(
                 ".time-grid-view_day-header.is-primary"
