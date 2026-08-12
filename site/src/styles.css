@@ -1159,8 +1159,7 @@ a {
 .brand-showcase > img {
     display: block;
     width: 100%;
-    height: auto;
-    aspect-ratio: 1.91 / 1;
+    height: 100%;
     object-fit: cover;
 }
 
@@ -1418,6 +1417,11 @@ a {
 
     .brand-showcase {
         grid-template-columns: 1fr;
+    }
+
+    .brand-showcase > img {
+        height: auto;
+        aspect-ratio: 1.91 / 1;
     }
 
     .brand-showcase-copy {
