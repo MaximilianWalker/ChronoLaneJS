@@ -13,6 +13,7 @@ import type {
     AgendaDayHeaderProps,
     AgendaEmptyProps,
     AgendaEventProps,
+    AgendaViewProps,
     CalendarDateInput,
     CalendarLocale,
     CalendarNavigationButtonProps,
@@ -20,11 +21,13 @@ import type {
     CalendarStyle,
     MonthDayHeaderProps,
     MonthEventProps,
+    MonthViewProps,
     SharedViewProps,
     TimeGridColumnHeaderProps,
     TimeGridBackgroundEventProps,
     TimeGridEventProps,
-    TimeGridSlotProps
+    TimeGridSlotProps,
+    TimeGridViewProps
 } from "../src/index.js";
 import {
     ANCHOR_DATE,
@@ -90,34 +93,61 @@ export function InteractionHarness({
     const [selectedRange, setSelectedRange] = useState<{ start: Date; end: Date }>();
     const [lastAction, setLastAction] = useState("Choose an event or time slot.");
 
+    const handleEventSelect: NonNullable<SharedViewProps<StoryEvent>["onEventSelect"]> = (
+        event,
+        interaction
+    ) => {
+        if (event.id != null) setSelectedEventIds([event.id]);
+        setLastAction(`Selected ${event.title ?? "event"}`);
+        onEventSelect?.(event, interaction);
+    };
+    const handleEventEdit: NonNullable<SharedViewProps<StoryEvent>["onEventEdit"]> = (
+        event,
+        interaction
+    ) => {
+        setLastAction(`Editing ${event.title ?? "event"}`);
+        onEventEdit?.(event, interaction);
+    };
+    const handleSlotSelect: NonNullable<
+        TimeGridViewProps<StoryEvent, StoryResource>["onSlotSelect"]
+    > = (slot, interaction) => {
+        setSelectedRange({ start: slot.start, end: slot.end });
+        setLastAction(`Selected slot at ${format(slot.start, "HH:mm")}`);
+        onSlotSelect?.(slot, interaction);
+    };
+    const handleEventDrop: NonNullable<
+        TimeGridViewProps<StoryEvent, StoryResource>["onEventDrop"]
+    > = (change) => {
+        setLastAction(`Dropped ${change.event.title ?? "event"} at ${format(change.start, "HH:mm")}`);
+        onEventDrop?.(change);
+    };
+    const calendar = props.view === "agenda" || props.view === "month"
+        ? (
+            <Calendar
+                {...props}
+                selectedEventIds={selectedEventIds}
+                onEventSelect={handleEventSelect}
+                onEventEdit={handleEventEdit}
+            />
+        )
+        : (
+            <Calendar
+                {...props}
+                selectedEventIds={selectedEventIds}
+                selectedRange={selectedRange}
+                onEventSelect={handleEventSelect}
+                onSlotSelect={handleSlotSelect}
+                onEventEdit={handleEventEdit}
+                onEventDrop={handleEventDrop}
+            />
+        );
+
     return (
         <>
             <p className="story-log" data-testid="interaction-log" aria-live="polite">
                 {lastAction}
             </p>
-            <Calendar
-                {...props}
-                selectedEventIds={selectedEventIds}
-                selectedRange={selectedRange}
-                onEventSelect={(event, interaction) => {
-                    if (event.id != null) setSelectedEventIds([event.id]);
-                    setLastAction(`Selected ${event.title ?? "event"}`);
-                    onEventSelect?.(event, interaction);
-                }}
-                onSlotSelect={(slot, interaction) => {
-                    setSelectedRange({ start: slot.start, end: slot.end });
-                    setLastAction(`Selected slot at ${format(slot.start, "HH:mm")}`);
-                    onSlotSelect?.(slot, interaction);
-                }}
-                onEventEdit={(event, interaction) => {
-                    setLastAction(`Editing ${event.title ?? "event"}`);
-                    onEventEdit?.(event, interaction);
-                }}
-                onEventDrop={(change) => {
-                    setLastAction(`Dropped ${change.event.title ?? "event"} at ${format(change.start, "HH:mm")}`);
-                    onEventDrop?.(change);
-                }}
-            />
+            {calendar}
         </>
     );
 }
@@ -421,7 +451,9 @@ export function CustomView({
 }
 
 /** Fixed week used to demonstrate customized renderers without inline components. */
-export function FullyCustomizedWeek(props: StoryCalendarProps) {
+export function FullyCustomizedWeek(
+    props: TimeGridViewProps<StoryEvent, StoryResource>
+) {
     return (
         <WeekView<StoryEvent, StoryResource>
             {...props}
@@ -439,7 +471,7 @@ export function FullyCustomizedWeek(props: StoryCalendarProps) {
 }
 
 /** Fixed agenda demonstrating all agenda renderer extension points. */
-export function FullyCustomizedAgenda(props: StoryCalendarProps) {
+export function FullyCustomizedAgenda(props: AgendaViewProps<StoryEvent>) {
     return (
         <AgendaView<StoryEvent>
             {...props}
@@ -455,7 +487,7 @@ export function FullyCustomizedAgenda(props: StoryCalendarProps) {
 }
 
 /** Fixed month demonstrating month event and day-header extension points. */
-export function FullyCustomizedMonth(props: StoryCalendarProps) {
+export function FullyCustomizedMonth(props: MonthViewProps<StoryEvent>) {
     return (
         <MonthView<StoryEvent>
             {...props}
@@ -469,12 +501,15 @@ export function FullyCustomizedMonth(props: StoryCalendarProps) {
 }
 
 /** Root calendar configured with an application-defined registry entry. */
-export function CustomViewExample(props: StoryCalendarProps) {
+export function CustomViewExample({
+    events = basicEvents,
+    ...props
+}: Omit<SharedViewProps<StoryEvent>, "viewName">) {
     return (
         <Calendar
             {...props}
             view="quarter"
-            events={basicEvents}
+            events={events}
             views={{
                 quarter: {
                     component: CustomView,

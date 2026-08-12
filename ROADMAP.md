@@ -22,7 +22,7 @@ Last reviewed: 2026-08-12
 
 ## Release gates
 
-- [ ] **[P0][REL-01] Complete every P0 correctness and API item.**
+- [x] **[P0][REL-01] Complete every P0 correctness and API item.**
   - The first package must not publish contracts already known to be incorrect
     or redundant.
 - [ ] **[P0][REL-02] Reserve and configure the `@chronolanejs` npm scope.**
@@ -88,7 +88,7 @@ Last reviewed: 2026-08-12
 
 ## Public API simplification
 
-- [ ] **[P0][API-01] Make `CalendarProps` type-safe for built-in views.**
+- [x] **[P0][API-01] Make `CalendarProps` type-safe for built-in views.**
   - Replace `[key: string]: unknown` with a discriminated union keyed by
     `view`.
   - Reject misspelled and unsupported props at compile time.
@@ -208,7 +208,7 @@ Last reviewed: 2026-08-12
 - [x] **[P0][TEST-02] Test drag and drop across days and resources.**
   - Unit tests cover duration preservation and cross-resource destinations.
   - Browser stories cover successful, cancelled, and invalid-target drops.
-- [ ] **[P0][TEST-03] Add compile-time public API tests.**
+- [x] **[P0][TEST-03] Add compile-time public API tests.**
   - Assert accepted prop combinations for every built-in view.
   - Assert that typos, wrong callback payloads, and view-incompatible props
     fail compilation.

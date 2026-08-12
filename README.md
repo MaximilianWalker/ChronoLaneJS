@@ -147,6 +147,11 @@ Next.js client component without a framework-specific wrapper.
 `day`, `week`, and `resource` are presets over `TimeGridView`; they share its
 layout and interaction behavior rather than maintaining separate engines.
 
+The root `Calendar` props are a discriminated TypeScript union keyed by
+`view`. Each built-in name accepts only the props supported by that view, and
+omitting `view` selects the `week` contract. Misspelled props and combinations
+such as time-grid scale options on a month view fail compilation.
+
 ### Ranges
 
 Time-grid and agenda ranges accept:
@@ -279,20 +284,23 @@ event preserves the source event's complete duration.
 Extend or replace the view registry through `views`:
 
 ```tsx
+const views = {
+    quarter: {
+        component: QuarterView,
+        defaultProps: { months: 3 }
+    }
+};
+
 <Calendar
     view="quarter"
-    views={{
-        quarter: {
-            component: QuarterView,
-            defaultProps: { months: 3 }
-        }
-    }}
+    views={views}
     viewProps={{ compact: true }}
 />
 ```
 
 A custom view receives events, background events, the active view name, shared
-calendar props, registered defaults, and `viewProps`.
+calendar props, registered defaults, and `viewProps`. TypeScript infers the
+allowed custom view names and `viewProps` from the supplied registry.
 
 ## Public API
 
@@ -304,7 +312,7 @@ ChronoLaneJS exports `Calendar` as the default, together with:
 - date parsing and timezone helpers;
 - range construction and navigation helpers;
 - locale discovery, loading, and preloading helpers;
-- public prop, event, range, renderer, resource, and layout types.
+- public prop, event, range, renderer, resource, registry, and layout types.
 
 Time-grid layout internals and default renderer implementations remain private
 so they can evolve without expanding the compatibility surface. Public

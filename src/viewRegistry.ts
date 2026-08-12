@@ -5,15 +5,13 @@ import ResourceView from "./views/time-grid/presets/ResourceView.js";
 import WeekView from "./views/time-grid/presets/WeekView.js";
 import TimeGridView from "./views/time-grid/TimeGridView.js";
 
-import type { ElementType } from "react";
-
 /**
  * Immutable registry of the view names included with ChronoLaneJS.
  *
  * Pass a `views` entry with the same key to the root `Calendar` component to
  * override one.
  */
-export const defaultCalendarViews: Readonly<Record<string, ElementType>> = Object.freeze({
+export const defaultCalendarViews = Object.freeze({
     agenda: AgendaView,
     day: DayView,
     month: MonthView,

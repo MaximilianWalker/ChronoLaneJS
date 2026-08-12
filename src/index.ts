@@ -31,7 +31,11 @@ export { default as DayView } from "./views/time-grid/presets/DayView.js";
 export { default as ResourceView } from "./views/time-grid/presets/ResourceView.js";
 export { default as WeekView } from "./views/time-grid/presets/WeekView.js";
 export { default as TimeGridView } from "./views/time-grid/TimeGridView.js";
-export type { CalendarProps } from "./Calendar.js";
+export type {
+    CalendarProps,
+    CalendarViewRegistration,
+    CalendarViewRegistry
+} from "./Calendar.js";
 export type {
     CalendarDateInput,
     CalendarEvent,

@@ -161,6 +161,85 @@ export default function Playground() {
     const selectEvent = (event: NormalizedCalendarEvent<PlaygroundEvent>) => {
         if (event.id != null) setSelectedEventIds([event.id]);
     };
+    const calendarProps = {
+        className: "showcase-calendar",
+        defaultDate: ANCHOR_DATE,
+        events: visibleEvents,
+        locale: "en-US",
+        timeZone: "Europe/Lisbon",
+        selectedEventIds,
+        onEventSelect: selectEvent
+    } as const;
+    const timeGridProps = {
+        minTime: "08:00",
+        maxTime: "18:00",
+        slotDuration: 30,
+        labelInterval: 60,
+        cellHeight: 28
+    } as const;
+    const calendar = (() => {
+        switch (view) {
+            case "agenda":
+                return (
+                    <Calendar<PlaygroundEvent, PlaygroundResource>
+                        {...calendarProps}
+                        key={view}
+                        view="agenda"
+                    />
+                );
+            case "day":
+                return (
+                    <Calendar<PlaygroundEvent, PlaygroundResource>
+                        {...calendarProps}
+                        {...timeGridProps}
+                        key={view}
+                        view="day"
+                        backgroundEvents={backgroundEvents}
+                    />
+                );
+            case "month":
+                return (
+                    <Calendar<PlaygroundEvent, PlaygroundResource>
+                        {...calendarProps}
+                        key={view}
+                        view="month"
+                        maxEventsPerDay={2}
+                    />
+                );
+            case "resource":
+                return (
+                    <Calendar<PlaygroundEvent, PlaygroundResource>
+                        {...calendarProps}
+                        {...timeGridProps}
+                        key={view}
+                        view="resource"
+                        resources={resources}
+                        getResourceId={getResourceId}
+                        getResourceTitle={getResourceTitle}
+                    />
+                );
+            case "time-grid":
+                return (
+                    <Calendar<PlaygroundEvent, PlaygroundResource>
+                        {...calendarProps}
+                        {...timeGridProps}
+                        key={view}
+                        view="time-grid"
+                        range={customRange}
+                    />
+                );
+            case "week":
+                return (
+                    <Calendar<PlaygroundEvent, PlaygroundResource>
+                        {...calendarProps}
+                        {...timeGridProps}
+                        key={view}
+                        view="week"
+                        backgroundEvents={backgroundEvents}
+                    />
+                );
+        }
+    })();
 
     return (
         <section className="playground-section section" id="playground" aria-labelledby="playground-title">
@@ -201,30 +280,7 @@ export default function Playground() {
                 </div>
 
                 <div className={`playground-canvas playground-canvas--${view}`}>
-                    <Calendar<PlaygroundEvent, PlaygroundResource>
-                        key={view}
-                        className="showcase-calendar"
-                        view={view}
-                        defaultDate={ANCHOR_DATE}
-                        events={visibleEvents}
-                        backgroundEvents={view === "day" || view === "week"
-                            ? backgroundEvents
-                            : undefined}
-                        resources={view === "resource" ? resources : undefined}
-                        range={view === "time-grid" ? customRange : undefined}
-                        minTime="08:00"
-                        maxTime="18:00"
-                        slotDuration={30}
-                        labelInterval={60}
-                        cellHeight={28}
-                        maxEventsPerDay={2}
-                        locale="en-US"
-                        timeZone="Europe/Lisbon"
-                        selectedEventIds={selectedEventIds}
-                        onEventSelect={selectEvent}
-                        getResourceId={getResourceId}
-                        getResourceTitle={getResourceTitle}
-                    />
+                    {calendar}
                 </div>
 
                 <div className="playground-footer">

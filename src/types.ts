@@ -1,5 +1,6 @@
 import type {
     ButtonHTMLAttributes,
+    ComponentProps,
     ComponentType,
     CSSProperties,
     ElementType,
@@ -130,9 +131,9 @@ export interface CalendarMessages {
     moreEvents: (context: CalendarMoreEventsMessageContext) => string;
 }
 
-export interface CalendarViewDefinition {
-    component: ElementType;
-    defaultProps?: Record<string, unknown>;
+export interface CalendarViewDefinition<Component extends ElementType = ElementType> {
+    component: Component;
+    defaultProps?: Partial<ComponentProps<Component>>;
 }
 
 export interface CalendarNavigationButtonProps
