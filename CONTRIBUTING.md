@@ -37,6 +37,11 @@ rather than disabling the global checks. Run `npm run storybook` for interactive
 development, `npm run storybook:test` for the Chromium suite, and
 `npm run storybook:build` to verify the deployable catalog.
 
+The GitHub Pages website renders `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`,
+and `SECURITY.md` directly, so update the canonical Markdown instead of adding
+site-only documentation. Run `npm run site` to preview the website and compact
+playground, or `npm run site:build` to verify its production output.
+
 Open an issue before starting a breaking API or architectural change so the
 contract can be agreed before implementation.
 

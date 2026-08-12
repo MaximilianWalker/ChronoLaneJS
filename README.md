@@ -5,17 +5,17 @@
 <h1 align="center">ChronoLaneJS</h1>
 
 <p align="center">
-  <strong>Composable, timezone-aware scheduling for React.</strong>
+  <strong>A modern, timezone-aware calendar for React.</strong>
 </p>
 
 <p align="center">
-  Build day, week, month, agenda, resource, and custom time-grid experiences<br />
-  without surrendering your application state, design system, or data model.
+  Day, week, month, agenda, resource, and custom time-grid views<br />
+  with flexible rendering and controlled or uncontrolled state.
 </p>
 
 <p align="center">
   <a href="https://github.com/MaximilianWalker/ChronoLaneJS/actions/workflows/ci.yml"><img src="https://github.com/MaximilianWalker/ChronoLaneJS/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status" /></a>
-  <a href="https://maximilianwalker.github.io/ChronoLaneJS/"><img src="https://img.shields.io/badge/Storybook-live-ff4785?logo=storybook&logoColor=white" alt="Live Storybook" /></a>
+  <a href="https://maximilianwalker.github.io/ChronoLaneJS/storybook/"><img src="https://img.shields.io/badge/Storybook-live-ff4785?logo=storybook&logoColor=white" alt="Live Storybook" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/github/license/MaximilianWalker/ChronoLaneJS" alt="MIT license" /></a>
   <img src="https://img.shields.io/badge/React-18%20%7C%2019-149eca?logo=react&logoColor=white" alt="React 18 and 19" />
 </p>
@@ -34,11 +34,10 @@
 
 ---
 
-ChronoLaneJS is a TypeScript-first calendar toolkit for building scheduling
-interfaces that need real timezone behavior and application-owned UI. It
-provides the date calculations, range navigation, event layout, interactions,
-and accessible defaults while keeping state management and persistence outside
-the library.
+ChronoLaneJS is a customizable React calendar with day, week, month, agenda,
+resource, and custom time-grid views. It provides timezone-aware date handling,
+range navigation, event layout, interactions, and accessible defaults while
+keeping state management and persistence outside the component.
 
 > [!IMPORTANT]
 > ChronoLaneJS is pre-1.0, and `@chronolanejs/react` has not been published to
@@ -54,17 +53,19 @@ the library.
   date-fns locales, and explicit week-start behavior are built in.
 - **Flexible layout:** overlapping events, clipped multi-day events,
   background events, resources, and non-contiguous ranges are first-class.
-- **Application-owned behavior:** controlled or uncontrolled navigation,
+- **Flexible integration:** controlled or uncontrolled navigation,
   selection, editing, and drag-and-drop integrate with your state layer.
-- **Replaceable presentation:** override the meaningful render boundaries or
+- **Customizable presentation:** override the meaningful render boundaries or
   style the defaults without inheriting a design system.
 - **Typed and tested:** the ESM package emits declarations from source, and
   every Storybook example runs as a browser and accessibility test.
 
 ## Interactive documentation
 
-The [live Storybook](https://maximilianwalker.github.io/ChronoLaneJS/) covers
-every built-in view and public customization point, including:
+The [project website](https://maximilianwalker.github.io/ChronoLaneJS/) includes
+a compact playground with every built-in view. The exhaustive
+[Storybook](https://maximilianwalker.github.io/ChronoLaneJS/storybook/) covers
+every public customization point, including:
 
 - event overlap, overnight events, and multi-day clipping;
 - resources, background events, and custom ranges;
@@ -72,8 +73,8 @@ every built-in view and public customization point, including:
 - locale, timezone, and daylight-saving transitions;
 - responsive layouts, selection, editing, and drag-and-drop.
 
-Use its toolbar to change the locale, IANA timezone, and viewport. The catalog
-is rebuilt and deployed to GitHub Pages from `main`.
+Use Storybook's toolbar to change the locale, IANA timezone, and viewport. The
+website and full catalog are rebuilt and deployed together from `main`.
 
 ## Installation
 
@@ -324,7 +325,9 @@ Useful focused commands:
 
 | Command | Purpose |
 | --- | --- |
-| `npm run storybook` | Run the interactive component catalog |
+| `npm run site` | Run the project website and compact playground |
+| `npm run site:build` | Build the GitHub Pages website |
+| `npm run storybook` | Run the exhaustive component catalog |
 | `npm run storybook:test` | Execute every story in Chromium |
 | `npm run storybook:build` | Build the deployable static catalog |
 | `npm run locales:generate` | Regenerate date-fns locale loaders |

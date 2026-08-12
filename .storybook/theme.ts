@@ -4,7 +4,7 @@ import { create } from "storybook/theming";
 export const chronoLaneJsTheme = create({
     base: "light",
     brandTitle: "ChronoLaneJS",
-    brandUrl: "https://github.com/MaximilianWalker/ChronoLaneJS",
+    brandUrl: "https://maximilianwalker.github.io/ChronoLaneJS/",
     brandTarget: "_self",
     colorPrimary: "#1d4ed8",
     colorSecondary: "#0f766e"

@@ -1,7 +1,7 @@
 {
   "name": "@chronolanejs/react",
   "version": "0.1.0",
-  "description": "A composable, timezone-aware calendar toolkit for React.",
+  "description": "A modern, timezone-aware calendar for React.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -22,7 +22,8 @@
     "timezone"
   ],
   "files": [
-    "assets",
+    "assets/chronolane-logo.png",
+    "assets/chronolane-logo.svg",
     "dist",
     "LICENSE",
     "README.md"
@@ -59,7 +60,11 @@
     "storybook:build": "storybook build --output-dir storybook-static",
     "storybook:test": "vitest --project=storybook --run",
     "storybook:test:watch": "vitest --project=storybook",
-    "check:storybook": "npm run types:check:storybook && npm run storybook:test && npm run storybook:build"
+    "check:storybook": "npm run types:check:storybook && npm run storybook:test && npm run storybook:build",
+    "site": "vite --config vite.site.config.ts",
+    "site:build": "tsc -p tsconfig.site.json && vite build --config vite.site.config.ts",
+    "site:bundle": "npm run site:build && storybook build --output-dir site-dist/storybook",
+    "site:preview": "vite preview --config vite.site.config.ts"
   },
   "peerDependencies": {
     "@date-fns/tz": ">=1.5.0 <2",
