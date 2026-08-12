@@ -11,6 +11,7 @@ import {
     CustomTimeGridEvent,
     InteractionHarness
 } from "../harnesses.js";
+import { asCalendarDate } from "../../src/index.js";
 import {
     ANCHOR_DATE,
     MAX_TIME,
@@ -70,8 +71,8 @@ export const SelectClippedEvent: Story = {
         await expect(args.onEventSelect).toHaveBeenCalledWith(
             expect.objectContaining({
                 id: "conference",
-                start: new Date(2026, 8, 14, 14),
-                end: new Date(2026, 8, 16, 11)
+                start: asCalendarDate("2026-09-14T14:00:00", "Europe/Lisbon"),
+                end: asCalendarDate("2026-09-16T11:00:00", "Europe/Lisbon")
             }),
             expect.anything()
         );
@@ -89,8 +90,8 @@ export const EditClippedEvent: Story = {
         await expect(args.onEventEdit).toHaveBeenCalledWith(
             expect.objectContaining({
                 id: "conference",
-                start: new Date(2026, 8, 14, 14),
-                end: new Date(2026, 8, 16, 11)
+                start: asCalendarDate("2026-09-14T14:00:00", "Europe/Lisbon"),
+                end: asCalendarDate("2026-09-16T11:00:00", "Europe/Lisbon")
             }),
             expect.anything()
         );
@@ -110,8 +111,8 @@ export const SelectOvernightEvent: Story = {
         await expect(args.onEventSelect).toHaveBeenCalledWith(
             expect.objectContaining({
                 id: "overnight",
-                start: new Date(2026, 8, 14, 23),
-                end: new Date(2026, 8, 15, 2)
+                start: asCalendarDate("2026-09-14T23:00:00", "Europe/Lisbon"),
+                end: asCalendarDate("2026-09-15T02:00:00", "Europe/Lisbon")
             }),
             expect.anything()
         );
@@ -132,8 +133,8 @@ export const SelectMultiResourceEvent: Story = {
             expect.objectContaining({
                 id: "shared-briefing",
                 resourceIds: ["studio", "workshop"],
-                start: new Date(2026, 8, 14, 11, 30),
-                end: new Date(2026, 8, 14, 12, 30)
+                start: asCalendarDate("2026-09-14T11:30:00", "Europe/Lisbon"),
+                end: asCalendarDate("2026-09-14T12:30:00", "Europe/Lisbon")
             }),
             expect.anything()
         );
