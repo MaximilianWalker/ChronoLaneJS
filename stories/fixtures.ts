@@ -13,8 +13,8 @@ export interface StoryEvent extends CalendarEvent {
 export const ANCHOR_DATE = "2026-09-14";
 export const MONTH_DATE = "2026-09-14";
 export const DST_START_DATE = "2026-03-29";
-export const MIN_TIME = "1970-01-01T08:00:00";
-export const MAX_TIME = "1970-01-01T18:00:00";
+export const MIN_TIME = "08:00";
+export const MAX_TIME = "18:00";
 
 export const resources: StoryResource[] = [
     { id: "studio", name: "Studio", group: "Creative" },

@@ -28,8 +28,8 @@ const markup = renderToStaticMarkup(createElement(Calendar, {
     date: new Date(2026, 8, 1),
     events: [],
     showControls: false,
-    minTime: new Date(2026, 8, 1, 8),
-    maxTime: new Date(2026, 8, 1, 10)
+    minTime: "08:00",
+    maxTime: "10:00"
 }));
 
 assert.match(markup, /class="calendar"/);

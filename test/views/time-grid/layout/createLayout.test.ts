@@ -4,9 +4,7 @@ import test from "node:test";
 import { TZDate } from "@date-fns/tz";
 import {
     eachDayOfInterval,
-    endOfDay,
-    format,
-    startOfDay
+    format
 } from "date-fns";
 
 import { createLayout as buildTimeGridLayout } from "../../../../src/views/time-grid/layout/createLayout.js";
@@ -14,6 +12,7 @@ import type {
     CalendarEvent,
     NormalizedCalendarEvent
 } from "../../../../src/types.js";
+import type { TimeOfDay } from "../../../../src/views/time-grid/types.js";
 
 interface TestEvent extends CalendarEvent {
     id: string;
@@ -34,10 +33,10 @@ interface CreateLayoutOptions {
     backgroundEvents?: TestEvent[];
     days?: Date[];
     resources?: TestResource[];
-    minTime?: Date;
-    maxTime?: Date;
-    step?: number;
-    dividerInterval?: number;
+    minTime?: TimeOfDay;
+    maxTime?: TimeOfDay | "24:00";
+    slotDuration?: number;
+    labelInterval?: number;
     getResourceId?: (resource: TestResource) => unknown;
     getEventResourceIds?: (event: NormalizedCalendarEvent<TestEvent>) => unknown[];
 }
@@ -51,10 +50,10 @@ const createLayout = ({
     backgroundEvents = [],
     days = [date(1)],
     resources = [],
-    minTime = date(1, 8),
-    maxTime = date(1, 18),
-    step = 60,
-    dividerInterval = step,
+    minTime = "08:00",
+    maxTime = "18:00",
+    slotDuration = 60,
+    labelInterval = slotDuration,
     ...options
 }: CreateLayoutOptions = {}) => buildTimeGridLayout<TestEvent, TestResource>({
     days,
@@ -63,8 +62,8 @@ const createLayout = ({
     resources,
     minTime,
     maxTime,
-    step,
-    dividerInterval,
+    slotDuration,
+    labelInterval,
     ...options
 });
 
@@ -94,7 +93,7 @@ test("creates one column per visible day and resource", () => {
 });
 
 test("creates slots and dividers from one validated time scale", () => {
-    const layout = createLayout({ step: 30, dividerInterval: 60 });
+    const layout = createLayout({ slotDuration: 30, labelInterval: 60 });
 
     assert.equal(layout.totalMinutes, 600);
     assert.equal(layout.slots.length, 20);
@@ -104,18 +103,36 @@ test("creates slots and dividers from one validated time scale", () => {
     assert.equal(layout.slots[1]!.isDividerBoundary, true);
 });
 
-test("includes every minute when maxTime is the end of the day", () => {
-    const day = date(1);
+test("treats 24:00 as the exclusive end of a complete day", () => {
     const layout = createLayout({
-        minTime: startOfDay(day),
-        maxTime: endOfDay(day),
-        step: 60,
-        dividerInterval: 60
+        minTime: "00:00",
+        maxTime: "24:00",
+        slotDuration: 60,
+        labelInterval: 60
     });
 
     assert.equal(layout.totalMinutes, 1_440);
     assert.equal(layout.slots.length, 24);
     assert.equal(format(layout.slots.at(-1)!.end, "yyyy-MM-dd HH:mm"), "2026-09-02 00:00");
+});
+
+test("keeps a final slot inside an uneven time window", () => {
+    const layout = createLayout({
+        minTime: "08:15",
+        maxTime: "09:00",
+        slotDuration: 30,
+        labelInterval: 30
+    });
+
+    assert.equal(layout.totalMinutes, 45);
+    assert.deepEqual(layout.slots.map(({ start, end, duration }) => ({
+        start: format(start, "HH:mm"),
+        end: format(end, "HH:mm"),
+        duration
+    })), [
+        { start: "08:15", end: "08:45", duration: 30 },
+        { start: "08:45", end: "09:00", duration: 15 }
+    ]);
 });
 
 test("assigns lanes per local overlap cluster and reuses ended lanes", () => {
@@ -279,47 +296,51 @@ test("uses wall-clock rows across Lisbon daylight-saving changes", () => {
             0,
             timeZone
         );
-        const maxTime = new TZDate(
-            day.getFullYear(),
-            day.getMonth(),
-            day.getDate(),
-            23,
-            59,
-            59,
-            999,
-            timeZone
-        );
-        const [segment] = createLayout({
+        const layout = createLayout({
             days: [day],
-            minTime: day,
-            maxTime,
+            minTime: "00:00",
+            maxTime: "24:00",
             events: [{
                 id: `full-day-${day.getMonth()}`,
                 title: "Full day",
                 start: day,
                 end: nextDay
             }]
-        }).events;
+        });
+        const [segment] = layout.events;
 
         assert.ok(segment);
         return {
             date: format(segment.start, "yyyy-MM-dd"),
             end: format(segment.end, "yyyy-MM-dd HH:mm"),
             startRow: segment.startRow,
-            endRow: segment.endRow
+            endRow: segment.endRow,
+            slotCount: layout.slots.length
         };
     });
 
     assert.deepEqual(results, [
-        { date: "2026-03-29", end: "2026-03-29 23:59", startRow: 1, endRow: 1441 },
-        { date: "2026-10-25", end: "2026-10-25 23:59", startRow: 1, endRow: 1441 }
+        { date: "2026-03-29", end: "2026-03-30 00:00", startRow: 1, endRow: 1441, slotCount: 24 },
+        { date: "2026-10-25", end: "2026-10-26 00:00", startRow: 1, endRow: 1441, slotCount: 24 }
     ]);
 });
 
 test("rejects invalid time scales", () => {
     assert.throws(
-        () => createLayout({ minTime: date(1, 18), maxTime: date(1, 8) }),
+        () => createLayout({ minTime: "18:00", maxTime: "08:00" }),
         /maxTime must be after minTime/
     );
-    assert.throws(() => createLayout({ step: 0 }), /positive integer/);
+    assert.throws(
+        () => createLayout({ minTime: "1970-01-01T08:00:00" as TimeOfDay }),
+        /minTime must use HH:mm/
+    );
+    assert.throws(
+        () => createLayout({ maxTime: "24:01" as TimeOfDay }),
+        /maxTime must use HH:mm/
+    );
+    assert.throws(() => createLayout({ slotDuration: 0 }), /positive integer/);
+    assert.throws(
+        () => createLayout({ slotDuration: 30, labelInterval: 45 }),
+        /integer multiple of slotDuration/
+    );
 });

@@ -60,8 +60,8 @@ export const TwoDayRange: Story = {
 export const FifteenMinuteScale: Story = {
     args: {
         range: "day",
-        step: 15,
-        dividerInterval: 60,
+        slotDuration: 15,
+        labelInterval: 60,
         cellHeight: 26
     }
 };

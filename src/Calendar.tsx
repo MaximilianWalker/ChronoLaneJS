@@ -13,7 +13,6 @@ import {
 } from "./core/locale.js";
 import { defaultCalendarViews } from "./viewRegistry.js";
 import type {
-    CalendarDateInput,
     CalendarEvent,
     CalendarLocale,
     CalendarRangeDefinition,
@@ -40,10 +39,10 @@ export interface CalendarProps<
     localeFallback?: ReactNode;
     resources?: Resource[];
     range?: CalendarRangeDefinition;
-    minTime?: CalendarDateInput;
-    maxTime?: CalendarDateInput;
-    step?: number;
-    dividerInterval?: number;
+    minTime?: TimeGridViewProps<Event, Resource>["minTime"];
+    maxTime?: TimeGridViewProps<Event, Resource>["maxTime"];
+    slotDuration?: number;
+    labelInterval?: number;
     headerHeight?: number;
     timeLabelWidth?: number;
     cellWidth?: number;

@@ -49,8 +49,8 @@ export const Overnight: Story = {
     args: {
         events: overnightEvents,
         range: 2,
-        minTime: "1970-01-01T00:00:00",
-        maxTime: "1970-01-01T23:59:59.999",
+        minTime: "00:00",
+        maxTime: "24:00",
         cellHeight: 20
     }
 };

@@ -8,7 +8,11 @@ import type {
     TimeGridEventLayout,
     TimeGridEventSegment
 } from "../types.js";
-import { atDayTime, getGridRows } from "./timeScale.js";
+import {
+    atDayMinute,
+    getGridRows
+} from "./timeScale.js";
+import type { ResolvedTimeWindow } from "./timeScale.js";
 
 interface CreateEventSegmentsOptions<
     Event extends CalendarEvent,
@@ -16,8 +20,7 @@ interface CreateEventSegmentsOptions<
 > {
     events: NormalizedCalendarEvent<Event>[];
     columns: TimeGridColumn<Resource>[];
-    minTime: Date;
-    maxTime: Date;
+    timeWindow: ResolvedTimeWindow;
     getResourceId: (resource: Resource) => unknown;
     getEventResourceIds: (event: NormalizedCalendarEvent<Event>) => unknown[];
 }
@@ -45,8 +48,7 @@ const belongsToColumn = <Resource>(
 export const createEventSegments = <Event extends CalendarEvent, Resource>({
     events,
     columns,
-    minTime,
-    maxTime,
+    timeWindow,
     getResourceId,
     getEventResourceIds
 }: CreateEventSegmentsOptions<Event, Resource>): TimeGridEventSegment<Event, Resource>[] => {
@@ -56,8 +58,8 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
     ]));
 
     return columns.flatMap((column, columnIndex) => {
-        const visibleDayStart = atDayTime(column.day, minTime);
-        const visibleDayEnd = atDayTime(column.day, maxTime);
+        const visibleDayStart = atDayMinute(column.day, timeWindow.startMinute);
+        const visibleDayEnd = atDayMinute(column.day, timeWindow.endMinute);
 
         return events.flatMap((event) => {
             if (!belongsToColumn(
@@ -85,7 +87,12 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
                 columnIndex,
                 resource: column.resource,
                 resourceIndex: column.resourceIndex,
-                ...getGridRows(visibleStart, visibleEnd, visibleDayStart)
+                ...getGridRows(
+                    visibleStart,
+                    visibleEnd,
+                    column.day,
+                    timeWindow.startMinute
+                )
             }];
         });
     });

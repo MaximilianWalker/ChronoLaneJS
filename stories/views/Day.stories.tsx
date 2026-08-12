@@ -41,17 +41,17 @@ export const Empty: Story = {
 
 export const BusinessHours: Story = {
     args: {
-        minTime: "1970-01-01T09:00:00",
-        maxTime: "1970-01-01T17:00:00",
-        step: 30,
-        dividerInterval: 60
+        minTime: "09:00",
+        maxTime: "17:00",
+        slotDuration: 30,
+        labelInterval: 60
     }
 };
 
 export const FullDay: Story = {
     args: {
-        minTime: "1970-01-01T00:00:00",
-        maxTime: "1970-01-01T23:59:59.999",
+        minTime: "00:00",
+        maxTime: "24:00",
         cellHeight: 24
     }
 };

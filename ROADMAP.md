@@ -58,11 +58,11 @@ Last reviewed: 2026-08-12
     styling.
   - The redundant `showGrid` prop is removed; the interaction layer is always
     mounted and grid-line presentation is owned by CSS.
-- [ ] **[P0][DATE-01] Replace date-shaped time-of-day inputs.**
-  - `minTime` and `maxTime` currently accept complete dates even though their
-    date fields are ignored.
-  - Introduce an explicit time-window contract such as `08:00` through `18:00`.
-  - Define inclusive and exclusive boundaries and behavior across DST changes.
+- [x] **[P0][DATE-01] Replace date-shaped time-of-day inputs.**
+  - `minTime` and `maxTime` accept strict wall-clock `HH:mm` values, with
+    `24:00` reserved for the exclusive end of a complete day.
+  - Layout uses minute offsets instead of artificial reference dates and keeps
+    wall-clock rows stable across DST changes.
 - [ ] **[P1][DATE-02] Normalize every externally supplied selection value.**
   - Apply the configured time zone consistently to selected ranges as well as
     events and view dates.
@@ -82,9 +82,9 @@ Last reviewed: 2026-08-12
     constrained generic identifier.
   - Detect missing or duplicate resource identifiers.
   - Document equality and multi-assignment behavior.
-- [ ] **[P1][SCALE-01] Validate divider configuration explicitly.**
-  - Invalid divider intervals currently fall back silently to the slot step.
-  - Reject invalid configuration or document and test a deliberate fallback.
+- [x] **[P1][SCALE-01] Validate label configuration explicitly.**
+  - `labelInterval` must be an integer multiple of `slotDuration`.
+  - Invalid configuration throws instead of silently falling back.
 
 ## Public API simplification
 
@@ -122,11 +122,11 @@ Last reviewed: 2026-08-12
   - Replace `showGridLines` with styling or one semantic appearance variant.
   - Allow both `Calendar` and direct view components to receive typed
     `className` and `CalendarStyle`.
-- [ ] **[P1][API-08] Group time-grid scale configuration.**
-  - Replace the flat time props with a cohesive contract containing the time
-    window, slot step, and label/divider cadence.
-  - Keep slot granularity and label cadence distinct because they serve
-    different purposes.
+- [x] **[P1][API-08] Keep time-grid scale configuration independently overridable.**
+  - Flat primitive props avoid configuration-object merge rules and unstable
+    object identities when callers override one value.
+  - `slotDuration` and `labelInterval` replace the ambiguous `step` and
+    presentation-oriented `dividerInterval` names.
 - [ ] **[P1][API-09] Group resource configuration.**
   - Keep resource items and their ID, title, and event-assignment accessors in
     one typed resource contract.

@@ -67,5 +67,6 @@ export type {
     TimeGridEventSegment,
     TimeGridSlot,
     TimeGridSlotProps,
-    TimeGridViewProps
+    TimeGridViewProps,
+    TimeOfDay
 } from "./views/time-grid/types.js";

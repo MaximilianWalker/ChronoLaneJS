@@ -38,10 +38,10 @@ test("describes a drop across days and resources", () => {
         events: [event],
         backgroundEvents: [],
         resources: [roomA, roomB],
-        minTime: date(1, 8),
-        maxTime: date(1, 18),
-        step: 30,
-        dividerInterval: 60
+        minTime: "08:00",
+        maxTime: "18:00",
+        slotDuration: 30,
+        labelInterval: 60
     });
     const segment = layout.events.find(({ resource }) => resource === roomA);
     const slot = layout.slots.find(({ dayIndex, resource, start }) => (
@@ -72,10 +72,10 @@ test("uses the source event duration when dragging a clipped segment", () => {
         days: [date(1), date(4)],
         events: [event],
         backgroundEvents: [],
-        minTime: date(1, 8),
-        maxTime: date(1, 18),
-        step: 60,
-        dividerInterval: 60
+        minTime: "08:00",
+        maxTime: "18:00",
+        slotDuration: 60,
+        labelInterval: 60
     });
     const segment = layout.events.find(({ dayIndex }) => dayIndex === 0);
     const slot = layout.slots.find(({ dayIndex, start }) => (

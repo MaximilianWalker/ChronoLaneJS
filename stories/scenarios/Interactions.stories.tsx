@@ -101,8 +101,8 @@ export const SelectOvernightEvent: Story = {
     args: {
         date: "2026-09-15",
         events: overnightEvents,
-        minTime: "1970-01-01T00:00:00",
-        maxTime: "1970-01-01T05:00:00"
+        minTime: "00:00",
+        maxTime: "05:00"
     },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);

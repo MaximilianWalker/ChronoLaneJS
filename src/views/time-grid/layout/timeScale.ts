@@ -1,33 +1,87 @@
-import { addMinutes } from "date-fns/addMinutes";
+import { addDays } from "date-fns/addDays";
 
 import { setTime } from "../../../core/date.js";
 import type {
     TimeGridColumn,
     TimeGridDivider,
-    TimeGridSlot
+    TimeGridSlot,
+    TimeOfDay
 } from "../types.js";
 
-/** Converts visible time fields to a fractional minute offset after midnight. */
-const wallClockMinutes = (date: Date): number => (
-    (date.getHours() * 60)
+const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const MILLISECONDS_PER_DAY = 86_400_000;
+
+export interface ResolvedTimeWindow {
+    startMinute: number;
+    endMinute: number;
+    totalMinutes: number;
+}
+
+/** Converts a strict wall-clock value to its minute offset after midnight. */
+const parseTime = (
+    value: TimeOfDay | "24:00",
+    boundary: "minTime" | "maxTime"
+): number => {
+    if (boundary === "maxTime" && value === "24:00") return 1_440;
+
+    const match = typeof value === "string" ? TIME_PATTERN.exec(value) : null;
+    if (!match) {
+        const limit = boundary === "maxTime" ? "24:00" : "23:59";
+        throw new TypeError(`Calendar ${boundary} must use HH:mm between 00:00 and ${limit}.`);
+    }
+
+    return (Number(match[1]) * 60) + Number(match[2]);
+};
+
+/**
+ * Validates and resolves the visible daily time window to minute offsets.
+ *
+ * @param minTime - Inclusive start in strict `HH:mm` format.
+ * @param maxTime - Exclusive end in strict `HH:mm` format or `24:00`.
+ * @returns Validated start, end, and duration minute offsets.
+ * @throws TypeError if either boundary is malformed.
+ * @throws RangeError if the end does not follow the start.
+ */
+export const resolveTimeWindow = (
+    minTime: TimeOfDay,
+    maxTime: TimeOfDay | "24:00"
+): ResolvedTimeWindow => {
+    const startMinute = parseTime(minTime, "minTime");
+    const endMinute = parseTime(maxTime, "maxTime");
+
+    if (endMinute <= startMinute) {
+        throw new RangeError("Calendar maxTime must be after minTime.");
+    }
+
+    return {
+        startMinute,
+        endMinute,
+        totalMinutes: endMinute - startMinute
+    };
+};
+
+/** Creates a calendar date at a wall-clock minute on the supplied day. */
+export const atDayMinute = (day: Date, minute: number): Date => {
+    const targetDay = minute === 1_440 ? addDays(day, 1) : day;
+    const minuteOfDay = minute % 1_440;
+
+    return setTime(
+        targetDay,
+        Math.floor(minuteOfDay / 60),
+        minuteOfDay % 60
+    );
+};
+
+/** Converts a date to its wall-clock minute offset relative to a calendar day. */
+const relativeWallClockMinute = (day: Date, date: Date): number => (
+    (
+        Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+        - Date.UTC(day.getFullYear(), day.getMonth(), day.getDate())
+    ) / MILLISECONDS_PER_DAY * 1_440
+    + (date.getHours() * 60)
     + date.getMinutes()
     + (date.getSeconds() / 60)
     + (date.getMilliseconds() / 60_000)
-);
-
-/**
- * Combines the calendar fields of one date with the time fields of another.
- *
- * @param day - Date providing year, month, and day.
- * @param time - Date providing hours through milliseconds.
- * @returns A new date using `day`'s date implementation and the combined fields.
- */
-export const atDayTime = (day: Date, time: Date): Date => setTime(
-    day,
-    time.getHours(),
-    time.getMinutes(),
-    time.getSeconds(),
-    time.getMilliseconds()
 );
 
 /**
@@ -35,116 +89,102 @@ export const atDayTime = (day: Date, time: Date): Date => setTime(
  *
  * @param start - Visible event start.
  * @param end - Visible event end.
- * @param visibleStart - Start of the grid's daily time window.
+ * @param day - Calendar day owning the grid column.
+ * @param windowStartMinute - Inclusive start minute of the visible window.
  * @returns Start and end row lines at minute precision.
  */
 export const getGridRows = (
     start: Date,
     end: Date,
-    visibleStart: Date
-): { startRow: number; endRow: number } => {
-    const firstMinute = Math.floor(wallClockMinutes(visibleStart));
-
-    return {
-        startRow: Math.floor(wallClockMinutes(start)) - firstMinute + 1,
-        endRow: Math.ceil(wallClockMinutes(end)) - firstMinute + 1
-    };
-};
+    day: Date,
+    windowStartMinute: number
+): { startRow: number; endRow: number } => ({
+    startRow: Math.floor(relativeWallClockMinute(day, start)) - windowStartMinute + 1,
+    endRow: Math.ceil(relativeWallClockMinute(day, end)) - windowStartMinute + 1
+});
 
 interface CreateTimeScaleOptions<Resource> {
     firstDay: Date;
     columns: TimeGridColumn<Resource>[];
-    minTime: Date;
-    maxTime: Date;
-    step: number;
-    dividerInterval: number;
+    timeWindow: ResolvedTimeWindow;
+    slotDuration: number;
+    labelInterval: number;
 }
 
 interface TimeScale<Resource> {
     slots: TimeGridSlot<Resource>[];
     dividers: TimeGridDivider[];
     totalMinutes: number;
-    dividerInterval: number;
 }
 
 /**
  * Creates grid slots, divider labels, and minute dimensions for a time window.
  *
  * The scale uses wall-clock minutes so rows remain stable across daylight-saving
- * transitions. A divider interval that is smaller than or indivisible by the
- * slot step falls back to the step.
+ * transitions. Label intervals must align with complete slot boundaries.
  *
- * @param options - Columns, visible times, slot step, and divider interval.
+ * @param options - Columns, visible window, slot duration, and label interval.
  * @returns The slots and dividers shared by every grid column.
- * @throws RangeError if the time window or step is invalid.
+ * @throws RangeError if either interval is invalid or incompatible.
  */
 export const createTimeScale = <Resource>({
     firstDay,
     columns,
-    minTime,
-    maxTime,
-    step,
-    dividerInterval
+    timeWindow,
+    slotDuration,
+    labelInterval
 }: CreateTimeScaleOptions<Resource>): TimeScale<Resource> => {
-    const firstMinute = Math.floor(wallClockMinutes(minTime));
-    const lastMinute = Math.ceil(wallClockMinutes(maxTime));
-    const totalMinutes = lastMinute - firstMinute;
-
-    if (totalMinutes <= 0) {
-        throw new RangeError("Calendar maxTime must be after minTime.");
+    if (!Number.isInteger(slotDuration) || slotDuration < 1) {
+        throw new RangeError("Calendar slotDuration must be a positive integer.");
     }
-    if (!Number.isInteger(step) || step < 1) {
-        throw new RangeError("Calendar step must be a positive integer.");
+    if (
+        !Number.isInteger(labelInterval)
+        || labelInterval < slotDuration
+        || labelInterval % slotDuration !== 0
+    ) {
+        throw new RangeError(
+            "Calendar labelInterval must be an integer multiple of slotDuration."
+        );
     }
 
-    const effectiveDividerInterval = (
-        dividerInterval >= step && dividerInterval % step === 0
-    ) ? dividerInterval : step;
-    const scaleStart = setTime(
-        firstDay,
-        Math.floor(firstMinute / 60),
-        firstMinute % 60
-    );
-    const slotCount = Math.ceil(totalMinutes / step);
-    const dividerCount = Math.ceil(totalMinutes / effectiveDividerInterval);
+    const { startMinute, endMinute, totalMinutes } = timeWindow;
+    const slotCount = Math.ceil(totalMinutes / slotDuration);
+    const dividerCount = Math.ceil(totalMinutes / labelInterval);
     const slots = Array.from({ length: slotCount }, (_, timeIndex) => {
-        const time = addMinutes(scaleStart, timeIndex * step);
+        const slotStartMinute = startMinute + (timeIndex * slotDuration);
+        const slotEndMinute = Math.min(slotStartMinute + slotDuration, endMinute);
 
-        return columns.map((column, columnIndex) => {
-            const start = atDayTime(column.day, time);
-            const duration = Math.min(step, totalMinutes - (timeIndex * step));
-            const end = addMinutes(start, duration);
-            const endMinute = Math.min((timeIndex + 1) * step, totalMinutes);
-
-            return {
-                key: `${timeIndex}-${column.key}`,
-                start,
-                end,
-                duration,
-                timeIndex,
-                day: column.day,
-                dayIndex: column.dayIndex,
-                columnIndex,
-                resource: column.resource,
-                isDividerBoundary: endMinute !== totalMinutes
-                    && endMinute % effectiveDividerInterval === 0
-            };
-        });
+        return columns.map((column, columnIndex) => ({
+            key: `${timeIndex}-${column.key}`,
+            start: atDayMinute(column.day, slotStartMinute),
+            end: atDayMinute(column.day, slotEndMinute),
+            duration: slotEndMinute - slotStartMinute,
+            timeIndex,
+            day: column.day,
+            dayIndex: column.dayIndex,
+            columnIndex,
+            resource: column.resource,
+            isDividerBoundary: slotEndMinute !== endMinute
+                && (slotEndMinute - startMinute) % labelInterval === 0
+        }));
     }).flat();
-    const dividers = Array.from({ length: dividerCount }, (_, index) => ({
-        key: `${scaleStart.getTime()}-${index}`,
-        time: addMinutes(scaleStart, index * effectiveDividerInterval),
-        startRow: (index * effectiveDividerInterval) + 1,
-        rowSpan: Math.min(
-            effectiveDividerInterval,
-            totalMinutes - (index * effectiveDividerInterval)
-        )
-    }));
+    const dividers = Array.from({ length: dividerCount }, (_, index) => {
+        const minute = startMinute + (index * labelInterval);
+
+        return {
+            key: `${firstDay.getTime()}-${minute}`,
+            time: atDayMinute(firstDay, minute),
+            startRow: (index * labelInterval) + 1,
+            rowSpan: Math.min(
+                labelInterval,
+                totalMinutes - (index * labelInterval)
+            )
+        };
+    });
 
     return {
         slots,
         dividers,
-        totalMinutes,
-        dividerInterval: effectiveDividerInterval
+        totalMinutes
     };
 };

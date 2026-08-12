@@ -122,6 +122,30 @@ import { startOfWeek } from "date-fns";
 Non-contiguous ranges are supported, so business calendars do not require a
 dedicated work-week view.
 
+## Time-grid scale
+
+Time-grid views accept independent wall-clock and cadence props:
+
+```tsx
+<Calendar
+    view="week"
+    minTime="08:00"
+    maxTime="18:00"
+    slotDuration={30}
+    labelInterval={60}
+/>
+```
+
+`minTime` is inclusive and `maxTime` is exclusive. Both use strict, zero-padded
+`HH:mm` values; `maxTime` also accepts `24:00` for the end of the day. The
+defaults are `00:00`, `24:00`, and 60 minutes for both intervals.
+
+`slotDuration` controls selectable slot granularity. `labelInterval` controls
+time-label and major-divider cadence and must be an integer multiple of the
+slot duration. Invalid or reversed configurations throw instead of being
+silently adjusted. These remain flat props so callers can override one value
+without replacing or merging a configuration object.
+
 ## Locales and timezones
 
 `locale` accepts either a supported locale name or a date-fns locale object.

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DragEvent, SyntheticEvent } from "react";
-import { endOfDay } from "date-fns/endOfDay";
 import { format } from "date-fns/format";
 import { isSameMonth } from "date-fns/isSameMonth";
 import { startOfDay } from "date-fns/startOfDay";
@@ -95,11 +94,11 @@ export default function TimeGridView<
     weekStart: weekStartProp,
     minDate = null,
     maxDate = null,
-    minTime: minTimeProp,
-    maxTime: maxTimeProp,
+    minTime = "00:00",
+    maxTime = "24:00",
     showControls = true,
-    step = 60,
-    dividerInterval = step,
+    slotDuration = 60,
+    labelInterval = slotDuration,
     headerHeight = 50,
     timeLabelWidth = 50,
     cellWidth,
@@ -146,14 +145,6 @@ export default function TimeGridView<
         weekStartsOn: weekStart
     }), [anchorDate, range, weekStart]);
     const { start: rangeStart, end: rangeEnd } = getCalendarRangeBounds(days);
-    const minTime = useMemo(
-        () => asCalendarDate(minTimeProp ?? startOfDay(anchorDate), timeZone),
-        [anchorDate, minTimeProp, timeZone]
-    );
-    const maxTime = useMemo(
-        () => asCalendarDate(maxTimeProp ?? endOfDay(anchorDate), timeZone),
-        [anchorDate, maxTimeProp, timeZone]
-    );
     const calendarMinDate = useMemo(
         () => minDate == null ? null : asCalendarDate(minDate, timeZone),
         [minDate, timeZone]
@@ -177,21 +168,21 @@ export default function TimeGridView<
         resources,
         minTime,
         maxTime,
-        step,
-        dividerInterval,
+        slotDuration,
+        labelInterval,
         getResourceId,
         ...(getEventResourceIds ? { getEventResourceIds } : {})
     }), [
         calendarBackgroundEvents,
         calendarEvents,
         days,
-        dividerInterval,
         getEventResourceIds,
         getResourceId,
+        labelInterval,
         maxTime,
         minTime,
         resources,
-        step
+        slotDuration
     ]);
     const {
         columns,
@@ -214,7 +205,7 @@ export default function TimeGridView<
     const cellWidthValue = cellWidth
         ? `${cellWidth}px`
         : "minmax(var(--time-grid-day-min-width, 0px), 1fr)";
-    const gridHeight = `${(totalMinutes / step) * cellHeight}px`;
+    const gridHeight = `${(totalMinutes / slotDuration) * cellHeight}px`;
     const gridRows = `repeat(${totalMinutes}, minmax(0, 1fr))`;
 
     const firstHeaderDate = format(rangeStart, headerFormat, { locale: calendarLocale });
@@ -367,7 +358,7 @@ export default function TimeGridView<
                                     timeIndex={slot.timeIndex}
                                     dayIndex={slot.dayIndex}
                                     columnIndex={slot.columnIndex}
-                                    step={step}
+                                    slotDuration={slotDuration}
                                     day={slot.day}
                                     resource={slot.resource}
                                     startTime={slot.start}
@@ -381,7 +372,7 @@ export default function TimeGridView<
                                         ? (interaction) => handleDrop(interaction, slot)
                                         : undefined}
                                     style={{
-                                        gridRow: `${(slot.timeIndex * step) + 1} / ${(slot.timeIndex * step) + 1 + slot.duration}`,
+                                        gridRow: `${(slot.timeIndex * slotDuration) + 1} / ${(slot.timeIndex * slotDuration) + 1 + slot.duration}`,
                                         gridColumn: slot.columnIndex + 1
                                     }}
                                 />

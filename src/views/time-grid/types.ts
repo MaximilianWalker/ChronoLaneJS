@@ -20,6 +20,13 @@ import type {
     SharedViewProps
 } from "../../types.js";
 
+type DecimalDigit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+type TimeHour = `0${DecimalDigit}` | `1${DecimalDigit}` | `2${"0" | "1" | "2" | "3"}`;
+type TimeMinute = `${"0" | "1" | "2" | "3" | "4" | "5"}${DecimalDigit}`;
+
+/** A zero-padded 24-hour wall-clock time with minute precision. */
+export type TimeOfDay = `${TimeHour}:${TimeMinute}`;
+
 export interface TimeGridColumn<Resource = unknown> {
     key: string;
     day: Date;
@@ -98,7 +105,6 @@ export interface TimeGridLayout<
     events: TimeGridEventLayout<Event, Resource>[];
     backgroundEvents: TimeGridEventSegment<Event, Resource>[];
     totalMinutes: number;
-    dividerInterval: number;
 }
 
 export interface TimeGridSlotProps<Resource = unknown> {
@@ -106,7 +112,7 @@ export interface TimeGridSlotProps<Resource = unknown> {
     timeIndex: number;
     dayIndex: number;
     columnIndex: number;
-    step: number;
+    slotDuration: number;
     day: Date;
     resource: Resource | null;
     startTime: Date;
@@ -182,10 +188,10 @@ export interface TimeGridViewProps<
         range: CalendarRange
     ) => CalendarDateInput;
     weekStart?: CalendarWeekStart;
-    minTime?: CalendarDateInput;
-    maxTime?: CalendarDateInput;
-    step?: number;
-    dividerInterval?: number;
+    minTime?: TimeOfDay;
+    maxTime?: TimeOfDay | "24:00";
+    slotDuration?: number;
+    labelInterval?: number;
     headerHeight?: number;
     timeLabelWidth?: number;
     cellWidth?: number;

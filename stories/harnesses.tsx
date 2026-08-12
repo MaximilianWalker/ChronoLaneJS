@@ -187,10 +187,10 @@ export function DstTransition({
             events={dstEvents}
             locale={locale}
             timeZone={timeZone}
-            minTime="1970-01-01T00:00:00"
-            maxTime="1970-01-01T05:00:00"
-            step={30}
-            dividerInterval={60}
+            minTime="00:00"
+            maxTime="05:00"
+            slotDuration={30}
+            labelInterval={60}
         />
     );
 }

@@ -9,10 +9,14 @@ import {
 } from "../resources.js";
 import type {
     TimeGridColumn,
-    TimeGridLayout
+    TimeGridLayout,
+    TimeOfDay
 } from "../types.js";
 import { assignEventLanes, createEventSegments } from "./events.js";
-import { createTimeScale } from "./timeScale.js";
+import {
+    createTimeScale,
+    resolveTimeWindow
+} from "./timeScale.js";
 
 /** Builds one column per day, or one column per day-resource pair. */
 const createColumns = <Resource>(
@@ -47,10 +51,10 @@ export interface CreateLayoutOptions<
     events: NormalizedCalendarEvent<Event>[];
     backgroundEvents: NormalizedCalendarEvent<Event>[];
     resources?: Resource[];
-    minTime: Date;
-    maxTime: Date;
-    step: number;
-    dividerInterval: number;
+    minTime: TimeOfDay;
+    maxTime: TimeOfDay | "24:00";
+    slotDuration: number;
+    labelInterval: number;
     getResourceId?: (resource: Resource) => unknown;
     getEventResourceIds?: (event: NormalizedCalendarEvent<Event>) => unknown[];
 }
@@ -70,8 +74,8 @@ export const createLayout = <Event extends CalendarEvent, Resource>({
     resources = [],
     minTime,
     maxTime,
-    step,
-    dividerInterval,
+    slotDuration,
+    labelInterval,
     getResourceId = getDefaultResourceId,
     getEventResourceIds = getDefaultEventResourceIds
 }: CreateLayoutOptions<Event, Resource>): TimeGridLayout<Event, Resource> => {
@@ -81,18 +85,17 @@ export const createLayout = <Event extends CalendarEvent, Resource>({
     }
 
     const columns = createColumns(days, resources);
+    const timeWindow = resolveTimeWindow(minTime, maxTime);
     const timeScale = createTimeScale({
         firstDay,
         columns,
-        minTime,
-        maxTime,
-        step,
-        dividerInterval
+        timeWindow,
+        slotDuration,
+        labelInterval
     });
     const segmentOptions = {
         columns,
-        minTime,
-        maxTime,
+        timeWindow,
         getResourceId,
         getEventResourceIds
     };

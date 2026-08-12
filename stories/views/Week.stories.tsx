@@ -32,8 +32,8 @@ export const Basic: Story = {};
 
 export const HalfHourSlots: Story = {
     args: {
-        step: 30,
-        dividerInterval: 60,
+        slotDuration: 30,
+        labelInterval: 60,
         cellHeight: 34
     }
 };
