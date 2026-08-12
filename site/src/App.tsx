@@ -16,13 +16,12 @@ export default function App() {
                             Open source · MIT licensed
                         </div>
                         <h1>
-                            Calendar infrastructure,
-                            <span> shaped by you.</span>
+                            A modern calendar,
+                            <span> built for React.</span>
                         </h1>
                         <p className="hero-summary">
-                            A composable, timezone-aware React toolkit for
-                            scheduling interfaces that should feel native to
-                            your product—not ours.
+                            Build day, week, month, agenda, resource, and custom
+                            time-grid views with timezone-aware behavior.
                         </p>
                         <div className="hero-actions">
                             <a className="button button--primary" href="#playground">
@@ -103,12 +102,12 @@ export default function App() {
                 <section className="principles section" aria-labelledby="principles-title">
                     <div className="section-heading">
                         <p className="eyebrow">Designed for real products</p>
-                        <h2 id="principles-title">The hard calendar parts,<br />without the product opinions.</h2>
+                        <h2 id="principles-title">Calendar behavior<br />for real products.</h2>
                     </div>
                     <div className="principle-grid">
                         <article>
                             <span>01</span>
-                            <h3>Own your state</h3>
+                            <h3>Connect your state</h3>
                             <p>
                                 Use controlled or uncontrolled navigation and
                                 connect selections, edits, and drops to any data layer.
@@ -116,10 +115,10 @@ export default function App() {
                         </article>
                         <article>
                             <span>02</span>
-                            <h3>Own your presentation</h3>
+                            <h3>Customize presentation</h3>
                             <p>
-                                Replace meaningful render boundaries while the
-                                library continues to own layout and calendar behavior.
+                                Replace meaningful render boundaries while
+                                ChronoLaneJS handles layout and calendar behavior.
                             </p>
                         </article>
                         <article>
@@ -136,15 +135,15 @@ export default function App() {
                 <section className="brand-showcase section" aria-labelledby="brand-showcase-title">
                     <img
                         src={`${import.meta.env.BASE_URL}og.png`}
-                        alt="ChronoLaneJS — Composable, timezone-aware scheduling for React."
+                        alt="ChronoLaneJS — A modern, timezone-aware calendar for React."
                         loading="lazy"
                     />
                     <div className="brand-showcase-copy">
                         <p className="eyebrow">Open source by design</p>
-                        <h2 id="brand-showcase-title">Build it on your terms.</h2>
+                        <h2 id="brand-showcase-title">Ready for real schedules.</h2>
                         <p>
-                            Start with the documented model, then shape every
-                            interaction and renderer around your product.
+                            Start with the built-in views, then customize
+                            interactions and rendering for your product.
                         </p>
                         <div className="hero-actions">
                             <a className="button button--primary" href={REPOSITORY_URL} target="_blank" rel="noreferrer">

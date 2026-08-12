@@ -5,12 +5,12 @@
 <h1 align="center">ChronoLaneJS</h1>
 
 <p align="center">
-  <strong>Composable, timezone-aware scheduling for React.</strong>
+  <strong>A modern, timezone-aware calendar for React.</strong>
 </p>
 
 <p align="center">
-  Build day, week, month, agenda, resource, and custom time-grid experiences<br />
-  without surrendering your application state, design system, or data model.
+  Day, week, month, agenda, resource, and custom time-grid views<br />
+  with flexible rendering and controlled or uncontrolled state.
 </p>
 
 <p align="center">
@@ -34,11 +34,10 @@
 
 ---
 
-ChronoLaneJS is a TypeScript-first calendar toolkit for building scheduling
-interfaces that need real timezone behavior and application-owned UI. It
-provides the date calculations, range navigation, event layout, interactions,
-and accessible defaults while keeping state management and persistence outside
-the library.
+ChronoLaneJS is a customizable React calendar with day, week, month, agenda,
+resource, and custom time-grid views. It provides timezone-aware date handling,
+range navigation, event layout, interactions, and accessible defaults while
+keeping state management and persistence outside the component.
 
 > [!IMPORTANT]
 > ChronoLaneJS is pre-1.0, and `@chronolanejs/react` has not been published to
@@ -54,9 +53,9 @@ the library.
   date-fns locales, and explicit week-start behavior are built in.
 - **Flexible layout:** overlapping events, clipped multi-day events,
   background events, resources, and non-contiguous ranges are first-class.
-- **Application-owned behavior:** controlled or uncontrolled navigation,
+- **Flexible integration:** controlled or uncontrolled navigation,
   selection, editing, and drag-and-drop integrate with your state layer.
-- **Replaceable presentation:** override the meaningful render boundaries or
+- **Customizable presentation:** override the meaningful render boundaries or
   style the defaults without inheriting a design system.
 - **Typed and tested:** the ESM package emits declarations from source, and
   every Storybook example runs as a browser and accessibility test.

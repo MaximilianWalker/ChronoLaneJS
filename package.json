@@ -1,7 +1,7 @@
 {
   "name": "@chronolanejs/react",
   "version": "0.1.0",
-  "description": "A composable, timezone-aware calendar toolkit for React.",
+  "description": "A modern, timezone-aware calendar for React.",
   "type": "module",
   "license": "MIT",
   "repository": {

@@ -40,7 +40,7 @@ export function Footer() {
                 <img src={`${baseUrl}chronolane-logo.svg`} alt="" />
                 <span>ChronoLaneJS</span>
             </div>
-            <p>Composable, timezone-aware scheduling for React.</p>
+            <p>A modern, timezone-aware calendar for React.</p>
             <div>
                 <a href={`${REPOSITORY_URL}/blob/main/LICENSE`}>MIT License</a>
                 <a href={`${baseUrl}docs/#doc-security`}>Security</a>
