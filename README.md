@@ -1,41 +1,102 @@
-# ChronoLaneJS
+<p align="center">
+  <img src="./assets/chronolane-logo.svg" width="176" alt="ChronoLaneJS logo" />
+</p>
 
-A composable, timezone-aware calendar toolkit for React.
+<h1 align="center">ChronoLaneJS</h1>
 
-ChronoLaneJS provides day, week, month, agenda, resource, and configurable
-time-grid views without imposing application state, a design system, or a data
-backend. Every major renderer can be replaced while the date, range, locale,
-resource, and overlap behavior remains reusable.
+<p align="center">
+  <strong>Composable, timezone-aware scheduling for React.</strong>
+</p>
 
-> ChronoLaneJS is pre-1.0. Its public API is usable, but breaking changes may be
-> made while the package is being extracted and documented.
+<p align="center">
+  Build day, week, month, agenda, resource, and custom time-grid experiences<br />
+  without surrendering your application state, design system, or data model.
+</p>
 
-All known correctness work, API improvements, release gates, and remaining
-library tasks are tracked in the [roadmap](ROADMAP.md).
+<p align="center">
+  <a href="https://github.com/MaximilianWalker/ChronoLaneJS/actions/workflows/ci.yml"><img src="https://github.com/MaximilianWalker/ChronoLaneJS/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status" /></a>
+  <a href="https://maximilianwalker.github.io/ChronoLaneJS/"><img src="https://img.shields.io/badge/Storybook-live-ff4785?logo=storybook&logoColor=white" alt="Live Storybook" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/MaximilianWalker/ChronoLaneJS" alt="MIT license" /></a>
+  <img src="https://img.shields.io/badge/React-18%20%7C%2019-149eca?logo=react&logoColor=white" alt="React 18 and 19" />
+</p>
 
-## Features
+<p align="center">
+  <a href="https://maximilianwalker.github.io/ChronoLaneJS/">Live demo</a>
+  &middot;
+  <a href="#quick-start">Quick start</a>
+  &middot;
+  <a href="#core-concepts">Core concepts</a>
+  &middot;
+  <a href="./ROADMAP.md">Roadmap</a>
+  &middot;
+  <a href="./CONTRIBUTING.md">Contributing</a>
+</p>
 
-- Day, week, month, agenda, resource, and arbitrary time-grid ranges.
-- IANA timezone support through `@date-fns/tz`.
-- Lazy, cached date-fns locales resolved from BCP 47-style names.
-- Multi-day event clipping and overlapping-event lane layout.
-- Optional event selection, editing, and drag-and-drop callbacks.
-- Custom event, slot, header, background-event, navigation, and empty renderers.
-- Controlled and uncontrolled navigation.
-- Application-independent CSS with custom-property extension points.
-- TypeScript-first ESM package with React 18 and 19 support.
-- Public declarations generated from the implementation during every build.
+---
+
+ChronoLaneJS is a TypeScript-first calendar toolkit for building scheduling
+interfaces that need real timezone behavior and application-owned UI. It
+provides the date calculations, range navigation, event layout, interactions,
+and accessible defaults while keeping state management and persistence outside
+the library.
+
+> [!IMPORTANT]
+> ChronoLaneJS is pre-1.0, and `@chronolanejs/react` has not been published to
+> npm yet. The public API is usable through the repository and Storybook, but
+> breaking changes may be made before the first stable release. Release gates
+> and remaining work are tracked in the [roadmap](./ROADMAP.md).
+
+## Why ChronoLaneJS?
+
+- **Views that share one model:** day, week, month, agenda, resource, and
+  arbitrary time-grid ranges use the same event and navigation contracts.
+- **Correct across time:** IANA timezones, daylight-saving transitions, lazy
+  date-fns locales, and explicit week-start behavior are built in.
+- **Flexible layout:** overlapping events, clipped multi-day events,
+  background events, resources, and non-contiguous ranges are first-class.
+- **Application-owned behavior:** controlled or uncontrolled navigation,
+  selection, editing, and drag-and-drop integrate with your state layer.
+- **Replaceable presentation:** override the meaningful render boundaries or
+  style the defaults without inheriting a design system.
+- **Typed and tested:** the ESM package emits declarations from source, and
+  every Storybook example runs as a browser and accessibility test.
+
+## Interactive documentation
+
+The [live Storybook](https://maximilianwalker.github.io/ChronoLaneJS/) covers
+every built-in view and public customization point, including:
+
+- event overlap, overnight events, and multi-day clipping;
+- resources, background events, and custom ranges;
+- custom renderers and view registration;
+- locale, timezone, and daylight-saving transitions;
+- responsive layouts, selection, editing, and drag-and-drop.
+
+Use its toolbar to change the locale, IANA timezone, and viewport. The catalog
+is rebuilt and deployed to GitHub Pages from `main`.
 
 ## Installation
+
+The first public release will install as:
 
 ```bash
 npm install @chronolanejs/react react react-dom date-fns @date-fns/tz
 ```
 
-Import the package stylesheet once in your application:
+Import the package stylesheet once at your application entry point:
 
 ```ts
 import "@chronolanejs/react/styles.css";
+```
+
+Until the npm release, clone the repository and run Storybook to evaluate the
+library locally:
+
+```bash
+git clone https://github.com/MaximilianWalker/ChronoLaneJS.git
+cd ChronoLaneJS
+npm ci
+npm run storybook
 ```
 
 ## Quick start
@@ -66,36 +127,26 @@ export default function Schedule() {
 }
 ```
 
-ChronoLaneJS's package entry is marked as a client module and can be imported
-from a Next.js client component without a framework-specific wrapper.
+ChronoLaneJS is marked as a client module and can be imported directly from a
+Next.js client component without a framework-specific wrapper.
 
-## Interactive examples
+## Core concepts
 
-The [ChronoLaneJS Storybook](https://maximilianwalker.github.io/ChronoLaneJS/)
-documents every built-in view and its public customization points. It includes
-fixed examples for event overlap, overnight and multi-day events, resources,
-background events, custom ranges and renderers, locale and timezone changes,
-daylight-saving transitions, responsive layouts, and user interactions.
+### Views
 
-Use the Storybook toolbar to change the locale, IANA timezone, and viewport.
-Each story is also an executable browser test; interaction stories assert their
-callbacks and every story is checked automatically for accessibility issues.
-
-## Built-in views
-
-| Name | Purpose |
+| View | Purpose |
 | --- | --- |
 | `day` | One-day time-grid preset |
 | `week` | Seven-day time-grid preset |
-| `month` | Month grid including optional outside days |
+| `month` | Month grid with optional outside days |
 | `agenda` | Event groups across a configurable date range |
-| `resource` | One-day time-grid preset with resource columns |
-| `time-grid` | Generic configurable time-grid renderer |
+| `resource` | One-day time grid with resource columns |
+| `time-grid` | Generic, configurable time-grid renderer |
 
-`day`, `week`, and `resource` are presets over `TimeGridView`; they do not
-duplicate its layout or interaction logic.
+`day`, `week`, and `resource` are presets over `TimeGridView`; they share its
+layout and interaction behavior rather than maintaining separate engines.
 
-## Ranges
+### Ranges
 
 Time-grid and agenda ranges accept:
 
@@ -119,12 +170,13 @@ import { startOfWeek } from "date-fns";
 />
 ```
 
-Non-contiguous ranges are supported, so business calendars do not require a
+Non-contiguous ranges are supported, so business calendars do not need a
 dedicated work-week view.
 
-## Time-grid scale
+### Time-grid scale
 
-Time-grid views accept independent wall-clock and cadence props:
+Time-grid views keep the visible wall-clock range separate from selection and
+label cadence:
 
 ```tsx
 <Calendar
@@ -136,34 +188,29 @@ Time-grid views accept independent wall-clock and cadence props:
 />
 ```
 
-`minTime` is inclusive and `maxTime` is exclusive. Both use strict, zero-padded
-`HH:mm` values; `maxTime` also accepts `24:00` for the end of the day. The
-defaults are `00:00`, `24:00`, and 60 minutes for both intervals.
+`minTime` is inclusive and `maxTime` is exclusive. Both use strict,
+zero-padded `HH:mm` values; `maxTime` also accepts `24:00`. `slotDuration`
+controls selectable granularity, while `labelInterval` controls time labels
+and major dividers. Invalid or reversed configurations throw rather than being
+silently adjusted.
 
-`slotDuration` controls selectable slot granularity. `labelInterval` controls
-time-label and major-divider cadence and must be an integer multiple of the
-slot duration. Invalid or reversed configurations throw instead of being
-silently adjusted. These remain flat props so callers can override one value
-without replacing or merging a configuration object.
+### Locales and timezones
 
-## Locales and timezones
-
-`locale` accepts either a supported locale name or a date-fns locale object.
-`en-US` is the synchronous default. Other named locales are loaded lazily and
-cached:
+`locale` accepts a supported locale name or a date-fns locale object. `en-US`
+is the synchronous default; other named locales are loaded lazily and cached.
 
 ```tsx
 <Calendar locale="pt-PT" timeZone="Europe/Lisbon" />
 ```
 
-Use `preloadCalendarLocale(name)` when a locale should be ready before render.
-An explicit `weekStart` overrides the locale convention.
+Call `preloadCalendarLocale(name)` when a locale should be available before
+render. An explicit `weekStart` overrides the locale convention.
 
-Locales format dates and provide calendar conventions. They do not translate
-application labels such as navigation or empty-state text; those remain
-caller-controlled.
+Locales format dates and supply calendar conventions. Application labels such
+as navigation and empty-state text remain caller-controlled through
+`messages`.
 
-## Resources
+### Resources
 
 Resources are arbitrary values rather than a room-specific abstraction:
 
@@ -181,9 +228,11 @@ Resources are arbitrary values rather than a room-specific abstraction:
 The defaults read `resource.id` and `event.resourceId`, `event.resourceIds`, or
 `event.resource.id`.
 
-## Renderer extension points
+## Customization
 
-Views accept component overrides where applicable:
+### Renderers
+
+Views expose intentional renderer boundaries where applicable:
 
 - `navigationButton`
 - `eventComponent`
@@ -193,32 +242,40 @@ Views accept component overrides where applicable:
 - `dayHeaderComponent`
 - `emptyComponent`
 
-Custom renderers receive the normalized calendar value plus the semantic and
-interaction props required by that view. ChronoLaneJS owns layout and behavior;
-the renderer owns markup and presentation.
+Custom renderers receive normalized calendar values plus the semantic and
+interaction props required by their view. ChronoLaneJS continues to own layout
+and behavior; the renderer owns markup and presentation.
 
-## Interactions
+### Styling
+
+The bundled CSS is application-independent. Use `className`, `style`, event
+colors and styles, renderer overrides, or the documented custom-property
+extension points:
+
+```css
+.team-schedule {
+    --month-view-day-min-width: 9rem;
+    --time-grid-day-min-width: 10rem;
+}
+```
+
+### Interactions
 
 Selection and editing callbacks receive the normalized source event, never a
-clipped time-grid segment. Time-grid event renderers receive that source as
-`event` and the visible positioned portion as `segment`.
+clipped time-grid segment. Event renderers receive that source as `event` and
+the visible positioned portion as `segment`.
 
 Providing `onEventEdit` enables editing, and providing `onEventDrop` enables
-dragging. Use `canEditEvent(event)` or `canDragEvent(event, segment)` only when
-individual events or visible resource segments need to be restricted.
+dragging. Use `canEditEvent(event)` or `canDragEvent(event, segment)` to
+restrict individual events or visible resource segments.
 
-Time slots remain selectable and valid drop targets when grid lines are hidden
-with `showGridLines={false}`. Grid-line visibility is presentational and does
-not control the slot interaction layer.
+`onEventDrop` receives the source event, proposed `start` and `end`, and
+explicit `source` and `destination` positions. Dropping a clipped multi-day
+event preserves the source event's complete duration.
 
-`onEventDrop` receives the source event, its proposed `start` and `end`, and
-explicit `source` and `destination` positions. Each position contains its day
-and concrete resource value, or `null` when the grid has no resources. Dropping
-a clipped multi-day event preserves the source event's complete duration.
+### Custom views
 
-## Custom views
-
-Extend or replace the view registry with the `views` prop:
+Extend or replace the view registry through `views`:
 
 ```tsx
 <Calendar
@@ -233,93 +290,56 @@ Extend or replace the view registry with the `views` prop:
 />
 ```
 
-A custom view receives events, background events, the active view name,
-shared calendar props, its registered defaults, and `viewProps`.
+A custom view receives events, background events, the active view name, shared
+calendar props, registered defaults, and `viewProps`.
 
-## Public exports
+## Public API
 
-ChronoLaneJS exports `Calendar` as the default plus:
+ChronoLaneJS exports `Calendar` as the default, together with:
 
 - `AgendaView`, `DayView`, `MonthView`, `ResourceView`, `TimeGridView`, and
   `WeekView`;
 - `defaultCalendarViews`;
 - date parsing and timezone helpers;
 - range construction and navigation helpers;
-- locale discovery, loading, and preloading helpers.
+- locale discovery, loading, and preloading helpers;
+- public prop, event, range, renderer, resource, and layout types.
 
-Time-grid layout internals and default renderer implementations are private so
-they can evolve without expanding the package compatibility surface.
-
-Public functions and components include TSDoc in the generated declarations,
-so their behavior, parameters, return values, and failure conditions are
-available through TypeScript-aware editors.
-
-## Architecture
-
-```text
-src/
-|-- Calendar.tsx           Public calendar component
-|-- types.ts               Contracts shared across features
-|-- core/                  Pure date, event, locale, and range behavior
-|-- hooks/                 Shared React state
-|-- components/            Components shared across views
-`-- views/
-    |-- agenda/            View, private renderers, and feature types
-    |-- month/             View, private renderers, and feature types
-    `-- time-grid/
-        |-- TimeGridView.tsx
-        |-- Event.tsx
-        |-- Slot.tsx
-        |-- ColumnHeader.tsx
-        |-- Background.tsx
-        |-- drop.ts
-        |-- resources.ts
-        |-- types.ts
-        |-- layout/        Scale, event placement, and orchestration
-        `-- presets/       Day, week, and resource public views
-```
-
-Views may depend on shared components, hooks, and core modules. Shared modules
-never depend on a view, and one view never imports another view's internals.
-
-Public and cross-feature components retain explicit domain names such as
-`TimeGridView.tsx`. Private components rely on their feature directory and use
-concise role names such as `Event.tsx` and `Slot.tsx`. Hooks and pure modules
-use camelCase, and component styles use the same basename as their owner.
-Feature-specific types stay with their feature and are re-exported from the
-package entry.
+Time-grid layout internals and default renderer implementations remain private
+so they can evolve without expanding the compatibility surface. Public
+functions and components include TSDoc in their generated declarations.
 
 ## Development
 
+Requires Node.js 20.19 or newer.
+
 ```bash
-npm install
+npm ci
 npm run check
 npm run check:storybook
 npm pack --dry-run
 ```
 
-Run the interactive component catalog locally:
+Useful focused commands:
 
-```bash
-npm run storybook
-```
+| Command | Purpose |
+| --- | --- |
+| `npm run storybook` | Run the interactive component catalog |
+| `npm run storybook:test` | Execute every story in Chromium |
+| `npm run storybook:build` | Build the deployable static catalog |
+| `npm run locales:generate` | Regenerate date-fns locale loaders |
+| `npm run locales:check` | Verify the generated locale registry |
 
-`npm run storybook:test` executes every story in Chromium, while
-`npm run storybook:build` produces the static site in `storybook-static/`.
-GitHub Actions validates the package and Storybook separately, then publishes
-the static catalog to GitHub Pages from `main`.
+GitHub Actions validates the package and Storybook independently. Published
+GitHub releases are prepared for npm trusted publishing with provenance.
 
-Regenerate the locale registry after changing date-fns versions:
+## Contributing
 
-```bash
-npm run locales:generate
-npm run locales:check
-```
-
-The release workflow publishes GitHub releases through npm trusted publishing.
-The npm package must be configured with this repository as a trusted publisher
-before the first release.
+Focused bug fixes, tests, documentation improvements, and
+application-independent features are welcome. Read
+[CONTRIBUTING.md](./CONTRIBUTING.md) before changing public APIs or component
+boundaries, and consult the [roadmap](./ROADMAP.md) for the canonical backlog.
 
 ## License
 
-[MIT](LICENSE)
+ChronoLaneJS is available under the [MIT License](./LICENSE).

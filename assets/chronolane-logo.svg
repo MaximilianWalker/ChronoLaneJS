@@ -1,0 +1,16 @@
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 256 256"
+    role="img"
+    aria-labelledby="chronolane-logo-title chronolane-logo-description"
+>
+    <title id="chronolane-logo-title">ChronoLaneJS</title>
+    <desc id="chronolane-logo-description">
+        Three parallel C-shaped timeline lanes ending in circular nodes.
+    </desc>
+    <g fill="none" stroke-linecap="round" stroke-width="16">
+        <path stroke="#2563eb" d="M196 56A96 96 0 1 0 196 200" />
+        <path stroke="#22d3ee" d="M182 78A70 70 0 1 0 182 178" />
+        <path stroke="#2563eb" d="M166 101A42 42 0 1 0 166 155" />
+    </g>
+</svg>
