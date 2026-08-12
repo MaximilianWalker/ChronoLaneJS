@@ -25,21 +25,35 @@ Last reviewed: 2026-08-12
 - [ ] **[P0][REL-01] Complete every P0 correctness and API item.**
   - The first package must not publish contracts already known to be incorrect
     or redundant.
-- [ ] **[P0][REL-02] Reserve and configure the `@chronolanejs` npm scope.**
-  - Configure `@chronolanejs/react` as a public package.
-  - Configure this GitHub repository as its trusted publisher.
-  - Confirm the publishing identity has permission to use the scope.
+- [x] **[P0][REL-02] Reserve and configure the `@chronolanejs` npm scope.**
+  - The free `@chronolanejs` npm organization owns the scope.
+  - `@chronolanejs/react` declares public access and the npm registry in its
+    package metadata.
+  - The `maximilianwalker` publishing identity owns the organization and has
+    package write access through its Developers team.
 - [ ] **[P0][REL-03] Verify the release workflow end to end.**
-  - Create a release candidate, publish it with provenance, install the exact
-    tarball in a clean consumer project, and verify package metadata.
+  - After every remaining release gate passes, bootstrap the package with a
+    `0.1.0-rc.0` release candidate under the npm `next` tag from an account
+    protected by two-factor authentication.
+  - Create the matching GitHub prerelease, configure
+    `MaximilianWalker/ChronoLaneJS` and `publish.yml` as the package's trusted
+    publisher, then enable the gated automatic release workflow.
+  - Merge a release-bearing `dev` to `main` promotion and verify that
+    semantic-release publishes stable `0.1.0` with provenance.
+  - Install the exact tarball in a clean consumer project and verify package
+    metadata.
   - Confirm that a failed validation prevents publication.
 - [ ] **[P0][REL-04] Define the supported runtime matrix.**
   - Test every supported Node.js, React, and React DOM major version rather
     than validating only Node 24 and React 19.
   - Document supported evergreen browsers and any required polyfills.
-- [ ] **[P1][REL-05] Establish versioning and release notes.**
-  - Add a changelog and document the SemVer policy.
-  - Define how prereleases, stable releases, and breaking changes are named.
+- [x] **[P1][REL-05] Establish versioning and release notes.**
+  - Semantic-release derives versions, tags, and GitHub release notes from
+    Conventional Commit messages promoted from `dev` to `main`.
+  - Fixes and performance changes publish patches, features publish minors,
+    and breaking changes publish majors.
+  - The bootstrap release candidate uses npm's `next` tag; automatic stable
+    releases from `main` use npm's `latest` tag.
 
 ## Correctness
 
