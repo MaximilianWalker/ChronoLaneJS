@@ -134,14 +134,18 @@ export default function App() {
                 </section>
 
                 <section className="brand-showcase section" aria-labelledby="brand-showcase-title">
-                    <h2 className="visually-hidden" id="brand-showcase-title">ChronoLaneJS</h2>
                     <img
                         src={`${import.meta.env.BASE_URL}og.png`}
                         alt="ChronoLaneJS — Composable, timezone-aware scheduling for React."
                         loading="lazy"
                     />
-                    <div className="brand-showcase-actions">
-                        <p>Ready to shape your own scheduling interface?</p>
+                    <div className="brand-showcase-copy">
+                        <p className="eyebrow">Open source by design</p>
+                        <h2 id="brand-showcase-title">Build it on your terms.</h2>
+                        <p>
+                            Start with the documented model, then shape every
+                            interaction and renderer around your product.
+                        </p>
                         <div className="hero-actions">
                             <a className="button button--primary" href={REPOSITORY_URL} target="_blank" rel="noreferrer">
                                 View on GitHub <span aria-hidden="true">↗</span>
