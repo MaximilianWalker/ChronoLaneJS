@@ -15,8 +15,8 @@ const remarkPlugins = [remarkGfm];
 const rehypePlugins = [rehypeRaw, rehypeSlug];
 
 const getDocumentFromHash = (): DocumentId => {
-    const [, section, documentId] = window.location.hash.split("/");
-    return section === "docs" && documentId && isDocumentId(documentId)
+    const documentId = window.location.hash.replace(/^#doc-/, "");
+    return isDocumentId(documentId)
         ? documentId
         : "overview";
 };
@@ -35,7 +35,7 @@ const markdownComponents: Components = {
         const documentId = getDocumentIdFromHref(href);
         if (documentId) {
             return (
-                <a {...props} href={`#docs/${documentId}`}>
+                <a {...props} href={`#doc-${documentId}`}>
                     {children}
                 </a>
             );
@@ -75,8 +75,8 @@ export default function Docs() {
     useEffect(() => {
         const syncFromHash = () => {
             setActiveId(getDocumentFromHash());
-            if (window.location.hash.startsWith("#docs/")) {
-                requestAnimationFrame(() => document.getElementById("docs")?.scrollIntoView());
+            if (window.location.hash.startsWith("#doc-")) {
+                requestAnimationFrame(() => document.getElementById("document")?.scrollIntoView());
             }
         };
         window.addEventListener("hashchange", syncFromHash);
@@ -85,18 +85,7 @@ export default function Docs() {
     }, []);
 
     return (
-        <section className="docs-section section" id="docs" aria-labelledby="docs-title">
-            <div className="section-heading section-heading--split">
-                <div>
-                    <p className="eyebrow">Documentation</p>
-                    <h2 id="docs-title">Written once. Useful everywhere.</h2>
-                </div>
-                <p>
-                    Every page below is rendered directly from the repository's
-                    Markdown. GitHub and this site always tell the same story.
-                </p>
-            </div>
-
+        <section className="docs-section" aria-label="Repository documentation">
             <div className="docs-shell">
                 <aside className="docs-nav" aria-label="Documentation pages">
                     <div className="docs-nav-heading">
@@ -107,7 +96,7 @@ export default function Docs() {
                         <a
                             key={document.id}
                             className={`docs-nav-link${activeId === document.id ? " is-active" : ""}`}
-                            href={`#docs/${document.id}`}
+                            href={`#doc-${document.id}`}
                             aria-current={activeId === document.id ? "page" : undefined}
                         >
                             <strong>{document.label}</strong>
@@ -116,7 +105,7 @@ export default function Docs() {
                     ))}
                 </aside>
 
-                <article className="markdown-document">
+                <article className="markdown-document" id="document">
                     <div className="markdown-source-bar">
                         <span>{activeDocument.githubPath}</span>
                         <a

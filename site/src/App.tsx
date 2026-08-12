@@ -1,30 +1,12 @@
-import { lazy, Suspense } from "react";
-
+import { Footer, Header, REPOSITORY_URL } from "./Chrome.js";
 import Playground from "./Playground.js";
-
-const REPOSITORY_URL = "https://github.com/MaximilianWalker/ChronoLaneJS";
-const Docs = lazy(() => import("./Docs.js"));
 
 export default function App() {
     return (
         <div className="site-shell">
             <a className="skip-link" href="#main">Skip to content</a>
 
-            <header className="site-header">
-                <a className="brand" href="#top" aria-label="ChronoLaneJS home">
-                    <img src={`${import.meta.env.BASE_URL}chronolane-logo.svg`} alt="" />
-                    <span>ChronoLane<span className="brand-js">JS</span></span>
-                </a>
-                <nav aria-label="Primary navigation">
-                    <a href="#playground">Playground</a>
-                    <a href="#docs">Docs</a>
-                    <a href={`${import.meta.env.BASE_URL}storybook/`}>Storybook</a>
-                </nav>
-                <a className="github-link" href={REPOSITORY_URL} target="_blank" rel="noreferrer">
-                    GitHub
-                    <span aria-hidden="true">↗</span>
-                </a>
-            </header>
+            <Header activePage="home" />
 
             <main id="main">
                 <section className="hero section" id="top">
@@ -47,7 +29,7 @@ export default function App() {
                                 Try the playground
                                 <span aria-hidden="true">↓</span>
                             </a>
-                            <a className="button button--secondary" href="#docs">
+                            <a className="button button--secondary" href={`${import.meta.env.BASE_URL}docs/`}>
                                 Read the docs
                             </a>
                         </div>
@@ -151,35 +133,26 @@ export default function App() {
                     </div>
                 </section>
 
-                <Suspense fallback={<div className="docs-loading section">Loading documentation…</div>}>
-                    <Docs />
-                </Suspense>
-
-                <section className="closing section">
-                    <img src={`${import.meta.env.BASE_URL}chronolane-logo.svg`} alt="" />
-                    <p className="eyebrow">Build the schedule your product needs</p>
-                    <h2>Start with the model.<br />Make the interface yours.</h2>
-                    <div className="hero-actions">
-                        <a className="button button--primary" href={REPOSITORY_URL} target="_blank" rel="noreferrer">
-                            View on GitHub <span aria-hidden="true">↗</span>
-                        </a>
-                        <a className="button button--secondary" href="#playground">Open playground</a>
+                <section className="brand-showcase section" aria-labelledby="brand-showcase-title">
+                    <h2 className="visually-hidden" id="brand-showcase-title">ChronoLaneJS</h2>
+                    <img
+                        src={`${import.meta.env.BASE_URL}og.png`}
+                        alt="ChronoLaneJS — Composable, timezone-aware scheduling for React."
+                        loading="lazy"
+                    />
+                    <div className="brand-showcase-actions">
+                        <p>Ready to shape your own scheduling interface?</p>
+                        <div className="hero-actions">
+                            <a className="button button--primary" href={REPOSITORY_URL} target="_blank" rel="noreferrer">
+                                View on GitHub <span aria-hidden="true">↗</span>
+                            </a>
+                            <a className="button button--secondary" href={`${import.meta.env.BASE_URL}docs/`}>Read the docs</a>
+                        </div>
                     </div>
                 </section>
             </main>
 
-            <footer className="site-footer">
-                <div className="brand brand--footer">
-                    <img src={`${import.meta.env.BASE_URL}chronolane-logo.svg`} alt="" />
-                    <span>ChronoLaneJS</span>
-                </div>
-                <p>Composable, timezone-aware scheduling for React.</p>
-                <div>
-                    <a href={`${REPOSITORY_URL}/blob/main/LICENSE`}>MIT License</a>
-                    <a href="#docs/security">Security</a>
-                    <a href={`${REPOSITORY_URL}/issues`}>Issues</a>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 }

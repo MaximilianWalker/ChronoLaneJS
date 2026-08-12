@@ -11,6 +11,12 @@ export default defineConfig({
     build: {
         outDir: resolve(import.meta.dirname, "site-dist"),
         emptyOutDir: true,
-        sourcemap: true
+        sourcemap: true,
+        rollupOptions: {
+            input: {
+                home: resolve(import.meta.dirname, "site/index.html"),
+                docs: resolve(import.meta.dirname, "site/docs/index.html")
+            }
+        }
     }
 });
