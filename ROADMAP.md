@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-13
+Last reviewed: 2026-08-14
 
 ## Tracking rules
 
@@ -85,10 +85,14 @@ Last reviewed: 2026-08-13
     controlled application state.
   - Invalid boundaries throw contextual `TypeError` messages; empty or
     reversed selection ranges throw `RangeError`.
-- [ ] **[P1][DATE-03] Define navigation boundary behavior.**
-  - Test ranges that partially overlap `minDate` or `maxDate`.
-  - Decide whether navigation is disabled, clamped, or allowed when a
-    controlled date is outside the boundaries.
+- [x] **[P1][DATE-03] Define navigation boundary behavior.**
+  - `minDate` and `maxDate` are validated inclusive navigation days; partially
+    overlapping ranges remain visible while outward navigation is disabled.
+  - Controlled anchors outside the interval remain rendered. Movement farther
+    outside is disabled, and the first inward request clamps directly to the
+    nearest boundary through `onDateChange`.
+  - Built-in and custom `navigateDate` proposals share the same normalization
+    and clamping contract across agenda, month, and time-grid views.
 - [ ] **[P1][RANGE-01] Make range resolution and navigation one coherent
   contract.**
   - Remove the duplicate `navigationStep` locations.

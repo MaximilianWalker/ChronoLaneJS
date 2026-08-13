@@ -60,16 +60,20 @@ export default function CalendarNavigation({
             <NavigationButton
                 type="prev"
                 aria-label={previousLabel}
+                aria-hidden={previousDisabled || undefined}
                 className="calendar-view_navigation-button"
-                onClick={onPrevious}
+                disabled={previousDisabled}
+                onClick={previousDisabled ? undefined : onPrevious}
                 style={{ visibility: previousDisabled ? "hidden" : "visible" }}
             />
             <h2 className="calendar-view_navigation-text">{header}</h2>
             <NavigationButton
                 type="next"
                 aria-label={nextLabel}
+                aria-hidden={nextDisabled || undefined}
                 className="calendar-view_navigation-button"
-                onClick={onNext}
+                disabled={nextDisabled}
+                onClick={nextDisabled ? undefined : onNext}
                 style={{ visibility: nextDisabled ? "hidden" : "visible" }}
             />
         </div>

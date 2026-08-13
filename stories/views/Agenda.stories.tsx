@@ -63,6 +63,20 @@ export const WorkWeek: Story = {
     }
 };
 
+export const BoundedNavigation: Story = {
+    args: {
+        minDate: "2026-09-14",
+        maxDate: "2026-09-20"
+    },
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelectorAll(
+                ".calendar-view_navigation-button:disabled"
+            )
+        ).toHaveLength(2);
+    }
+};
+
 export const SelectedEvent: Story = {
     args: {
         selectedEventIds: ["planning"]

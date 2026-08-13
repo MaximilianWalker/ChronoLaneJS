@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { startOfDay } from "date-fns/startOfDay";
 import {
     getCalendarRangeBounds,
     moveCalendarDate,
@@ -9,12 +8,16 @@ import {
 } from "../../core/range.js";
 import CalendarNavigation from "../../components/CalendarNavigation.js";
 import { createEventInteractionProps } from "../../components/eventInteraction.js";
-import { asCalendarDate } from "../../core/date.js";
 import {
     eventOverlapsDay,
     normalizeEvents,
     sortEvents
 } from "../../core/events.js";
+import {
+    getCalendarNavigationState,
+    normalizeCalendarNavigationBoundaries,
+    resolveCalendarNavigationDate
+} from "../../core/navigation.js";
 import {
     DEFAULT_CALENDAR_LOCALE,
     readCalendarLocale,
@@ -108,12 +111,16 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
         ?? Math.max(1, Math.round(
             (rangeEnd.getTime() - rangeStart.getTime()) / 86_400_000
         ) + 1);
-    const minBoundary = minDate == null
-        ? null
-        : startOfDay(asCalendarDate(minDate, timeZone));
-    const maxBoundary = maxDate == null
-        ? null
-        : startOfDay(asCalendarDate(maxDate, timeZone));
+    const navigationBoundaries = useMemo(
+        () => normalizeCalendarNavigationBoundaries(minDate, maxDate, timeZone),
+        [maxDate, minDate, timeZone]
+    );
+    const navigationState = getCalendarNavigationState({
+        anchorDate,
+        periodStart: rangeStart,
+        periodEnd: rangeEnd,
+        ...navigationBoundaries
+    });
     const calendarRange = { start: rangeStart, end: rangeEnd, days };
     const formatContext = { locale: calendarLocale, view: viewName };
     const navigationContext = { view: viewName, range: calendarRange };
@@ -123,15 +130,22 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
         const nextDate = navigateDate
             ? navigateDate(anchorDate, direction, { days, start: rangeStart, end: rangeEnd })
             : moveCalendarDate(anchorDate, direction, effectiveNavigationStep);
-        setDate(nextDate);
+        setDate(resolveCalendarNavigationDate(
+            anchorDate,
+            nextDate,
+            navigationBoundaries,
+            timeZone
+        ));
     }, [
         anchorDate,
         days,
         effectiveNavigationStep,
         navigateDate,
+        navigationBoundaries,
         rangeEnd,
         rangeStart,
-        setDate
+        setDate,
+        timeZone
     ]);
 
     useEffect(() => {
@@ -149,8 +163,8 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                     header={header}
                     onPrevious={() => navigate(-1)}
                     onNext={() => navigate(1)}
-                    previousDisabled={Boolean(minBoundary && rangeStart <= minBoundary)}
-                    nextDisabled={Boolean(maxBoundary && rangeEnd >= maxBoundary)}
+                    previousDisabled={navigationState.previousDisabled}
+                    nextDisabled={navigationState.nextDisabled}
                     previousLabel={messages.previous(navigationContext)}
                     nextLabel={messages.next(navigationContext)}
                     navigation={NavigationComponent}

@@ -3,11 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DragEvent, SyntheticEvent } from "react";
 import { format } from "date-fns/format";
-import { startOfDay } from "date-fns/startOfDay";
 
 import CalendarNavigation from "../../components/CalendarNavigation.js";
 import { createEventInteractionProps } from "../../components/eventInteraction.js";
-import { asCalendarDate } from "../../core/date.js";
 import { normalizeEvents } from "../../core/events.js";
 import {
     DEFAULT_CALENDAR_LOCALE,
@@ -23,6 +21,11 @@ import {
     moveCalendarDate,
     resolveCalendarRange
 } from "../../core/range.js";
+import {
+    getCalendarNavigationState,
+    normalizeCalendarNavigationBoundaries,
+    resolveCalendarNavigationDate
+} from "../../core/navigation.js";
 import { normalizeCalendarSelectionRange } from "../../core/selection.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type {
@@ -149,13 +152,9 @@ export default function TimeGridView<
         weekStartsOn: weekStart
     }), [anchorDate, range, weekStart]);
     const { start: rangeStart, end: rangeEnd } = getCalendarRangeBounds(days);
-    const calendarMinDate = useMemo(
-        () => minDate == null ? null : asCalendarDate(minDate, timeZone),
-        [minDate, timeZone]
-    );
-    const calendarMaxDate = useMemo(
-        () => maxDate == null ? null : asCalendarDate(maxDate, timeZone),
-        [maxDate, timeZone]
+    const navigationBoundaries = useMemo(
+        () => normalizeCalendarNavigationBoundaries(minDate, maxDate, timeZone),
+        [maxDate, minDate, timeZone]
     );
     const calendarEvents = useMemo(
         () => normalizeEvents(events, timeZone),
@@ -251,8 +250,12 @@ export default function TimeGridView<
         ?? Math.max(1, Math.round(
             (rangeEnd.getTime() - rangeStart.getTime()) / 86_400_000
         ) + 1);
-    const minBoundary = calendarMinDate && startOfDay(calendarMinDate);
-    const maxBoundary = calendarMaxDate && startOfDay(calendarMaxDate);
+    const navigationState = getCalendarNavigationState({
+        anchorDate,
+        periodStart: rangeStart,
+        periodEnd: rangeEnd,
+        ...navigationBoundaries
+    });
     const canDropEvents = onEventDrop != null;
 
     const navigate = useCallback((direction: -1 | 1) => {
@@ -263,15 +266,22 @@ export default function TimeGridView<
                 end: rangeEnd
             })
             : moveCalendarDate(anchorDate, direction, effectiveNavigationStep);
-        setDate(nextDate);
+        setDate(resolveCalendarNavigationDate(
+            anchorDate,
+            nextDate,
+            navigationBoundaries,
+            timeZone
+        ));
     }, [
         anchorDate,
         days,
         effectiveNavigationStep,
         navigateDate,
+        navigationBoundaries,
         rangeEnd,
         rangeStart,
-        setDate
+        setDate,
+        timeZone
     ]);
 
     useEffect(() => {
@@ -305,8 +315,8 @@ export default function TimeGridView<
                     header={header}
                     onPrevious={() => navigate(-1)}
                     onNext={() => navigate(1)}
-                    previousDisabled={Boolean(minBoundary && rangeStart <= minBoundary)}
-                    nextDisabled={Boolean(maxBoundary && rangeEnd >= maxBoundary)}
+                    previousDisabled={navigationState.previousDisabled}
+                    nextDisabled={navigationState.nextDisabled}
                     previousLabel={messages.previous(navigationContext)}
                     nextLabel={messages.next(navigationContext)}
                     navigation={NavigationComponent}

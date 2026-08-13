@@ -115,6 +115,33 @@ export function ControlledSchedule() {
 When both are supplied, `date` controls the view and `defaultDate` is ignored.
 Without either prop, the initial anchor is the current time.
 
+### Bound navigation
+
+Use `minDate` and `maxDate` to define an inclusive navigation interval:
+
+```tsx
+const [date, setDate] = useState<CalendarDateInput>("2026-09-14");
+
+<Calendar
+    date={date}
+    minDate="2026-09-01"
+    maxDate="2026-09-30"
+    onDateChange={setDate}
+    events={meetings}
+/>
+```
+
+The boundaries are calendar days in `timeZone`. They disable movement farther
+outside the interval but do not clip the visible range or filter events. A
+week or agenda range that partially overlaps a boundary stays intact and its
+outward navigation direction is disabled.
+
+If a controlled `date` is already outside the interval, ChronoLaneJS keeps
+rendering that supplied value. Only navigation toward the interval remains
+available, and the first request is clamped directly to the nearest boundary.
+Update the controlled value from `onDateChange` as usual. Invalid boundaries
+throw `TypeError`; `minDate` after `maxDate` throws `RangeError`.
+
 ## Time zones and date identity
 
 `timeZone` applies one IANA zone to event boundaries, the anchor date, range

@@ -54,6 +54,14 @@ const projectResources: CalendarResourceConfig<ProjectEvent, ProjectResource> = 
 void <Calendar view="month" events={events} viewProps={monthViewProps} />;
 void (
     <Calendar
+        minDate="2026-01-01"
+        maxDate={new Date(2026, 11, 31)}
+    />
+);
+// @ts-expect-error Navigation boundaries use CalendarDateInput values.
+void <Calendar minDate={false} />;
+void (
+    <Calendar
         view="day"
         events={events}
         viewProps={{ resources: projectResources }}

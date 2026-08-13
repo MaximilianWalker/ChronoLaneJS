@@ -18,8 +18,11 @@ interactive events, and its overflow control. Time grid exposes its focusable
 scroll region, selectable slots in time/column construction order, then
 interactive events in column order.
 
-Disabled navigation directions retain layout space but are hidden and cannot
-receive focus. If `showControls={false}`, navigation controls are omitted.
+Disabled navigation directions retain layout space as native disabled buttons,
+receive `aria-hidden`, have no click handler, and are visually hidden. They
+cannot receive focus or be activated, including through a custom navigation
+renderer that spreads the supplied button props. If `showControls={false}`,
+navigation controls are omitted.
 Month and time-grid scroll regions use `tabIndex={0}` so keyboard users can
 focus and scroll them without first reaching a child action.
 

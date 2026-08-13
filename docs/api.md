@@ -103,8 +103,8 @@ root.
 | `messages` | `CalendarMessages` | `defaultCalendarMessages` | Complete registry for visible and accessible library text. | `{ ...defaultCalendarMessages, next: () => "Seguinte" }` |
 | `viewName` | `string` | view-specific | Identity supplied to formatter/message contexts. Normally set only on a direct view or custom wrapper. | `"work-week"` |
 | `timeZone` | `string` | host local zone | IANA zone used for calendar-field normalization and arithmetic. | `"Europe/Lisbon"` |
-| `minDate` | `CalendarDateInput \| null` | `null` | Hides previous navigation when the visible boundary reaches this day/month. It does not filter events. | `"2026-01-01"` |
-| `maxDate` | `CalendarDateInput \| null` | `null` | Hides next navigation when the visible boundary reaches this day/month. It does not filter events. | `"2026-12-31"` |
+| `minDate` | `CalendarDateInput \| null` | `null` | Inclusive earliest navigation day. Previous navigation is disabled when the anchor or active period reaches/crosses it; visible days and events are not filtered. | `"2026-01-01"` |
+| `maxDate` | `CalendarDateInput \| null` | `null` | Inclusive latest navigation day. Next navigation is disabled when the anchor or active period reaches/crosses it; visible days and events are not filtered. | `"2026-12-31"` |
 | `showControls` | `boolean` | `true` | Shows the built-in range header and navigation controls. | `false` |
 | `selectedEventIds` | `CalendarEventId[]` | `[]` | Marks matching event renderers selected. The library does not update the collection. | `["planning", 42]` |
 | `canEditEvent` | `(event) => boolean` | allow all | Restricts `onEventEdit` for individual normalized source events. | `(event) => event.owner.id === user.id` |
@@ -116,6 +116,36 @@ root.
 Invalid date inputs throw `TypeError: Calendar dates must be valid.` Event
 normalization currently validates each boundary but does not reject reversed
 event ranges; consumers should supply `end > start`.
+
+### Navigation boundaries
+
+`minDate` and `maxDate` constrain navigation anchors, not rendered data. Each
+value is normalized to the start of its calendar day in `timeZone`; the
+interval is inclusive and `minDate` must not be after `maxDate`.
+
+```tsx
+<Calendar
+    view="week"
+    defaultDate="2026-09-17"
+    minDate="2026-09-16"
+    maxDate="2026-09-18"
+    events={meetings}
+/>
+```
+
+The week from September 14 through September 20 still renders in full. Because
+it partially overlaps both boundaries, both outward navigation directions are
+disabled. Boundaries never remove outside days or filter overlapping events.
+
+A controlled `date` outside the interval is rendered unchanged. The direction
+farther outside is disabled; the direction back toward the interval remains
+available and its first navigation request is clamped directly to the nearest
+boundary. The clamped `Date` is passed to `onDateChange`, so the application
+must still update controlled state. Results returned by `navigateDate` are
+normalized and clamped by the same rule.
+
+An invalid boundary throws a contextual `TypeError`. Supplying `minDate` after
+`maxDate` throws `RangeError` during render.
 
 ## `AgendaView`
 
@@ -512,6 +542,7 @@ the same name overrides a built-in for that `Calendar`.
 | --- | --- | --- |
 | Root view | unregistered `view` | `Error` |
 | Dates/events | invalid date input or event boundary | `TypeError` |
+| Navigation boundaries | invalid `minDate`/`maxDate`, or `minDate` after `maxDate` | `TypeError` or `RangeError` |
 | Selection | invalid selected day/range boundary, or an end not after its start | `TypeError` or `RangeError` |
 | Locale | empty/malformed object/name | `TypeError` or `RangeError` |
 | Locale loading | failed dynamic module | `Error` with the original cause |
