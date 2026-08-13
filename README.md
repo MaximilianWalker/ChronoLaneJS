@@ -475,9 +475,32 @@ Time-grid layout internals and default renderer implementations remain private
 so they can evolve without expanding the compatibility surface. Public
 functions and components include TSDoc in their generated declarations.
 
+## Runtime support
+
+ChronoLaneJS supports these runtime combinations:
+
+| Runtime | Supported versions |
+| --- | --- |
+| Node.js | `>=22.14.0 <23`, `>=24.10.0 <25`, or `>=26.0.0 <27` |
+| React and React DOM | matching `>=18.2.0 <20` releases |
+| Chrome and Edge | 111 or newer |
+| Firefox | 114 or newer |
+| Safari and iOS Safari | 16.4 or newer |
+
+Node support follows upstream-maintained release lines. Future Node majors are
+not supported until they are added to the compatibility matrix. CI tests the
+minimum supported React release on every supported Node major and also tests
+the repository's current React release during full validation.
+
+The browser targets match the package's explicit Baseline Widely Available
+build target. Supported browsers require native ES modules, `Intl.Locale`, and
+`Intl.DateTimeFormat` with IANA timezone data. They need no polyfills.
+ChronoLaneJS does not ship polyfills; older browsers and runtimes with
+incomplete internationalization data are unsupported.
+
 ## Development
 
-Requires Node.js 20.19 or newer.
+Requires a supported Node.js version from the matrix above.
 
 ```bash
 npm ci

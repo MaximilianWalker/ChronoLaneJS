@@ -23,3 +23,24 @@ jobs:
       - run: npm run check:storybook
       - run: npm run site:build
       - run: npm pack --dry-run
+
+  compatibility:
+    name: Node ${{ matrix.node }} / React ${{ matrix.react }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["22.14.0", "24.10.0", "26.0.0"]
+        react: ["18.2.0", "19.0.0"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false react@${{ matrix.react }} react-dom@${{ matrix.react }}
+      - run: node -e "const assert = require('node:assert/strict'); assert.equal(require('react/package.json').version, '${{ matrix.react }}'); assert.equal(require('react-dom/package.json').version, '${{ matrix.react }}')"
+      - run: npm run test
+      - run: npm run build
+      - run: npm run package:verify

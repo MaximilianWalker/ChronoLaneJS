@@ -43,10 +43,12 @@ Last reviewed: 2026-08-13
   - Install the exact tarball in a clean consumer project and verify package
     metadata.
   - Confirm that a failed validation prevents publication.
-- [ ] **[P0][REL-04] Define the supported runtime matrix.**
-  - Test every supported Node.js, React, and React DOM major version rather
-    than validating only Node 24 and React 19.
-  - Document supported evergreen browsers and any required polyfills.
+- [x] **[P0][REL-04] Define the supported runtime matrix.**
+  - CI tests matching React and React DOM 18.2 and 19.0 releases against the
+    supported Node 22, 24, and 26 lines, including a production package build
+    and server-render verification for every combination.
+  - Chrome and Edge 111+, Firefox 114+, and Safari and iOS Safari 16.4+ are
+    supported without polyfills; older and incomplete-Intl runtimes are not.
 - [x] **[P1][REL-05] Establish versioning and release notes.**
   - Semantic-release derives versions, tags, and GitHub release notes from
     Conventional Commit messages promoted from `dev` to `main`.
@@ -247,9 +249,11 @@ Last reviewed: 2026-08-13
   - Callback-presence defaults and event-specific predicates.
   - Selection, editing, and slot interaction with customized renderers.
   - Interaction remains available when grid lines are visually hidden.
-- [ ] **[P1][TEST-06] Test supported dependency combinations.**
-  - Run CI against React 18 and 19 and every supported Node release.
-  - Test production builds rather than only type compatibility.
+- [x] **[P1][TEST-06] Test supported dependency combinations.**
+  - The CI compatibility matrix installs matching React and React DOM 18.2
+    and 19.0 releases on every supported Node line.
+  - Every combination runs unit tests, a production package build, and the
+    built package's server-render verification.
 - [ ] **[P1][TEST-07] Add clean consumer fixtures.**
   - Install the packed artifact into representative Vite and Next.js apps.
   - Verify ESM exports, declarations, CSS, the client directive, lazy locales,
