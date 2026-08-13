@@ -23,6 +23,7 @@ import {
     moveCalendarDate,
     resolveCalendarRange
 } from "../../core/range.js";
+import { normalizeCalendarSelectionRange } from "../../core/selection.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type {
     CalendarEvent,
@@ -163,6 +164,12 @@ export default function TimeGridView<
     const calendarBackgroundEvents = useMemo(
         () => normalizeEvents(backgroundEvents, timeZone),
         [backgroundEvents, timeZone]
+    );
+    const calendarSelectedRange = useMemo(
+        () => selectedRange == null
+            ? null
+            : normalizeCalendarSelectionRange(selectedRange, timeZone),
+        [selectedRange, timeZone]
     );
     const layout = useMemo(() => createLayout({
         days,
@@ -388,9 +395,9 @@ export default function TimeGridView<
                         }}
                     >
                         {slots.map((slot) => {
-                            const selected = selectedRange
-                                && selectedRange.start < slot.end
-                                && selectedRange.end > slot.start;
+                            const selected = calendarSelectedRange
+                                && calendarSelectedRange.start < slot.end
+                                && calendarSelectedRange.end > slot.start;
                             const handleSelect = onSlotSelect
                                 ? (interaction: SyntheticEvent) => onSlotSelect(slot, interaction)
                                 : undefined;

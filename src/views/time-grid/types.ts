@@ -13,6 +13,7 @@ import type {
     CalendarResourceConfig,
     CalendarResourceId,
     CalendarRendererElementProps,
+    CalendarSelectionRange,
     CalendarWeekStart,
     NormalizedCalendarEvent,
     SharedViewProps
@@ -218,7 +219,7 @@ export interface TimeGridViewProps<
     labelInterval?: number;
     /** Per-slot fixed or fluid-minimum dimensions. */
     slotSizing?: TimeGridSlotSizing;
-    selectedRange?: { start: Date; end: Date };
+    selectedRange?: CalendarSelectionRange;
     canDragEvent?: (
         event: NormalizedCalendarEvent<Event>,
         segment: TimeGridEventLayout<Event, Resource>

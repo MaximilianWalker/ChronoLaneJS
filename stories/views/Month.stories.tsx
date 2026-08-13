@@ -66,6 +66,11 @@ export const SelectedDayAndEvent: Story = {
     args: {
         selectedDate: MONTH_DATE,
         selectedEventIds: ["planning"]
+    },
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelectorAll(".month-view_day.is-selected")
+        ).toHaveLength(1);
     }
 };
 

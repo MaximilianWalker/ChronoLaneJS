@@ -50,6 +50,11 @@ editing behavior for one source event.
 Selection is controlled. Update `selectedEventIds`, `selectedDate`, or
 `selectedRange` after a callback to expose the resulting visual state:
 
+Selected days and range boundaries are validated and normalized with the
+configured `timeZone`. A selection range is half-open and must have a positive
+duration; invalid, empty, or reversed values fail during rendering instead of
+creating an ambiguous selected state.
+
 ```tsx
 const [selectedEventIds, setSelectedEventIds] = useState<CalendarEventId[]>([]);
 const [announcement, setAnnouncement] = useState("No event selected.");

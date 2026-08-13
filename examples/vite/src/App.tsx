@@ -83,7 +83,10 @@ export default function App() {
     const [date, setDate] = useState<CalendarDateInput>("2026-09-14");
     const [events, setEvents] = useState(initialEvents);
     const [selectedEventIds, setSelectedEventIds] = useState<CalendarEventId[]>([]);
-    const [selectedRange, setSelectedRange] = useState<{ start: Date; end: Date }>();
+    const [selectedRange, setSelectedRange] = useState<{
+        start: CalendarDateInput;
+        end: CalendarDateInput;
+    }>();
     const [status, setStatus] = useState("Choose an event or slot.");
 
     return (

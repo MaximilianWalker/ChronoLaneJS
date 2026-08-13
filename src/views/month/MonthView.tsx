@@ -18,6 +18,7 @@ import {
     normalizeEvents,
     sortEvents
 } from "../../core/events.js";
+import { normalizeCalendarSelectedDate } from "../../core/selection.js";
 import {
     DEFAULT_CALENDAR_LOCALE,
     readCalendarLocale,
@@ -104,6 +105,12 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
         () => normalizeEvents(backgroundEvents, timeZone),
         [backgroundEvents, timeZone]
     );
+    const calendarSelectedDate = useMemo(
+        () => selectedDate == null
+            ? null
+            : normalizeCalendarSelectedDate(selectedDate, timeZone),
+        [selectedDate, timeZone]
+    );
     const dayEntries = useMemo(() => days.map((day) => ({
         day,
         events: sortEvents(calendarEvents.filter((event) => eventOverlapsDay(event, day))),
@@ -186,8 +193,8 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                 const outsideMonth = !isSameMonth(day, anchorDate);
                                 const visibleEvents = dayEvents.slice(0, maxEventsPerDay);
                                 const hiddenEvents = dayEvents.slice(maxEventsPerDay);
-                                const daySelected = selectedDate
-                                    && isSameDay(day, asCalendarDate(selectedDate, timeZone));
+                                const daySelected = calendarSelectedDate
+                                    && isSameDay(day, calendarSelectedDate);
 
                                 return (
                                     <div

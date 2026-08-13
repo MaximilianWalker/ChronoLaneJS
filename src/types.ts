@@ -111,6 +111,12 @@ export interface CalendarRange {
     [key: string]: unknown;
 }
 
+/** Controlled half-open selection boundaries normalized by the active view. */
+export interface CalendarSelectionRange {
+    start: CalendarDateInput;
+    end: CalendarDateInput;
+}
+
 /** Context supplied to every calendar date and time formatter. */
 export interface CalendarFormatContext {
     locale: Locale;

@@ -79,10 +79,12 @@ Last reviewed: 2026-08-13
     `24:00` reserved for the exclusive end of a complete day.
   - Layout uses minute offsets instead of artificial reference dates and keeps
     wall-clock rows stable across DST changes.
-- [ ] **[P1][DATE-02] Normalize every externally supplied selection value.**
-  - Apply the configured time zone consistently to selected ranges as well as
-    events and view dates.
-  - Reject invalid or reversed ranges with useful errors.
+- [x] **[P1][DATE-02] Normalize every externally supplied selection value.**
+  - Selected days and half-open range boundaries accept `CalendarDateInput`,
+    are cloned and normalized with the configured time zone, and never mutate
+    controlled application state.
+  - Invalid boundaries throw contextual `TypeError` messages; empty or
+    reversed selection ranges throw `RangeError`.
 - [ ] **[P1][DATE-03] Define navigation boundary behavior.**
   - Test ranges that partially overlap `minDate` or `maxDate`.
   - Decide whether navigation is disabled, clamped, or allowed when a

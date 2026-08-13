@@ -146,7 +146,7 @@ every day it overlaps.
 | `weekStart` | `CalendarWeekStart` | locale convention | First weekday used for headers and month boundaries. | `1` |
 | `showOutsideDays` | `boolean` | `true` | Shows events in leading/trailing cells outside the active month. Cells and headings remain visible either way. | `false` |
 | `maxEventsPerDay` | `number` | `4` | Maximum visible event rows before the overflow control. | `3` |
-| `selectedDate` | `CalendarDateInput` | none | Visually marks one day. State is application-owned. | `"2026-09-14"` |
+| `selectedDate` | `CalendarDateInput` | none | Visually marks one day after validation and wall-clock normalization in `timeZone`. State is application-owned. | `"2026-09-14"` |
 | `navigateDate` | `(anchor, direction, range) => CalendarDateInput` | add one month | Replaces month navigation. The range includes `monthStart` and `monthEnd`. | `(date, direction) => addQuarters(date, direction)` |
 | `onSelectDay` | `(day, interaction) => void` | none | Enables day-heading buttons and reports the normalized day. | `(day) => setSelectedDate(day)` |
 | `onShowMore` | `({ day, events }, interaction) => void` | none | Handles the overflow control with all hidden normalized events for that day. | `({ events }) => openList(events)` |
@@ -179,7 +179,7 @@ view props override those defaults. `TimeGridView` defaults to a week range and
 | `slotDuration` | `number` | `60` | Positive integer minutes represented by one selectable slot. | `30` |
 | `labelInterval` | `number` | `slotDuration` | Label/divider cadence; must be an integer multiple of `slotDuration`. | `60` |
 | `slotSizing` | `TimeGridSlotSizing` | fluid width, fixed `50px` height | Fixed or minimum pixel dimension per slot axis. Fixed and minimum values on one axis are mutually exclusive. | `{ minWidth: 120, height: 48 }` |
-| `selectedRange` | `{ start: Date; end: Date }` | none | Marks every slot whose `[start,end)` interval overlaps the supplied range. | `{ start: new Date(2026, 8, 14, 9), end: new Date(2026, 8, 14, 10) }` |
+| `selectedRange` | `CalendarSelectionRange` | none | Validates and normalizes the controlled half-open range in `timeZone`, then marks every overlapping slot. The end must follow the start. | `{ start: "2026-09-14T09:00:00", end: "2026-09-14T10:00:00" }` |
 | `canDragEvent` | `(event, segment) => boolean` | allow all | Restricts native dragging by source event and visible segment. Evaluated only when `onEventDrop` exists. | `(_, segment) => segment.resourceId !== "locked"` |
 | `onEventDrop` | `(change: TimeGridEventDrop) => void` | none | Enables native dragging and reports the proposed complete move. It does not mutate events. | `({ event, start, end }) => update(event.id, { start, end })` |
 | `onSlotSelect` | `(slot, interaction) => void` | none | Enables slot buttons and reports the complete slot model. | `(slot) => setRange({ start: slot.start, end: slot.end })` |
@@ -192,15 +192,27 @@ minimum values may be zero.
 
 ## Event types
 
-<!-- api:CalendarEvent CalendarEventId NormalizedCalendarEvent CalendarDateInput CalendarStyle CalendarCSSVariables CalendarPixelSize -->
+<!-- api:CalendarEvent CalendarEventId NormalizedCalendarEvent CalendarDateInput CalendarSelectionRange CalendarStyle CalendarCSSVariables CalendarPixelSize -->
 <!-- props:CalendarCSSVariables --calendar-scrollbar-inset --calendar-scrollbar-radius --calendar-scrollbar-size --calendar-scrollbar-thumb --calendar-scrollbar-thumb-hover --calendar-scrollbar-track --calendar-scrollbar-width --calendar-time-grid-frame-width --calendar-time-grid-header-row-height --calendar-time-grid-line-width --calendar-time-grid-time-axis-width -->
 <!-- props:CalendarEvent id title description start end color variant resourceId resourceIds resource style titleStyle descriptionStyle -->
+<!-- props:CalendarSelectionRange start end -->
 
 ### `CalendarDateInput`
 
 `Date | string | number`. Date-only `YYYY-MM-DD` strings retain local calendar
 fields. Other strings use the JavaScript `Date` parser. Numbers are Unix epoch
 milliseconds.
+
+### `CalendarSelectionRange`
+
+| Field | Type | Meaning | Example |
+| --- | --- | --- | --- |
+| `start` | `CalendarDateInput` | Inclusive selection boundary. | `"2026-09-14T09:00:00"` |
+| `end` | `CalendarDateInput` | Exclusive boundary; it must be later than `start`. | `"2026-09-14T10:30:00"` |
+
+Both boundaries are cloned, validated, and attached to the view's configured
+`timeZone` while preserving their visible wall-clock fields. Invalid values
+throw `TypeError`; equal or reversed boundaries throw `RangeError`.
 
 ### `CalendarEvent`
 
@@ -500,6 +512,7 @@ the same name overrides a built-in for that `Calendar`.
 | --- | --- | --- |
 | Root view | unregistered `view` | `Error` |
 | Dates/events | invalid date input or event boundary | `TypeError` |
+| Selection | invalid selected day/range boundary, or an end not after its start | `TypeError` or `RangeError` |
 | Locale | empty/malformed object/name | `TypeError` or `RangeError` |
 | Locale loading | failed dynamic module | `Error` with the original cause |
 | Ranges | invalid boundaries, count, definition, direction, or empty result | `TypeError` or `RangeError` |

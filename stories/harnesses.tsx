@@ -19,6 +19,7 @@ import type {
     CalendarLocale,
     CalendarNavigationButtonProps,
     CalendarProps,
+    CalendarSelectionRange,
     MonthComponents,
     MonthDayHeaderProps,
     MonthEventProps,
@@ -91,7 +92,7 @@ export function InteractionHarness({
     ...props
 }: StoryCalendarProps) {
     const [selectedEventIds, setSelectedEventIds] = useState<Array<string | number>>([]);
-    const [selectedRange, setSelectedRange] = useState<{ start: Date; end: Date }>();
+    const [selectedRange, setSelectedRange] = useState<CalendarSelectionRange>();
     const [lastAction, setLastAction] = useState("Choose an event or time slot.");
 
     const handleEventSelect: NonNullable<SharedViewProps<StoryEvent>["onEventSelect"]> = (

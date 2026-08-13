@@ -11,6 +11,7 @@ import type {
     CalendarEvent,
     CalendarProps,
     CalendarResourceConfig,
+    CalendarSelectionRange,
     CalendarViewProps,
     SharedViewProps,
     TimeGridDayHeaderProps,
@@ -36,6 +37,10 @@ const slotSizing: TimeGridSlotSizing = {
     minWidth: 92,
     height: 40
 };
+const selectedRange = {
+    start: "2026-09-14T10:00:00",
+    end: new Date(2026, 8, 14, 12)
+} satisfies CalendarSelectionRange;
 const monthViewProps = {
     maxEventsPerDay: 3
 } satisfies CalendarViewProps<"month", ProjectEvent>;
@@ -180,6 +185,15 @@ void <DayView
 void <MonthView className="month" style={{ minHeight: 600 }} />;
 void <WeekView className="week" style={{ color: "navy" }} />;
 void <TimeGridView className="custom-range" style={{ minHeight: 600 }} />;
+void <DayView selectedRange={selectedRange} timeZone="Europe/Lisbon" />;
+
+const invalidSelectedRange = {
+    start: "2026-09-14T10:00:00",
+    // @ts-expect-error Selection boundaries use CalendarDateInput values.
+    end: false
+} satisfies CalendarSelectionRange;
+
+void invalidSelectedRange;
 
 // @ts-expect-error Known calendar tokens reject unsupported values.
 void <Calendar style={{ "--calendar-scrollbar-width": "wide" }} />;

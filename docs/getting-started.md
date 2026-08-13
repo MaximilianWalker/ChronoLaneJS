@@ -280,6 +280,29 @@ const [events, setEvents] = useState(meetings);
 />
 ```
 
+`selectedDate` and both `CalendarSelectionRange` boundaries accept the same
+`Date`, string, and timestamp inputs as events. The view clones and validates
+them, then applies `timeZone` with the same wall-clock semantics used for
+events and the navigation date:
+
+```tsx
+<Calendar
+    view="day"
+    timeZone="Europe/Lisbon"
+    viewProps={{
+        selectedRange: {
+            start: "2026-09-14T09:00:00",
+            end: "2026-09-14T10:30:00"
+        }
+    }}
+/>
+```
+
+Selection ranges are half-open (`[start,end)`) and must have a positive
+duration. Invalid boundaries throw `TypeError`; equal or reversed boundaries
+throw `RangeError`. Selection remains controlled—the library never rewrites
+the supplied values.
+
 Dragging a clipped multi-day segment preserves the complete source duration.
 The drop payload includes concrete source and destination day/resource data.
 

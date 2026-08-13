@@ -203,7 +203,7 @@ Always spread `elementProps`; see [Accessibility](./accessibility.md).
 ```tsx
 const [events, setEvents] = useState(initialEvents);
 const [selectedEventIds, setSelectedEventIds] = useState<CalendarEventId[]>([]);
-const [selectedRange, setSelectedRange] = useState<{ start: Date; end: Date }>();
+const [selectedRange, setSelectedRange] = useState<CalendarSelectionRange>();
 
 <Calendar<Meeting, Room>
     events={events}

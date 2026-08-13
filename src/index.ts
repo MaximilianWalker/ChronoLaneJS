@@ -61,6 +61,7 @@ export type {
     CalendarRendererElementProps,
     CalendarResourceConfig,
     CalendarResourceId,
+    CalendarSelectionRange,
     CalendarStyle,
     CalendarSlotMessageContext,
     CalendarTimeRangeMessageContext,

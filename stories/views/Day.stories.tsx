@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect } from "storybook/test";
 
-import {
-    DayView,
-    asCalendarDate
-} from "../../src/index.js";
+import { DayView } from "../../src/index.js";
 import {
     ANCHOR_DATE,
     MAX_TIME,
@@ -65,9 +63,14 @@ export const SelectedEvent: Story = {
 export const SelectedRange: Story = {
     args: {
         selectedRange: {
-            start: asCalendarDate("2026-09-14T10:00:00", "Europe/Lisbon"),
-            end: asCalendarDate("2026-09-14T12:00:00", "Europe/Lisbon")
+            start: "2026-09-14T10:00:00",
+            end: "2026-09-14T12:00:00"
         }
+    },
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelectorAll(".time-grid-view_slot.is-selected")
+        ).toHaveLength(2);
     },
     parameters: {
         calendar: {
