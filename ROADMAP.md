@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-12
+Last reviewed: 2026-08-13
 
 ## Tracking rules
 
@@ -109,7 +109,9 @@ Last reviewed: 2026-08-12
   - Preserve a typed path for application-defined view registries.
 - [x] **[P0][API-02] Use one controlled and uncontrolled configuration path.**
   - Navigation uses `date` and `defaultDate` consistently.
-  - View-specific configuration uses `viewProps` consistently.
+  - `Calendar` keeps shared behavior at its root and selected-view
+    configuration under `viewProps`; direct views receive their own props
+    directly.
   - Uncontrolled view state is never updated during render.
 - [x] **[P0][API-03] Keep one callback for each user action.**
   - Event selection uses `onEventSelect(event, interaction)`.
@@ -131,11 +133,18 @@ Last reviewed: 2026-08-12
     inside and outside `event`.
   - Time-grid day and resource headers receive their concrete grouping value,
     covered columns, and prepared title without conflating both levels.
-- [ ] **[P1][API-07] Move visual dimensions to typed CSS variables.**
-  - Remove `headerHeight`, `timeLabelWidth`, `cellWidth`, and `cellHeight`.
-  - Replace `showGridLines` with styling or one semantic appearance variant.
-  - Allow both `Calendar` and direct view components to receive typed
-    `className` and `CalendarStyle`.
+- [x] **[P1][API-07] Consolidate remaining visual dimensions.**
+  - Slot width and height use one flat `slotSizing` contract with mutually
+    exclusive fixed and minimum properties; obsolete cell dimensions and
+    nested mode values are removed.
+  - Header row height and time-axis width use typed CSS variables; headers and
+    slots consume one shared column-track definition so their widths cannot
+    conflict.
+  - Layout-sensitive variables use deterministic pixel lengths, and one frame
+    token owns both the outer border and fixed-width geometry.
+  - A typed grid-line width token replaces `showGridLines`.
+  - Both `Calendar` and direct view components receive typed `className` and
+    `CalendarStyle` props.
 - [x] **[P1][API-08] Keep time-grid scale configuration independently overridable.**
   - Flat primitive props avoid configuration-object merge rules and unstable
     object identities when callers override one value.

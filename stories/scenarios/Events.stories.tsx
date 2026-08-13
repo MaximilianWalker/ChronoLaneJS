@@ -51,7 +51,7 @@ export const Overnight: Story = {
         range: 2,
         minTime: "00:00",
         maxTime: "24:00",
-        cellHeight: 20
+        slotSizing: { height: 20 }
     }
 };
 

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import { createElement } from "react";
+import type { ComponentType } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 const packageEntry = new URL("../dist/index.js", import.meta.url).href;
@@ -35,15 +36,39 @@ const markup = renderToStaticMarkup(createElement(Calendar, {
     date: new Date(2026, 8, 1),
     events: [],
     showControls: false,
-    minTime: "08:00",
-    maxTime: "10:00"
+    viewProps: {
+        minTime: "08:00",
+        maxTime: "10:00"
+    }
 }));
 
 assert.match(markup, /class="calendar"/);
-assert.match(markup, /class="time-grid-view"/);
+assert.match(markup, /class="time-grid-view(?:\s|")/);
 assert.match(markup, /time-grid-view_day-header is-primary/);
 assert.doesNotMatch(markup, /time-grid-view_resource-header/);
 assert.doesNotMatch(styles, /\.time-grid-view_column-header/);
+
+const UntypedCalendar = Calendar as unknown as ComponentType<Record<string, unknown>>;
+const rejectedRootViewPropsMarkup = renderToStaticMarkup(createElement(
+    UntypedCalendar,
+    {
+        view: "day",
+        date: new Date(2026, 8, 1),
+        events: [],
+        showControls: false,
+        slotSizing: { width: 123 }
+    }
+));
+const nestedViewPropsMarkup = renderToStaticMarkup(createElement(Calendar, {
+    view: "day",
+    date: new Date(2026, 8, 1),
+    events: [],
+    showControls: false,
+    viewProps: { slotSizing: { width: 123 } }
+}));
+
+assert.doesNotMatch(rejectedRootViewPropsMarkup, /has-fixed-slot-width/);
+assert.match(nestedViewPropsMarkup, /has-fixed-slot-width/);
 
 const groupedMarkup = renderToStaticMarkup(createElement(Calendar, {
     view: "week",
@@ -55,16 +80,18 @@ const groupedMarkup = renderToStaticMarkup(createElement(Calendar, {
         end: new Date(2026, 8, 1, 10),
         resourceId: "room-a"
     }],
-    resources: {
-        items: [
-            { id: "room-a", name: "Room A" },
-            { id: "room-b", name: "Room B" }
-        ]
+    viewProps: {
+        resources: {
+            items: [
+                { id: "room-a", name: "Room A" },
+                { id: "room-b", name: "Room B" }
+            ]
+        },
+        groupBy: "resource",
+        minTime: "08:00",
+        maxTime: "10:00"
     },
-    groupBy: "resource",
-    showControls: false,
-    minTime: "08:00",
-    maxTime: "10:00"
+    showControls: false
 }));
 
 assert.match(groupedMarkup, /data-group-by="resource"/);

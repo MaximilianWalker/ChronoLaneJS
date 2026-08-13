@@ -22,8 +22,10 @@ const meta = {
         view: "week",
         date: ANCHOR_DATE,
         events: basicEvents,
-        minTime: MIN_TIME,
-        maxTime: MAX_TIME,
+        viewProps: {
+            minTime: MIN_TIME,
+            maxTime: MAX_TIME
+        },
         onDateChange: fn()
     },
     argTypes: {
@@ -33,7 +35,6 @@ const meta = {
         },
         events: { control: false },
         backgroundEvents: { control: false },
-        resources: { control: false },
         views: { control: false },
         viewProps: { control: false }
     },
@@ -61,9 +62,13 @@ export const ResourceGrouping: Story = {
     args: {
         view: "week",
         events: resourceEvents,
-        resources: resourceConfig,
-        groupBy: "resource",
-        cellWidth: 92
+        viewProps: {
+            minTime: MIN_TIME,
+            maxTime: MAX_TIME,
+            resources: resourceConfig,
+            groupBy: "resource",
+            slotSizing: { width: 92 }
+        }
     }
 };
 

@@ -13,7 +13,16 @@ export const DefaultNavigationButton = ({
     ...props
 }: CalendarNavigationButtonProps) => (
     <button type="button" {...props}>
-        {children ?? (type === "prev" ? "<" : ">")}
+        {children ?? (
+            <svg
+                className="calendar-view_navigation-icon"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+                focusable="false"
+            >
+                <path d={type === "prev" ? "m12.5 5-5 5 5 5" : "m7.5 5 5 5-5 5"} />
+            </svg>
+        )}
     </button>
 );
 

@@ -43,6 +43,8 @@ const EMPTY_COMPONENTS = Object.freeze({});
  * editing callbacks, locale-aware formatting, and replaceable renderers.
  */
 export default function AgendaView<Event extends CalendarEvent = CalendarEvent>({
+    className,
+    style,
     events = EMPTY_EVENTS,
     date,
     defaultDate,
@@ -137,7 +139,11 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     }, [days, onRangeChange, rangeEnd, rangeStart]);
 
     return (
-        <div className="agenda-view" data-time-zone={timeZone}>
+        <div
+            className={`agenda-view ${className ?? ""}`.trim()}
+            data-time-zone={timeZone}
+            style={style}
+        >
             {showControls && (
                 <CalendarNavigation
                     header={header}

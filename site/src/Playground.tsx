@@ -206,12 +206,12 @@ export default function Playground() {
         selectedEventIds,
         onEventSelect: selectEvent
     } as const;
-    const timeGridProps = {
+    const timeGridViewProps = {
         minTime: "08:00",
         maxTime: "18:00",
         slotDuration: 30,
         labelInterval: 60,
-        cellHeight: 28
+        slotSizing: { height: 28 }
     } as const;
     const calendar = (() => {
         switch (view) {
@@ -227,10 +227,10 @@ export default function Playground() {
                 return (
                     <Calendar<PlaygroundEvent, PlaygroundResource>
                         {...calendarProps}
-                        {...timeGridProps}
                         key={view}
                         view="day"
                         backgroundEvents={backgroundEvents}
+                        viewProps={timeGridViewProps}
                     />
                 );
             case "month":
@@ -239,39 +239,40 @@ export default function Playground() {
                         {...calendarProps}
                         key={view}
                         view="month"
-                        maxEventsPerDay={2}
+                        viewProps={{ maxEventsPerDay: 2 }}
                     />
                 );
             case "resource-grouping":
                 return (
                     <Calendar<PlaygroundEvent, PlaygroundResource>
                         {...calendarProps}
-                        {...timeGridProps}
                         key={view}
                         view="week"
-                        resources={resourceConfig}
-                        groupBy={resourceGroupBy}
-                        cellWidth={88}
+                        viewProps={{
+                            ...timeGridViewProps,
+                            resources: resourceConfig,
+                            groupBy: resourceGroupBy,
+                            slotSizing: { width: 88, height: 28 }
+                        }}
                     />
                 );
             case "time-grid":
                 return (
                     <Calendar<PlaygroundEvent, PlaygroundResource>
                         {...calendarProps}
-                        {...timeGridProps}
                         key={view}
                         view="time-grid"
-                        range={customRange}
+                        viewProps={{ ...timeGridViewProps, range: customRange }}
                     />
                 );
             case "week":
                 return (
                     <Calendar<PlaygroundEvent, PlaygroundResource>
                         {...calendarProps}
-                        {...timeGridProps}
                         key={view}
                         view="week"
                         backgroundEvents={backgroundEvents}
+                        viewProps={timeGridViewProps}
                     />
                 );
         }

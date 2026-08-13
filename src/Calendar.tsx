@@ -56,17 +56,36 @@ interface CalendarBuiltInViewProps<
     week: TimeGridViewProps<Event, Resource>;
 }
 
-type CalendarBuiltInView = keyof CalendarBuiltInViewProps;
-type ViewProps<Props> = Omit<Props, "viewName">;
+export type CalendarBuiltInView = keyof CalendarBuiltInViewProps;
+type CalendarSharedProps<Event extends CalendarEvent> = Omit<
+    SharedViewProps<Event>,
+    "className" | "style" | "viewName"
+>;
+type ForwardedCalendarSharedProps<Event extends CalendarEvent> = Omit<
+    CalendarSharedProps<Event>,
+    "events" | "backgroundEvents" | "locale" | "formatters" | "messages"
+>;
+type DisallowedViewProps = keyof SharedViewProps | keyof CalendarRootProps | "viewName";
+type ViewProps<Props> = Omit<
+    Props,
+    DisallowedViewProps
+> & Partial<Record<DisallowedViewProps, never>>;
+
+/** Configuration accepted by one selected built-in calendar view. */
+export type CalendarViewProps<
+    View extends CalendarBuiltInView,
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> = ViewProps<CalendarBuiltInViewProps<Event, Resource>[View]>;
 
 type CalendarBuiltInBranch<
     View extends CalendarBuiltInView,
     Event extends CalendarEvent,
     Resource
 > = CalendarRootProps
-    & ViewProps<CalendarBuiltInViewProps<Event, Resource>[View]>
+    & CalendarSharedProps<Event>
     & {
-        viewProps?: Partial<ViewProps<CalendarBuiltInViewProps<Event, Resource>[View]>>;
+        viewProps?: Partial<CalendarViewProps<View, Event, Resource>>;
         views?: CalendarViewRegistry;
     }
     & (View extends "week" ? { view?: View } : { view: View });
@@ -101,17 +120,14 @@ type ValidatedViewRegistry<Views extends CalendarViewRegistry> = {
     [View in keyof Views]: ValidatedViewRegistration<Views[View]>;
 };
 
-type CustomViewProps<Registration> = Omit<
-    RegisteredViewProps<Registration>,
-    keyof SharedViewProps | keyof CalendarRootProps | "viewName"
->;
+type CustomViewProps<Registration> = ViewProps<RegisteredViewProps<Registration>>;
 
 type CalendarCustomProps<
     Event extends CalendarEvent,
     Views extends CalendarViewRegistry
 > = {
     [View in keyof Views & string]: CalendarRootProps
-        & Omit<SharedViewProps<Event>, "viewName">
+        & CalendarSharedProps<Event>
         & {
             view: View;
             views: Views & ValidatedViewRegistry<Views>;
@@ -147,7 +163,7 @@ interface ResolvedCalendarViewProps<Event extends CalendarEvent> {
     locale: CalendarLocale;
     formatters: CalendarFormatters;
     messages: CalendarMessages;
-    sharedProps: object;
+    sharedProps: ForwardedCalendarSharedProps<Event>;
     defaultViewProps: object;
     viewProps: object;
     events: Event[];
@@ -220,8 +236,33 @@ export default function Calendar<
     formatters = defaultCalendarFormatters,
     messages = defaultCalendarMessages,
     localeFallback = null,
-    ...sharedProps
+    date,
+    defaultDate,
+    timeZone,
+    minDate,
+    maxDate,
+    showControls,
+    selectedEventIds,
+    canEditEvent,
+    onDateChange,
+    onRangeChange,
+    onEventSelect,
+    onEventEdit
 }: CalendarProps<Event, Resource, Views>): ReactElement {
+    const sharedProps: ForwardedCalendarSharedProps<Event> = {
+        date,
+        defaultDate,
+        timeZone,
+        minDate,
+        maxDate,
+        showControls,
+        selectedEventIds,
+        canEditEvent,
+        onDateChange,
+        onRangeChange,
+        onEventSelect,
+        onEventEdit
+    };
     const registeredViews: CalendarViewRegistry = views ?? EMPTY_VIEWS;
     const builtInView = view in defaultCalendarViews
         ? defaultCalendarViews[view as keyof typeof defaultCalendarViews]

@@ -45,6 +45,8 @@ const EMPTY_COMPONENTS = Object.freeze({});
  * and navigation behavior remain independently replaceable.
  */
 export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
+    className,
+    style,
     events = EMPTY_EVENTS,
     backgroundEvents = EMPTY_EVENTS,
     date,
@@ -148,7 +150,11 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     }, [days, monthEnd, monthStart, onRangeChange, rangeEnd, rangeStart]);
 
     return (
-        <div className="month-view" data-time-zone={timeZone}>
+        <div
+            className={`month-view ${className ?? ""}`.trim()}
+            data-time-zone={timeZone}
+            style={style}
+        >
             {showControls && (
                 <CalendarNavigation
                     header={formatters.rangeHeader(headerRange, formatContext)}

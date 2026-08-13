@@ -1,4 +1,4 @@
-.time-grid-view {
+:where(.time-grid-view) {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -8,12 +8,26 @@
     font-size: 0.78rem;
 }
 
+:where(.time-grid-view.has-fixed-slot-width) {
+    width: fit-content;
+    max-width: 100%;
+}
+
+:where(.time-grid-view.has-fixed-slot-height) {
+    height: max-content;
+    max-height: 100%;
+}
+
+:where(.time-grid-view.has-fixed-slot-width) .time-grid-view_navigation {
+    contain: inline-size;
+}
+
 .time-grid-view_grid-wrapper {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
-    border: 1px solid #e1e7ef;
+    border: var(--calendar-time-grid-frame-width, 1px) solid #e1e7ef;
     border-radius: 14px;
     background: #fff;
     overflow: auto;
@@ -22,6 +36,14 @@
 .time-grid-view_header {
     --header-border-color: #d8e1ec;
 
+    display: grid;
+    grid-template-columns:
+        var(--calendar-time-grid-time-axis-width, 64px)
+        var(--_time-grid-slot-columns);
+    grid-template-rows: repeat(
+        var(--_time-grid-header-row-count),
+        var(--calendar-time-grid-header-row-height, 36px)
+    );
     flex: 0 0 auto;
     background: #fbfcfe;
 }
@@ -30,7 +52,8 @@
 .time-grid-view_header.has-resource-headers::after {
     content: "";
     grid-column: 1 / -1;
-    border-bottom: 1px solid var(--header-border-color);
+    border-bottom: var(--calendar-time-grid-line-width, 1px)
+        solid var(--header-border-color);
     pointer-events: none;
     z-index: 1;
 }
@@ -53,9 +76,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
     min-width: 0;
     padding: 0 4px;
-    border-left: 1px solid var(--header-border-color);
+    border-left: var(--calendar-time-grid-line-width, 1px)
+        solid var(--header-border-color);
     background: #fbfcfe;
     text-align: center;
 }
@@ -86,16 +111,22 @@
     text-align: center;
 }
 
+.time-grid-view_time-labels {
+    display: grid;
+    grid-template-columns: var(--calendar-time-grid-time-axis-width, 64px);
+}
+
 .time-grid-view_time-label time {
     height: max-content;
     white-space: nowrap;
 }
 
 .time-grid-view_slot {
-    --border-width: 1px;
     --border-color: #edf0f4;
-    --border: var(--border-width) solid var(--border-color);
-    --divider-border: 1px solid #dfe5ec;
+    --border: var(--calendar-time-grid-line-width, 1px)
+        solid var(--border-color);
+    --divider-border: var(--calendar-time-grid-line-width, 1px)
+        solid #dfe5ec;
 
     position: relative;
     box-sizing: border-box;
@@ -103,16 +134,22 @@
     background-color: #fff;
 }
 
-.time-grid-view_grid.has-grid-lines .time-grid-view_slot {
+.time-grid-view_grid {
+    display: grid;
+    grid-template-columns: var(--_time-grid-slot-columns);
+    flex-grow: 1;
+}
+
+.time-grid-view_grid .time-grid-view_slot {
     border-right: var(--border);
     border-bottom: var(--border);
 }
 
-.time-grid-view_grid.has-grid-lines .time-grid-view_slot.is-first-column {
+.time-grid-view_grid .time-grid-view_slot.is-first-column {
     border-left: var(--border);
 }
 
-.time-grid-view_grid.has-grid-lines .time-grid-view_slot.is-divider-boundary {
+.time-grid-view_grid .time-grid-view_slot.is-divider-boundary {
     border-bottom: var(--divider-border);
 }
 
@@ -247,10 +284,4 @@ button.time-grid-view_event {
     outline: 2px solid currentColor;
     outline-offset: -2px;
     z-index: 12;
-}
-
-@media (max-width: 768px) {
-    .time-grid-view {
-        --time-grid-day-min-width: 112px;
-    }
 }

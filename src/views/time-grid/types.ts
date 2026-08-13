@@ -28,6 +28,40 @@ export type TimeOfDay = `${TimeHour}:${TimeMinute}`;
 /** Outer grouping dimension used when both days and resources are visible. */
 export type TimeGridGroupBy = "day" | "resource";
 
+type TimeGridSlotWidth =
+    | {
+        /** Fixed positive pixel width of each day or resource slot. */
+        width?: number;
+        minWidth?: never;
+    }
+    | {
+        width?: never;
+        /** Non-negative pixel minimum for fluid day or resource slots. */
+        minWidth?: number;
+    };
+
+type TimeGridSlotHeight =
+    | {
+        /** Fixed positive pixel height of each `slotDuration` interval. */
+        height?: number;
+        minHeight?: never;
+    }
+    | {
+        height?: never;
+        /** Non-negative pixel minimum for fluid `slotDuration` intervals. */
+        minHeight?: number;
+    };
+
+/**
+ * Mutually exclusive fixed or minimum dimensions for each time-grid slot axis.
+ *
+ * @remarks
+ * Omitting both width properties makes columns fully fluid. Omitting both
+ * height properties uses a fixed 50px slot height. Set `minHeight` to `0` for
+ * fully fluid rows.
+ */
+export type TimeGridSlotSizing = TimeGridSlotWidth & TimeGridSlotHeight;
+
 export interface TimeGridColumn<Resource = unknown> {
     key: string;
     day: Date;
@@ -182,11 +216,8 @@ export interface TimeGridViewProps<
     maxTime?: TimeOfDay | "24:00";
     slotDuration?: number;
     labelInterval?: number;
-    headerHeight?: number;
-    timeLabelWidth?: number;
-    cellWidth?: number;
-    cellHeight?: number;
-    showGridLines?: boolean;
+    /** Per-slot fixed or fluid-minimum dimensions. */
+    slotSizing?: TimeGridSlotSizing;
     selectedRange?: { start: Date; end: Date };
     canDragEvent?: (
         event: NormalizedCalendarEvent<Event>,

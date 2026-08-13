@@ -52,7 +52,7 @@ export const FullDay: Story = {
     args: {
         minTime: "00:00",
         maxTime: "24:00",
-        cellHeight: 24
+        slotSizing: { height: 24 }
     }
 };
 
@@ -78,6 +78,8 @@ export const SelectedRange: Story = {
 
 export const WithoutGridLines: Story = {
     args: {
-        showGridLines: false
+        style: {
+            "--calendar-time-grid-line-width": "0px"
+        }
     }
 };

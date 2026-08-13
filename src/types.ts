@@ -16,7 +16,31 @@ export type CalendarEventId = string | number;
 /** Stable non-empty string or finite number used for resource identity. */
 export type CalendarResourceId = string | number;
 export type CalendarWeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-export type CalendarStyle = CSSProperties & Partial<Record<`--${string}`, string | number>>;
+/**
+ * Pixel length accepted by layout-sensitive calendar theme tokens.
+ * Negative values are syntactically representable but invalid for these sizes.
+ */
+export type CalendarPixelSize = `${number}px`;
+
+/** Stable CSS custom properties exposed by the bundled calendar theme. */
+export interface CalendarCSSVariables {
+    "--calendar-scrollbar-inset"?: string;
+    "--calendar-scrollbar-radius"?: string;
+    "--calendar-scrollbar-size"?: string;
+    "--calendar-scrollbar-thumb"?: string;
+    "--calendar-scrollbar-thumb-hover"?: string;
+    "--calendar-scrollbar-track"?: string;
+    "--calendar-scrollbar-width"?: "auto" | "none" | "thin";
+    "--calendar-time-grid-frame-width"?: CalendarPixelSize;
+    "--calendar-time-grid-header-row-height"?: CalendarPixelSize;
+    "--calendar-time-grid-line-width"?: CalendarPixelSize;
+    "--calendar-time-grid-time-axis-width"?: CalendarPixelSize;
+}
+
+/** React styles with typed calendar tokens and application-defined variables. */
+export type CalendarStyle = CSSProperties
+    & CalendarCSSVariables
+    & Partial<Record<`--${string}`, string | number>>;
 
 /** Prepared attributes and interaction handlers for a renderer's root element. */
 export interface CalendarRendererElementProps extends HTMLAttributes<HTMLElement> {
@@ -174,6 +198,8 @@ export interface CalendarComponents {
 }
 
 export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
+    className?: string;
+    style?: CalendarStyle;
     events?: Event[];
     backgroundEvents?: Event[];
     date?: CalendarDateInput;

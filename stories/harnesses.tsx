@@ -86,10 +86,8 @@ export function ControlledNavigation({
 
 /** Provides visible state for selection, editing, and event-drop examples. */
 export function InteractionHarness({
-    onEventDrop,
     onEventEdit,
     onEventSelect,
-    onSlotSelect,
     ...props
 }: StoryCalendarProps) {
     const [selectedEventIds, setSelectedEventIds] = useState<Array<string | number>>([]);
@@ -111,19 +109,6 @@ export function InteractionHarness({
         setLastAction(`Editing ${event.title ?? "event"}`);
         onEventEdit?.(event, interaction);
     };
-    const handleSlotSelect: NonNullable<
-        TimeGridViewProps<StoryEvent, StoryResource>["onSlotSelect"]
-    > = (slot, interaction) => {
-        setSelectedRange({ start: slot.start, end: slot.end });
-        setLastAction(`Selected slot at ${format(slot.start, "HH:mm")}`);
-        onSlotSelect?.(slot, interaction);
-    };
-    const handleEventDrop: NonNullable<
-        TimeGridViewProps<StoryEvent, StoryResource>["onEventDrop"]
-    > = (change) => {
-        setLastAction(`Dropped ${change.event.title ?? "event"} at ${format(change.start, "HH:mm")}`);
-        onEventDrop?.(change);
-    };
     const calendar = props.view === "agenda" || props.view === "month"
         ? (
             <Calendar
@@ -133,17 +118,37 @@ export function InteractionHarness({
                 onEventEdit={handleEventEdit}
             />
         )
-        : (
-            <Calendar
-                {...props}
-                selectedEventIds={selectedEventIds}
-                selectedRange={selectedRange}
-                onEventSelect={handleEventSelect}
-                onSlotSelect={handleSlotSelect}
-                onEventEdit={handleEventEdit}
-                onEventDrop={handleEventDrop}
-            />
-        );
+        : (() => {
+            const { onEventDrop, onSlotSelect } = props.viewProps ?? {};
+            const handleSlotSelect: NonNullable<
+                TimeGridViewProps<StoryEvent, StoryResource>["onSlotSelect"]
+            > = (slot, interaction) => {
+                setSelectedRange({ start: slot.start, end: slot.end });
+                setLastAction(`Selected slot at ${format(slot.start, "HH:mm")}`);
+                onSlotSelect?.(slot, interaction);
+            };
+            const handleEventDrop: NonNullable<
+                TimeGridViewProps<StoryEvent, StoryResource>["onEventDrop"]
+            > = (change) => {
+                setLastAction(`Dropped ${change.event.title ?? "event"} at ${format(change.start, "HH:mm")}`);
+                onEventDrop?.(change);
+            };
+
+            return (
+                <Calendar
+                    {...props}
+                    selectedEventIds={selectedEventIds}
+                    onEventSelect={handleEventSelect}
+                    onEventEdit={handleEventEdit}
+                    viewProps={{
+                        ...props.viewProps,
+                        selectedRange,
+                        onSlotSelect: handleSlotSelect,
+                        onEventDrop: handleEventDrop
+                    }}
+                />
+            );
+        })();
 
     return (
         <>

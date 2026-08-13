@@ -51,10 +51,17 @@ export default defineConfig({
             test: {
                 name: "storybook",
                 browser: {
+                    api: {
+                        port: 62102,
+                        strictPort: false
+                    },
                     enabled: true,
                     headless: true,
                     provider: playwright({}),
-                    instances: [{ browser: "chromium" }]
+                    instances: [
+                        { browser: "chromium" },
+                        { browser: "firefox" }
+                    ]
                 }
             }
         }]

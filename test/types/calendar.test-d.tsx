@@ -1,13 +1,22 @@
 import type { ReactNode } from "react";
 
-import Calendar from "../../src/index.js";
+import Calendar, {
+    AgendaView,
+    DayView,
+    MonthView,
+    TimeGridView,
+    WeekView
+} from "../../src/index.js";
 import type {
     CalendarEvent,
     CalendarProps,
+    CalendarResourceConfig,
+    CalendarViewProps,
     SharedViewProps,
     TimeGridDayHeaderProps,
     TimeGridEventProps,
     TimeGridResourceHeaderProps,
+    TimeGridSlotSizing,
     TimeGridSlotProps
 } from "../../src/index.js";
 
@@ -23,6 +32,36 @@ interface ProjectResource {
 
 const events: ProjectEvent[] = [];
 const resources: ProjectResource[] = [];
+const slotSizing: TimeGridSlotSizing = {
+    minWidth: 92,
+    height: 40
+};
+const monthViewProps = {
+    maxEventsPerDay: 3
+} satisfies CalendarViewProps<"month", ProjectEvent>;
+const projectResources: CalendarResourceConfig<ProjectEvent, ProjectResource> = {
+    items: resources,
+    getId: (resource) => resource.id,
+    getTitle: (resource) => resource.name,
+    getEventIds: (event) => [event.category]
+};
+
+void <Calendar view="month" events={events} viewProps={monthViewProps} />;
+void (
+    <Calendar
+        view="day"
+        events={events}
+        viewProps={{ resources: projectResources }}
+    />
+);
+
+const invalidMonthViewProps = {
+    maxEventsPerDay: 3,
+    // @ts-expect-error Reusable view props reject known configuration from another view.
+    minTime: "08:00"
+} satisfies CalendarViewProps<"month", ProjectEvent>;
+
+void invalidMonthViewProps;
 
 const ProjectEventRenderer = ({
     event,
@@ -82,29 +121,75 @@ const ProjectResourceHeader = ({
 
 const defaultWeekProps: CalendarProps<ProjectEvent, ProjectResource> = {
     events,
-    minTime: "08:00",
+    viewProps: { minTime: "08:00" },
     onEventSelect: (event) => event.category
 };
 
 void defaultWeekProps;
 
-void <Calendar view="agenda" events={events} range={14} />;
-void <Calendar view="day" events={events} minTime="08:00" maxTime="18:00" />;
-void <Calendar view="month" events={events} maxEventsPerDay={3} />;
+void <Calendar view="agenda" events={events} viewProps={{ range: 14 }} />;
 void (
     <Calendar
         view="day"
         events={events}
-        resources={{
-            items: resources,
-            getId: (resource) => resource.id,
-            getTitle: (resource) => resource.name,
-            getEventIds: (event) => [event.category]
+        viewProps={{ minTime: "08:00", maxTime: "18:00" }}
+    />
+);
+void <Calendar view="month" events={events} viewProps={{ maxEventsPerDay: 3 }} />;
+void (
+    <Calendar<ProjectEvent, ProjectResource>
+        view="day"
+        events={events}
+        viewProps={{
+            resources: {
+                items: resources,
+                getId: (resource) => resource.id,
+                getTitle: (resource) => resource.name,
+                getEventIds: (event) => [event.category]
+            }
         }}
     />
 );
-void <Calendar view="time-grid" events={events} range={[new Date()]} />;
-void <Calendar view="week" events={events} slotDuration={30} labelInterval={60} />;
+void <Calendar view="time-grid" events={events} viewProps={{ range: [new Date()] }} />;
+void (
+    <Calendar
+        view="week"
+        events={events}
+        viewProps={{
+            slotDuration: 30,
+            labelInterval: 60,
+            slotSizing
+        }}
+    />
+);
+void (
+    <Calendar
+        view="day"
+        viewProps={{ slotSizing: { width: 120, minHeight: 0 } }}
+    />
+);
+void <AgendaView className="agenda" style={{ color: "navy" }} />;
+void <DayView
+    className="schedule"
+    style={{
+        "--calendar-time-grid-header-row-height": "40px",
+        "--calendar-time-grid-line-width": "0px",
+        "--calendar-time-grid-time-axis-width": "72px"
+    }}
+/>;
+void <MonthView className="month" style={{ minHeight: 600 }} />;
+void <WeekView className="week" style={{ color: "navy" }} />;
+void <TimeGridView className="custom-range" style={{ minHeight: 600 }} />;
+
+// @ts-expect-error Known calendar tokens reject unsupported values.
+void <Calendar style={{ "--calendar-scrollbar-width": "wide" }} />;
+
+// @ts-expect-error Layout-sensitive tokens require deterministic pixel lengths.
+void <Calendar style={{ "--calendar-time-grid-time-axis-width": "20%" }} />;
+
+// @ts-expect-error Layout-sensitive tokens cannot use content-dependent tracks.
+void <Calendar style={{ "--calendar-time-grid-time-axis-width": "auto" }} />;
+
 void (
     <Calendar
         style={{
@@ -114,20 +199,22 @@ void (
     />
 );
 void (
-    <Calendar
+    <Calendar<ProjectEvent, ProjectResource>
         view="week"
         events={events}
-        resources={{ items: resources }}
-        groupBy="resource"
-        components={{
-            event: ProjectEventRenderer,
-            slot: ProjectSlotRenderer,
-            dayHeader: ProjectDayHeader,
-            resourceHeader: ProjectResourceHeader
+        viewProps={{
+            resources: { items: resources },
+            groupBy: "resource",
+            components: {
+                event: ProjectEventRenderer,
+                slot: ProjectSlotRenderer,
+                dayHeader: ProjectDayHeader,
+                resourceHeader: ProjectResourceHeader
+            }
         }}
     />
 );
-void <Calendar events={events} minTime="08:00" />;
+void <Calendar events={events} viewProps={{ minTime: "08:00" }} />;
 void <Calendar view="month" viewProps={{ maxEventsPerDay: 2 }} />;
 
 // @ts-expect-error Unknown root props must not bypass the public contract.
@@ -136,29 +223,72 @@ void <Calendar view="week" eventz={events} />;
 // @ts-expect-error The redundant resource view is not a built-in view.
 void <Calendar view="resource" />;
 
-// @ts-expect-error Resource items and accessors must use the grouped contract.
-void <Calendar view="day" resources={resources} />;
+// @ts-expect-error View-specific props cannot bypass viewProps.
+void <Calendar view="day" slotSizing={{ width: 92 }} />;
 
-// @ts-expect-error Resource ID accessors must return stable string or number IDs.
-void <Calendar view="day" resources={{ items: resources, getId: () => ({}) }} />;
+// @ts-expect-error Resource items and accessors must use the grouped contract.
+void <Calendar view="day" viewProps={{ resources }} />;
+
+void (
+    <Calendar<ProjectEvent, ProjectResource>
+        view="day"
+        // @ts-expect-error Resource ID accessors must return stable string or number IDs.
+        viewProps={{ resources: { items: resources, getId: () => ({}) } }}
+    />
+);
 
 // @ts-expect-error Flat resource accessors are removed.
 void <Calendar view="day" getResourceId={(resource: ProjectResource) => resource.id} />;
 
 // @ts-expect-error Resource grouping only accepts the two supported dimensions.
-void <Calendar view="week" groupBy="team" />;
+void <Calendar view="week" viewProps={{ groupBy: "team" }} />;
 
 // @ts-expect-error The combined time-grid column header was removed.
-void <Calendar view="week" components={{ columnHeader: ProjectDayHeader }} />;
+void <Calendar view="week" viewProps={{ components: { columnHeader: ProjectDayHeader } }} />;
 
 // @ts-expect-error Renderer replacements must be grouped under components.
-void <Calendar view="week" eventComponent={ProjectEventRenderer} />;
+void <Calendar view="week" viewProps={{ eventComponent: ProjectEventRenderer }} />;
 
-// @ts-expect-error Event renderers receive a segment instead of a top-level dayIndex.
-void <Calendar view="week" components={{ event: (_props: { dayIndex: number }) => null }} />;
+void (
+    // @ts-expect-error Event renderers receive a segment instead of a top-level dayIndex.
+    <Calendar
+        view="week"
+        viewProps={{ components: { event: (_props: { dayIndex: number }) => null } }}
+    />
+);
 
 // @ts-expect-error Month views do not accept time-grid scale props.
-void <Calendar view="month" minTime="08:00" />;
+void <Calendar view="month" viewProps={{ minTime: "08:00" }} />;
+
+// @ts-expect-error Slot sizing minimums must be numeric.
+void <Calendar view="week" viewProps={{ slotSizing: { minWidth: "92" } }} />;
+
+// @ts-expect-error The fluid sentinel was replaced by flat minimum properties.
+void <Calendar view="week" viewProps={{ slotSizing: { height: "fluid" } }} />;
+
+// @ts-expect-error Nested minimum objects were replaced by flat minimum properties.
+void <Calendar view="week" viewProps={{ slotSizing: { width: { min: 92 } } }} />;
+
+// @ts-expect-error Fixed width and minimum width are mutually exclusive.
+void <Calendar view="week" viewProps={{ slotSizing: { width: 92, minWidth: 80 } }} />;
+
+// @ts-expect-error Fixed height and minimum height are mutually exclusive.
+void <Calendar view="week" viewProps={{ slotSizing: { height: 40, minHeight: 20 } }} />;
+
+// @ts-expect-error Flat cell dimensions were replaced by slotSizing.
+void <Calendar view="week" cellWidth={92} />;
+
+// @ts-expect-error Flat cell dimensions were replaced by slotSizing.
+void <Calendar view="week" cellHeight={50} />;
+
+// @ts-expect-error Header height is controlled by the typed theme token.
+void <Calendar view="week" headerHeight={50} />;
+
+// @ts-expect-error The time axis width is controlled by the typed theme token.
+void <Calendar view="week" timeLabelWidth={64} />;
+
+// @ts-expect-error Grid lines are controlled by the typed theme token.
+void <Calendar view="week" showGridLines={false} />;
 
 // @ts-expect-error Agenda views do not accept month overflow props.
 void <Calendar view="agenda" maxEventsPerDay={3} />;
@@ -169,8 +299,13 @@ void <Calendar maxEventsPerDay={3} />;
 // @ts-expect-error Built-in viewProps are tied to the selected view.
 void <Calendar view="month" viewProps={{ minTime: "08:00" }} />;
 
-// @ts-expect-error Drop callbacks must consume the complete drop payload.
-void <Calendar view="week" onEventDrop={(_change: { start: string }) => undefined} />;
+void (
+    // @ts-expect-error Drop callbacks must consume the complete drop payload.
+    <Calendar
+        view="week"
+        viewProps={{ onEventDrop: (_change: { start: string }) => undefined }}
+    />
+);
 
 // @ts-expect-error Unsupported names require an application view registry.
 void <Calendar view="quarter" />;

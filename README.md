@@ -148,9 +148,14 @@ interaction behavior rather than maintaining separate engines. Resource
 columns are available on both presets and on every custom time-grid range.
 
 The root `Calendar` props are a discriminated TypeScript union keyed by
-`view`. Each built-in name accepts only the props supported by that view, and
-omitting `view` selects the `week` contract. Misspelled props and combinations
-such as time-grid scale options on a month view fail compilation.
+`view`. Shared calendar behavior stays at the root, while configuration owned
+by the selected view lives under `viewProps`. Omitting `view` selects the
+`week` contract. Misspelled props, view configuration placed at the root, and
+combinations such as time-grid scale options on a month view fail compilation.
+Direct view components accept their own configuration as direct props.
+Use `satisfies CalendarViewProps<"month">` (with the appropriate view name)
+when defining reusable `viewProps` objects so TypeScript checks the object at
+its declaration site.
 
 ### Ranges
 
@@ -167,11 +172,13 @@ import { startOfWeek } from "date-fns";
 
 <Calendar
     view="time-grid"
-    range={{
-        start: (anchor) => startOfWeek(anchor, { weekStartsOn: 1 }),
-        days: 7,
-        includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
-        navigationStep: 7
+    viewProps={{
+        range: {
+            start: (anchor) => startOfWeek(anchor, { weekStartsOn: 1 }),
+            days: 7,
+            includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
+            navigationStep: 7
+        }
     }}
 />
 ```
@@ -187,10 +194,12 @@ label cadence:
 ```tsx
 <Calendar
     view="week"
-    minTime="08:00"
-    maxTime="18:00"
-    slotDuration={30}
-    labelInterval={60}
+    viewProps={{
+        minTime: "08:00",
+        maxTime: "18:00",
+        slotDuration: 30,
+        labelInterval: 60
+    }}
 />
 ```
 
@@ -199,6 +208,38 @@ zero-padded `HH:mm` values; `maxTime` also accepts `24:00`. `slotDuration`
 controls selectable granularity, while `labelInterval` controls time labels
 and major dividers. Invalid or reversed configurations throw rather than being
 silently adjusted.
+
+### Slot sizing
+
+Time-grid slot dimensions use one flat typed contract. `width` and `height`
+fix their slot axis, while `minWidth` and `minHeight` distribute available
+space until the minimum would be crossed and then enable scrolling:
+
+```tsx
+<Calendar
+    view="day"
+    viewProps={{
+        slotSizing: {
+            minWidth: 120,
+            height: 48
+        }
+    }}
+/>
+```
+
+`width` and `minWidth` are mutually exclusive, as are `height` and
+`minHeight`. Omitting both width properties gives fluid columns with no
+minimum. Omitting both height properties retains the fixed `50px` default;
+use `minHeight: 0` for fully fluid rows. Fixed dimensions must be positive
+finite CSS pixel sizes. Minimum dimensions may also be zero. Invalid or
+conflicting values throw `RangeError` during rendering. Fixed dimensions
+shrink-wrap the time grid on that axis until its parent constrains it. Fluid
+height requires a parent with a definite height so there is vertical space to
+distribute.
+
+Time-grid headers use the same column tracks as their slots. A grouped day or
+resource header spans its underlying tracks and never establishes an
+independent width, so custom header content cannot drift out of alignment.
 
 ### Locales and timezones
 
@@ -210,7 +251,7 @@ is the synchronous default; other named locales are loaded lazily and cached.
 ```
 
 Call `preloadCalendarLocale(name)` when a locale should be available before
-render. An explicit `weekStart` overrides the locale convention.
+render. A view-specific `weekStart` overrides the locale convention.
 
 Locales format dates and supply calendar conventions. Application labels such
 as navigation and empty-state text remain caller-controlled through
@@ -233,7 +274,7 @@ const calendarResources: CalendarResourceConfig<ScheduleEvent, Person> = {
 <Calendar
     view="day"
     events={events}
-    resources={calendarResources}
+    viewProps={{ resources: calendarResources }}
 />
 ```
 
@@ -259,8 +300,10 @@ above its visible days:
 <Calendar
     view="week"
     events={events}
-    resources={calendarResources}
-    groupBy="resource"
+    viewProps={{
+        resources: calendarResources,
+        groupBy: "resource"
+    }}
 />
 ```
 
@@ -285,10 +328,12 @@ Views expose intentional renderer boundaries where applicable:
 <Calendar
     view="week"
     events={events}
-    components={{
-        event: ScheduleEvent,
-        slot: ScheduleSlot,
-        navigation: ScheduleNavigation
+    viewProps={{
+        components: {
+            event: ScheduleEvent,
+            slot: ScheduleSlot,
+            navigation: ScheduleNavigation
+        }
     }}
 />
 ```
@@ -318,9 +363,36 @@ documented custom-property extension points to adapt that default:
 ```css
 .team-schedule {
     --month-view-day-min-width: 9rem;
-    --time-grid-day-min-width: 10rem;
 }
 ```
+
+`CalendarStyle` provides autocomplete for the supported calendar tokens while
+remaining compatible with regular React styles and application-defined CSS
+variables. The same typed `className` and `style` props are available on
+`Calendar`, `AgendaView`, `MonthView`, `DayView`, `WeekView`, and
+`TimeGridView`:
+
+```tsx
+<Calendar
+    view="week"
+    style={{
+        "--calendar-time-grid-header-row-height": "40px",
+        "--calendar-time-grid-time-axis-width": "72px",
+        "--calendar-time-grid-line-width": "0px",
+        "--calendar-time-grid-frame-width": "1px"
+    }}
+/>
+```
+
+Header height applies to each header row. Resource grouping therefore adds a
+second full-height row. The time-axis token sizes both the label column and its
+empty header corner. Set the line width to `0px` to remove header and slot grid
+lines consistently. Layout-sensitive time-grid tokens accept deterministic
+non-negative pixel lengths. TypeScript cannot exclude negative numeric
+template strings, which browsers treat as invalid for these sizes. The
+frame-width token controls both the visible outer border
+and the time grid's intrinsic border-box geometry, so custom frames cannot
+desynchronize the fixed slot tracks.
 
 Scrollable calendar surfaces retain native browser behavior while using a
 compact inset thumb by default. Override the shared scrollbar tokens on the
@@ -355,9 +427,10 @@ Selection and editing callbacks receive the normalized source event, never a
 clipped time-grid segment. Event renderers receive that source as `event` and
 the visible positioned portion as `segment`.
 
-Providing `onEventEdit` enables editing, and providing `onEventDrop` enables
-dragging. Use `canEditEvent(event)` or `canDragEvent(event, segment)` to
-restrict individual events or visible resource segments.
+Providing the shared `onEventEdit` callback enables editing. Supplying
+`viewProps.onEventDrop` enables time-grid dragging. Use the shared
+`canEditEvent(event)` or view-specific `canDragEvent(event, segment)` predicates
+to restrict individual events or visible resource segments.
 
 `onEventDrop` receives the source event, proposed `start` and `end`, and
 explicit `source` and `destination` positions. Dropping a clipped multi-day
@@ -420,7 +493,7 @@ Useful focused commands:
 | `npm run site` | Run the project website and compact playground |
 | `npm run site:build` | Build the GitHub Pages website |
 | `npm run storybook` | Run the exhaustive component catalog |
-| `npm run storybook:test` | Execute every story in Chromium |
+| `npm run storybook:test` | Execute every story in Chromium and Firefox |
 | `npm run storybook:build` | Build the deployable static catalog |
 | `npm run locales:generate` | Regenerate date-fns locale loaders |
 | `npm run locales:check` | Verify the generated locale registry |

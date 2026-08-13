@@ -34,7 +34,7 @@ Add or update a story for every visible component behavior or public
 customization point. Keep story fixtures synthetic and deterministic, exercise
 important interactions with a `play` function, and fix accessibility failures
 rather than disabling the global checks. Run `npm run storybook` for interactive
-development, `npm run storybook:test` for the Chromium suite, and
+development, `npm run storybook:test` for the Chromium and Firefox suites, and
 `npm run storybook:build` to verify the deployable catalog.
 
 The GitHub Pages website renders `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`,

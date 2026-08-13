@@ -31,12 +31,15 @@ export { default as DayView } from "./views/time-grid/presets/DayView.js";
 export { default as WeekView } from "./views/time-grid/presets/WeekView.js";
 export { default as TimeGridView } from "./views/time-grid/TimeGridView.js";
 export type {
+    CalendarBuiltInView,
     CalendarProps,
+    CalendarViewProps,
     CalendarViewRegistration,
     CalendarViewRegistry
 } from "./Calendar.js";
 export type {
     CalendarComponents,
+    CalendarCSSVariables,
     CalendarDateInput,
     CalendarEvent,
     CalendarEventId,
@@ -50,6 +53,7 @@ export type {
     CalendarNavigationButton,
     CalendarNavigationButtonProps,
     CalendarNavigationMessageContext,
+    CalendarPixelSize,
     CalendarRange,
     CalendarRangeContext,
     CalendarRangeDefinition,
@@ -92,6 +96,7 @@ export type {
     TimeGridResourceHeaderProps,
     TimeGridSlot,
     TimeGridSlotProps,
+    TimeGridSlotSizing,
     TimeGridViewProps,
     TimeOfDay
 } from "./views/time-grid/types.js";

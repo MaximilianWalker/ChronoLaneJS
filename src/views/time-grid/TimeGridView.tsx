@@ -36,6 +36,7 @@ import { createLayout } from "./layout/createLayout.js";
 import { createTimeGridHeaderRows } from "./layout/headers.js";
 import ResourceHeader from "./ResourceHeader.js";
 import { resolveCalendarResourceTitle } from "./resources.js";
+import { resolveSlotDimension } from "./sizing.js";
 import Slot from "./Slot.js";
 import type {
     TimeGridEventLayout,
@@ -45,6 +46,7 @@ import type {
 
 const EMPTY_ITEMS: never[] = [];
 const EMPTY_COMPONENTS = Object.freeze({});
+const DEFAULT_SLOT_HEIGHT = 50;
 
 /** Rounds percentages to stable CSS values without visible precision noise. */
 const percentage = (value: number): number => Number(value.toFixed(6));
@@ -86,6 +88,8 @@ export default function TimeGridView<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 >({
+    className,
+    style,
     events = EMPTY_ITEMS,
     backgroundEvents = EMPTY_ITEMS,
     resources,
@@ -103,11 +107,7 @@ export default function TimeGridView<
     showControls = true,
     slotDuration = 60,
     labelInterval = slotDuration,
-    headerHeight = 50,
-    timeLabelWidth = 64,
-    cellWidth,
-    cellHeight = 50,
-    showGridLines = true,
+    slotSizing,
     locale = DEFAULT_CALENDAR_LOCALE,
     formatters = defaultCalendarFormatters,
     messages = defaultCalendarMessages,
@@ -206,13 +206,32 @@ export default function TimeGridView<
         [columns, groupBy]
     );
     const hasResourceHeaders = headerRows.secondary.length > 0;
-    const headerRowHeightValue = `${headerHeight / (hasResourceHeaders ? 2 : 1)}px`;
-    const timeLabelWidthValue = `${timeLabelWidth}px`;
-    const cellWidthValue = cellWidth
-        ? `${cellWidth}px`
-        : "minmax(var(--time-grid-day-min-width, 0px), 1fr)";
-    const gridHeight = `${(totalMinutes / slotDuration) * cellHeight}px`;
+    const slotWidth = resolveSlotDimension(
+        slotSizing,
+        "width"
+    );
+    const slotHeight = resolveSlotDimension(
+        slotSizing,
+        "height",
+        DEFAULT_SLOT_HEIGHT
+    );
+    const slotCount = totalMinutes / slotDuration;
+    const fixedSlotWidth = slotWidth.size;
+    const fixedSlotHeight = slotHeight.size;
+    const slotWidthValue = fixedSlotWidth !== undefined
+        ? `${fixedSlotWidth}px`
+        : `minmax(${slotWidth.minSize}px, 1fr)`;
+    const gridHeight = fixedSlotHeight !== undefined
+        ? `${slotCount * fixedSlotHeight}px`
+        : undefined;
+    const gridMinHeight = fixedSlotHeight === undefined && slotHeight.minSize > 0
+        ? `${slotCount * slotHeight.minSize}px`
+        : undefined;
     const gridRows = `repeat(${totalMinutes}, minmax(0, 1fr))`;
+    const gridWrapperStyle: CalendarStyle = {
+        "--_time-grid-header-row-count": hasResourceHeaders ? 2 : 1,
+        "--_time-grid-slot-columns": `repeat(${columns.length}, ${slotWidthValue})`
+    };
 
     const calendarRange = { start: rangeStart, end: rangeEnd, days };
     const formatContext = { locale: calendarLocale, view: viewName };
@@ -264,7 +283,15 @@ export default function TimeGridView<
     }, [draggedEvent, onEventDrop]);
 
     return (
-        <div className="time-grid-view" data-time-zone={timeZone}>
+        <div
+            className={`time-grid-view${fixedSlotWidth !== undefined
+                ? " has-fixed-slot-width"
+                : ""}${fixedSlotHeight !== undefined
+                ? " has-fixed-slot-height"
+                : ""} ${className ?? ""}`.trim()}
+            data-time-zone={timeZone}
+            style={style}
+        >
             {showControls && (
                 <CalendarNavigation
                     className="time-grid-view_navigation"
@@ -282,17 +309,13 @@ export default function TimeGridView<
                 className="time-grid-view_grid-wrapper calendar-scroll-region"
                 aria-label={messages.timeGridLabel({ view: viewName })}
                 data-group-by={hasResourceHeaders ? groupBy : undefined}
+                style={gridWrapperStyle}
                 tabIndex={0}
             >
                 <div
                     className={`time-grid-view_header${hasResourceHeaders
                         ? " has-resource-headers"
                         : ""}`}
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: `${timeLabelWidthValue} repeat(${columns.length}, ${cellWidthValue})`,
-                        gridTemplateRows: `repeat(${hasResourceHeaders ? 2 : 1}, ${headerRowHeightValue})`
-                    }}
                 >
                     {[headerRows.primary, headerRows.secondary].map(
                         (headers, rowIndex) => headers.map((headerCell) => (
@@ -339,10 +362,9 @@ export default function TimeGridView<
                     <div
                         className="time-grid-view_time-labels"
                         style={{
-                            display: "grid",
-                            gridTemplateColumns: timeLabelWidthValue,
                             gridTemplateRows: gridRows,
-                            height: gridHeight
+                            height: gridHeight,
+                            minHeight: gridMinHeight
                         }}
                     >
                         {dividers.map(({ key, time, startRow, rowSpan }) => (
@@ -358,13 +380,11 @@ export default function TimeGridView<
                         ))}
                     </div>
                     <div
-                        className={`time-grid-view_grid${showGridLines ? " has-grid-lines" : ""}`}
+                        className="time-grid-view_grid"
                         style={{
-                            flexGrow: 1,
-                            display: "grid",
-                            gridTemplateColumns: `repeat(${columns.length}, ${cellWidthValue})`,
                             gridTemplateRows: gridRows,
-                            height: gridHeight
+                            height: gridHeight,
+                            minHeight: gridMinHeight
                         }}
                     >
                         {slots.map((slot) => {

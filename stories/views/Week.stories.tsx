@@ -34,7 +34,7 @@ export const HalfHourSlots: Story = {
     args: {
         slotDuration: 30,
         labelInterval: 60,
-        cellHeight: 34
+        slotSizing: { height: 34 }
     }
 };
 
