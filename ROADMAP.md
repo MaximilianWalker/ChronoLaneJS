@@ -270,23 +270,28 @@ Last reviewed: 2026-08-13
 
 ## Documentation and examples
 
-- [ ] **[P0][DOC-01] Update documentation with the final pre-release API.**
-  - Remove every legacy name and example in the same change as the refactor.
-  - Document event identity, controlled state, time zones, ranges, resources,
-    renderer contracts, and drop payloads.
-- [ ] **[P1][DOC-02] Publish a complete API reference.**
-  - Every public component, prop, callback payload, type, default, and thrown
-    error should be discoverable from generated declarations or Storybook.
-- [ ] **[P1][DOC-03] Document styling and theming.**
-  - List supported CSS variables, stable class hooks, responsive behavior, and
-    the boundary between library layout and consumer presentation.
-- [ ] **[P1][DOC-04] Add runnable consumer examples.**
-  - Include minimal Vite and Next.js examples.
-  - Include controlled navigation, resources, localization, custom renderers,
-    and interaction state updates.
-- [ ] **[P1][DOC-05] Document accessibility behavior.**
-  - Cover keyboard commands, focus behavior, messages, drag alternatives, and
-    custom-renderer responsibilities.
+- [x] **[P0][DOC-01] Update documentation with the final pre-release API.**
+  - [Getting started](./docs/getting-started.md) and the
+    [API reference](./docs/api.md) use the current names and document event
+    identity, controlled state, time zones, ranges, resources, renderer
+    contracts, and drop payloads with concrete data.
+- [x] **[P1][DOC-02] Publish a complete API reference.**
+  - The [API reference](./docs/api.md) covers every public export and interface
+    property, including callback payloads, defaults, examples, and thrown
+    errors. `npm run docs:check` enforces source and GitHub Pages coverage.
+- [x] **[P1][DOC-03] Document styling and theming.**
+  - [Styling and theming](./docs/styling.md) defines every supported CSS
+    variable, stable class hook, responsive behavior, and the ownership
+    boundary between library layout and consumer presentation.
+- [x] **[P1][DOC-04] Add runnable consumer examples.**
+  - The [consumer examples](./examples/) provide independently locked Vite and
+    Next.js applications. They cover controlled navigation, resources,
+    localization, custom renderers, and interaction state updates and are
+    production-built by `npm run examples:check` in CI.
+- [x] **[P1][DOC-05] Document accessibility behavior.**
+  - [Accessibility](./docs/accessibility.md) documents current keyboard and
+    focus behavior, messages, drag alternatives and limitations, and
+    custom-renderer responsibilities without claiming open A11Y work is done.
 - [ ] **[P2][DOC-06] Document deliberate non-goals.**
   - Decide and document ownership of recurrence expansion, persistence,
     fetching, application state, and design-system styling.

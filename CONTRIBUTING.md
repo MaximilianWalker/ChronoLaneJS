@@ -38,9 +38,12 @@ development, `npm run storybook:test` for the Chromium and Firefox suites, and
 `npm run storybook:build` to verify the deployable catalog.
 
 The GitHub Pages website renders `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`,
-and `SECURITY.md` directly, so update the canonical Markdown instead of adding
-site-only documentation. Run `npm run site` to preview the website and compact
-playground, or `npm run site:build` to verify its production output.
+`SECURITY.md`, and every file under `docs/` directly, so update the canonical
+Markdown instead of adding site-only documentation. Public exports and props
+must be present in `docs/api.md`; `npm run docs:check` enforces that coverage.
+Runnable Vite and Next.js integrations live under `examples/` and are validated
+with `npm run examples:check`. Run `npm run site` to preview the website and
+compact playground, or `npm run site:build` to verify its production output.
 
 Open an issue before starting a breaking API or architectural change so the
 contract can be agreed before implementation.

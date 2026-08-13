@@ -1,0 +1,10 @@
+:root {
+    font-family: Inter, system-ui, sans-serif;
+    color: #1e293b;
+    background: #f8fafc;
+}
+
+body { margin: 0; }
+main { min-height: 100vh; padding: 32px; box-sizing: border-box; }
+.calendar { height: 680px; }
+.example-event { display: flex; flex-direction: column; gap: 2px; }

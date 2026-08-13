@@ -846,8 +846,10 @@ a {
     position: sticky;
     top: 24px;
     align-self: start;
+    max-height: calc(100vh - 48px);
     padding: 38px 24px 24px 0;
     border-right: 1px solid #e1e7ef;
+    overflow-y: auto;
 }
 
 .docs-nav-heading {
@@ -885,6 +887,19 @@ a {
     padding: 13px 12px;
     border-radius: 10px;
     text-decoration: none;
+}
+
+.docs-nav-entry h2 {
+    margin: 24px 10px 8px;
+    color: #7b8798;
+    font-size: 0.66rem;
+    font-weight: 750;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.docs-nav-entry:first-of-type h2 {
+    margin-top: 14px;
 }
 
 .docs-nav-link:hover {
@@ -1332,18 +1347,24 @@ a {
     .docs-nav {
         position: static;
         display: flex;
+        max-height: none;
         padding: 14px 0;
         border-right: 0;
         border-bottom: 1px solid #e1e7ef;
         overflow-x: auto;
+        overflow-y: hidden;
     }
 
     .docs-nav-heading {
         display: none;
     }
 
-    .docs-nav-link {
+    .docs-nav-entry {
         flex: 0 0 150px;
+    }
+
+    .docs-nav-entry h2 {
+        display: none;
     }
 
     .docs-nav-link span {

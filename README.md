@@ -25,6 +25,8 @@
   &middot;
   <a href="#quick-start">Quick start</a>
   &middot;
+  <a href="./docs/README.md">Documentation</a>
+  &middot;
   <a href="#core-concepts">Core concepts</a>
   &middot;
   <a href="./ROADMAP.md">Roadmap</a>
@@ -461,6 +463,15 @@ calendar props, registered defaults, and `viewProps`. TypeScript infers the
 allowed custom view names and `viewProps` from the supplied registry.
 
 ## Public API
+
+The complete consumer documentation is organized as GitHub-native Markdown and
+rendered from the same files on the project site:
+
+- [Getting started](./docs/getting-started.md)
+- [Complete API reference](./docs/api.md)
+- [Styling and theming](./docs/styling.md)
+- [Runnable examples](./docs/examples.md)
+- [Accessibility](./docs/accessibility.md)
 
 ChronoLaneJS exports `Calendar` as the default, together with:
 
