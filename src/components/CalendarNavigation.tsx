@@ -5,7 +5,7 @@ import type { CalendarNavigationButtonProps } from "../types.js";
 /**
  * Renders the default previous or next navigation control.
  *
- * Consumers can replace this renderer through the `navigationButton` prop.
+ * Consumers can replace this renderer through `components.navigation`.
  */
 export const DefaultNavigationButton = ({
     type,
@@ -13,7 +13,16 @@ export const DefaultNavigationButton = ({
     ...props
 }: CalendarNavigationButtonProps) => (
     <button type="button" {...props}>
-        {children ?? (type === "prev" ? "<" : ">")}
+        {children ?? (
+            <svg
+                className="calendar-view_navigation-icon"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+                focusable="false"
+            >
+                <path d={type === "prev" ? "m12.5 5-5 5 5 5" : "m7.5 5 5 5-5 5"} />
+            </svg>
+        )}
     </button>
 );
 
@@ -25,7 +34,7 @@ interface CalendarNavigationProps {
     nextDisabled?: boolean;
     previousLabel: string;
     nextLabel: string;
-    navigationButton?: ComponentType<CalendarNavigationButtonProps>;
+    navigation?: ComponentType<CalendarNavigationButtonProps>;
     className?: string;
 }
 
@@ -43,7 +52,7 @@ export default function CalendarNavigation({
     nextDisabled = false,
     previousLabel,
     nextLabel,
-    navigationButton: NavigationButton = DefaultNavigationButton,
+    navigation: NavigationButton = DefaultNavigationButton,
     className = ""
 }: CalendarNavigationProps) {
     return (
@@ -51,16 +60,20 @@ export default function CalendarNavigation({
             <NavigationButton
                 type="prev"
                 aria-label={previousLabel}
+                aria-hidden={previousDisabled || undefined}
                 className="calendar-view_navigation-button"
-                onClick={onPrevious}
+                disabled={previousDisabled}
+                onClick={previousDisabled ? undefined : onPrevious}
                 style={{ visibility: previousDisabled ? "hidden" : "visible" }}
             />
             <h2 className="calendar-view_navigation-text">{header}</h2>
             <NavigationButton
                 type="next"
                 aria-label={nextLabel}
+                aria-hidden={nextDisabled || undefined}
                 className="calendar-view_navigation-button"
-                onClick={onNext}
+                disabled={nextDisabled}
+                onClick={nextDisabled ? undefined : onNext}
                 style={{ visibility: nextDisabled ? "hidden" : "visible" }}
             />
         </div>

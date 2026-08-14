@@ -1,20 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { startOfDay } from "date-fns/startOfDay";
-import {
-    getCalendarRangeBounds,
-    moveCalendarDate,
-    resolveCalendarRange
-} from "../../core/range.js";
+import { resolveCalendarRange } from "../../core/range.js";
 import CalendarNavigation from "../../components/CalendarNavigation.js";
 import { createEventInteractionProps } from "../../components/eventInteraction.js";
-import { asCalendarDate } from "../../core/date.js";
 import {
     eventOverlapsDay,
     normalizeEvents,
     sortEvents
 } from "../../core/events.js";
+import {
+    getCalendarNavigationState,
+    normalizeCalendarNavigationBoundaries,
+    resolveCalendarNavigationDate
+} from "../../core/navigation.js";
 import {
     DEFAULT_CALENDAR_LOCALE,
     readCalendarLocale,
@@ -32,6 +31,7 @@ import Event from "./Event.js";
 import type { AgendaViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
+const EMPTY_COMPONENTS = Object.freeze({});
 
 /**
  * Renders events grouped by their first visible day within a configurable range.
@@ -42,12 +42,12 @@ const EMPTY_EVENTS: never[] = [];
  * editing callbacks, locale-aware formatting, and replaceable renderers.
  */
 export default function AgendaView<Event extends CalendarEvent = CalendarEvent>({
+    className,
+    style,
     events = EMPTY_EVENTS,
     date,
     defaultDate,
     range = 30,
-    navigationStep,
-    navigateDate,
     weekStart: weekStartProp,
     minDate,
     maxDate,
@@ -63,11 +63,14 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     onRangeChange,
     onEventSelect,
     onEventEdit,
-    eventComponent: EventComponent = Event,
-    dayHeaderComponent: DayHeaderComponent = DayHeader,
-    emptyComponent: EmptyComponent = EmptyState,
-    navigationButton
+    components = EMPTY_COMPONENTS
 }: AgendaViewProps<Event>) {
+    const {
+        event: EventComponent = Event,
+        dayHeader: DayHeaderComponent = DayHeader,
+        empty: EmptyComponent = EmptyState,
+        navigation: NavigationComponent
+    } = components;
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
     const { anchorDate, setDate } = useCalendarViewDate({
@@ -76,11 +79,11 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
         timeZone,
         onDateChange
     });
-    const days = useMemo(() => resolveCalendarRange(range, anchorDate, {
+    const resolvedRange = useMemo(() => resolveCalendarRange(range, anchorDate, {
         weekStartsOn: weekStart,
         defaultRange: 30
     }), [anchorDate, range, weekStart]);
-    const { start: rangeStart, end: rangeEnd } = getCalendarRangeBounds(days);
+    const { days, start: rangeStart, end: rangeEnd } = resolvedRange;
     const calendarEvents = useMemo(
         () => normalizeEvents(events, timeZone),
         [events, timeZone]
@@ -95,37 +98,35 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
         )))
     })).filter((group) => group.events.length > 0), [calendarEvents, days]);
 
-    const effectiveNavigationStep = navigationStep
-        ?? (range && typeof range === "object" && !Array.isArray(range)
-            ? range.navigationStep
-            : null)
-        ?? Math.max(1, Math.round(
-            (rangeEnd.getTime() - rangeStart.getTime()) / 86_400_000
-        ) + 1);
-    const minBoundary = minDate == null
-        ? null
-        : startOfDay(asCalendarDate(minDate, timeZone));
-    const maxBoundary = maxDate == null
-        ? null
-        : startOfDay(asCalendarDate(maxDate, timeZone));
+    const navigationBoundaries = useMemo(
+        () => normalizeCalendarNavigationBoundaries(minDate, maxDate, timeZone),
+        [maxDate, minDate, timeZone]
+    );
+    const navigationState = getCalendarNavigationState({
+        anchorDate,
+        periodStart: rangeStart,
+        periodEnd: rangeEnd,
+        ...navigationBoundaries
+    });
     const calendarRange = { start: rangeStart, end: rangeEnd, days };
     const formatContext = { locale: calendarLocale, view: viewName };
     const navigationContext = { view: viewName, range: calendarRange };
     const header = formatters.rangeHeader(calendarRange, formatContext);
 
     const navigate = useCallback((direction: -1 | 1) => {
-        const nextDate = navigateDate
-            ? navigateDate(anchorDate, direction, { days, start: rangeStart, end: rangeEnd })
-            : moveCalendarDate(anchorDate, direction, effectiveNavigationStep);
-        setDate(nextDate);
+        const nextDate = resolvedRange.navigate(direction);
+        setDate(resolveCalendarNavigationDate(
+            anchorDate,
+            nextDate,
+            navigationBoundaries,
+            timeZone
+        ));
     }, [
         anchorDate,
-        days,
-        effectiveNavigationStep,
-        navigateDate,
-        rangeEnd,
-        rangeStart,
-        setDate
+        navigationBoundaries,
+        resolvedRange,
+        setDate,
+        timeZone
     ]);
 
     useEffect(() => {
@@ -133,20 +134,24 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     }, [days, onRangeChange, rangeEnd, rangeStart]);
 
     return (
-        <div className="agenda-view" data-time-zone={timeZone}>
+        <div
+            className={`agenda-view ${className ?? ""}`.trim()}
+            data-time-zone={timeZone}
+            style={style}
+        >
             {showControls && (
                 <CalendarNavigation
                     header={header}
                     onPrevious={() => navigate(-1)}
                     onNext={() => navigate(1)}
-                    previousDisabled={Boolean(minBoundary && rangeStart <= minBoundary)}
-                    nextDisabled={Boolean(maxBoundary && rangeEnd >= maxBoundary)}
+                    previousDisabled={navigationState.previousDisabled}
+                    nextDisabled={navigationState.nextDisabled}
                     previousLabel={messages.previous(navigationContext)}
                     nextLabel={messages.next(navigationContext)}
-                    navigationButton={navigationButton}
+                    navigation={NavigationComponent}
                 />
             )}
-            <div className="agenda-view_list">
+            <div className="agenda-view_list calendar-scroll-region">
                 {groups.length === 0 && (
                     <EmptyComponent message={messages.agendaEmpty(navigationContext)} />
                 )}
@@ -170,27 +175,34 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                                 const startTime = formatters.time(event.start, formatContext);
                                 const endDate = formatters.date(event.end, formatContext);
                                 const endTime = formatters.time(event.end, formatContext);
+                                const interactive = interactionProps.onClick != null
+                                    || interactionProps.onDoubleClick != null;
                                 return (
                                     <EventComponent
                                         key={`${event.id ?? event.title}-${event.start.getTime()}`}
-                                        className="agenda-view_event"
                                         event={event}
                                         timeLabel={messages.timeRange({
                                             view: viewName,
                                             startTime,
                                             endTime
                                         })}
-                                        aria-label={messages.eventLabel({
-                                            view: viewName,
-                                            title: event.title,
-                                            description: event.description,
-                                            startDate,
-                                            startTime,
-                                            endDate,
-                                            endTime
-                                        })}
                                         selected={event.id != null && selectedEventIds.includes(event.id)}
-                                        {...interactionProps}
+                                        elementProps={{
+                                            className: "agenda-view_event",
+                                            ...interactionProps,
+                                            "aria-label": interactive
+                                                ? messages.eventLabel({
+                                                    view: viewName,
+                                                    title: event.title,
+                                                    description: event.description,
+                                                    startDate,
+                                                    startTime,
+                                                    endDate,
+                                                    endTime
+                                                })
+                                                : undefined,
+                                            style: { "--color": event.color }
+                                        }}
                                     />
                                 );
                             })}

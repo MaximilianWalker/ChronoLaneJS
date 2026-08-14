@@ -49,8 +49,10 @@
   ],
   "scripts": {
     "build": "vite build && tsc -p tsconfig.build.json",
-    "check": "npm run locales:check && npm run release:verify && npm run test && npm run test:timezones && npm run types:check && npm run lint && npm run build && npm run package:verify",
+    "check": "npm run locales:check && npm run docs:check && npm run release:verify && npm run test && npm run test:timezones && npm run types:check && npm run types:test && npm run lint && npm run build && npm run package:verify",
     "dev": "vite build --watch",
+    "docs:check": "tsx scripts/verifyDocumentation.ts",
+    "examples:check": "npm run build && npm ci --prefix examples/vite && npm run build --prefix examples/vite && npm ci --prefix examples/next && npm run build --prefix examples/next",
     "lint": "eslint .",
     "locales:check": "tsx scripts/generateLocaleLoaders.ts --check",
     "locales:generate": "tsx scripts/generateLocaleLoaders.ts",
@@ -60,6 +62,7 @@
     "test": "node --import tsx --no-warnings --test \"test/**/*.test.ts\"",
     "test:timezones": "tsx scripts/verifyTimezones.ts",
     "types:check": "tsc -p tsconfig.json",
+    "types:test": "tsc -p tsconfig.types-test.json",
     "types:check:storybook": "tsc -p tsconfig.storybook.json",
     "storybook": "storybook dev --port 6006",
     "storybook:build": "storybook build --output-dir storybook-static",
@@ -113,6 +116,6 @@
     "vitest": "^4.1.10"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": "^22.14.0 || ^24.10.0 || ^26.0.0"
   }
 }

@@ -28,11 +28,18 @@ export {
 export { default as AgendaView } from "./views/agenda/AgendaView.js";
 export { default as MonthView } from "./views/month/MonthView.js";
 export { default as DayView } from "./views/time-grid/presets/DayView.js";
-export { default as ResourceView } from "./views/time-grid/presets/ResourceView.js";
 export { default as WeekView } from "./views/time-grid/presets/WeekView.js";
 export { default as TimeGridView } from "./views/time-grid/TimeGridView.js";
-export type { CalendarProps } from "./Calendar.js";
 export type {
+    CalendarBuiltInView,
+    CalendarProps,
+    CalendarViewProps,
+    CalendarViewRegistration,
+    CalendarViewRegistry
+} from "./Calendar.js";
+export type {
+    CalendarComponents,
+    CalendarCSSVariables,
     CalendarDateInput,
     CalendarEvent,
     CalendarEventId,
@@ -46,26 +53,34 @@ export type {
     CalendarNavigationButton,
     CalendarNavigationButtonProps,
     CalendarNavigationMessageContext,
+    CalendarPixelSize,
     CalendarRange,
     CalendarRangeContext,
     CalendarRangeDefinition,
+    CalendarRangeNavigation,
     CalendarRangeOptions,
+    CalendarRendererElementProps,
+    CalendarResourceConfig,
     CalendarResourceId,
+    CalendarSelectionRange,
     CalendarStyle,
     CalendarSlotMessageContext,
     CalendarTimeRangeMessageContext,
     CalendarViewDefinition,
     CalendarWeekStart,
     NormalizedCalendarEvent,
+    ResolvedCalendarRange,
     SharedViewProps
 } from "./types.js";
 export type {
+    AgendaComponents,
     AgendaDayHeaderProps,
     AgendaEmptyProps,
     AgendaEventProps,
     AgendaViewProps
 } from "./views/agenda/types.js";
 export type {
+    MonthComponents,
     MonthDayHeaderProps,
     MonthEventProps,
     MonthViewProps
@@ -73,14 +88,18 @@ export type {
 export type {
     TimeGridBackgroundEventProps,
     TimeGridColumn,
-    TimeGridColumnHeaderProps,
+    TimeGridComponents,
+    TimeGridDayHeaderProps,
     TimeGridEventDrop,
     TimeGridEventDropPosition,
     TimeGridEventLayout,
     TimeGridEventProps,
     TimeGridEventSegment,
+    TimeGridGroupBy,
+    TimeGridResourceHeaderProps,
     TimeGridSlot,
     TimeGridSlotProps,
+    TimeGridSlotSizing,
     TimeGridViewProps,
     TimeOfDay
 } from "./views/time-grid/types.js";

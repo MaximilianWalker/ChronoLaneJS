@@ -110,6 +110,17 @@ select {
     background: rgba(37, 99, 235, 0.08);
 }
 
+.story-custom-time-grid-frame .time-grid-view_grid-wrapper {
+    border-width: 4px;
+}
+
+.story-time-grid-size-override {
+    width: 700px;
+    max-width: none;
+    height: 300px;
+    max-height: none;
+}
+
 .story-header {
     display: grid;
     gap: 2px;

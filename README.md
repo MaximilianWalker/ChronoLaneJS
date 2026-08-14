@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  Day, week, month, agenda, resource, and custom time-grid views<br />
+  Day, week, month, agenda, and custom time-grid views with resource columns<br />
   with flexible rendering and controlled or uncontrolled state.
 </p>
 
@@ -25,6 +25,8 @@
   &middot;
   <a href="#quick-start">Quick start</a>
   &middot;
+  <a href="./docs/README.md">Documentation</a>
+  &middot;
   <a href="#core-concepts">Core concepts</a>
   &middot;
   <a href="./ROADMAP.md">Roadmap</a>
@@ -35,7 +37,7 @@
 ---
 
 ChronoLaneJS is a customizable React calendar with day, week, month, agenda,
-resource, and custom time-grid views. It provides timezone-aware date handling,
+and custom time-grid views. It provides timezone-aware date handling,
 range navigation, event layout, interactions, and accessible defaults while
 keeping state management and persistence outside the component.
 
@@ -47,7 +49,7 @@ keeping state management and persistence outside the component.
 
 ## Why ChronoLaneJS?
 
-- **Views that share one model:** day, week, month, agenda, resource, and
+- **Views that share one model:** day, week, month, agenda, and
   arbitrary time-grid ranges use the same event and navigation contracts.
 - **Correct across time:** IANA timezones, daylight-saving transitions, lazy
   date-fns locales, and explicit week-start behavior are built in.
@@ -63,7 +65,7 @@ keeping state management and persistence outside the component.
 ## Interactive documentation
 
 The [project website](https://maximilianwalker.github.io/ChronoLaneJS/) includes
-a compact playground with every built-in view. The exhaustive
+a compact playground with every built-in view and resource-column mode. The exhaustive
 [Storybook](https://maximilianwalker.github.io/ChronoLaneJS/storybook/) covers
 every public customization point, including:
 
@@ -141,11 +143,21 @@ Next.js client component without a framework-specific wrapper.
 | `week` | Seven-day time-grid preset |
 | `month` | Month grid with optional outside days |
 | `agenda` | Event groups across a configurable date range |
-| `resource` | One-day time grid with resource columns |
 | `time-grid` | Generic, configurable time-grid renderer |
 
-`day`, `week`, and `resource` are presets over `TimeGridView`; they share its
-layout and interaction behavior rather than maintaining separate engines.
+`day` and `week` are presets over `TimeGridView`; they share its layout and
+interaction behavior rather than maintaining separate engines. Resource
+columns are available on both presets and on every custom time-grid range.
+
+The root `Calendar` props are a discriminated TypeScript union keyed by
+`view`. Shared calendar behavior stays at the root, while configuration owned
+by the selected view lives under `viewProps`. Omitting `view` selects the
+`week` contract. Misspelled props, view configuration placed at the root, and
+combinations such as time-grid scale options on a month view fail compilation.
+Direct view components accept their own configuration as direct props.
+Use `satisfies CalendarViewProps<"month">` (with the appropriate view name)
+when defining reusable `viewProps` objects so TypeScript checks the object at
+its declaration site.
 
 ### Ranges
 
@@ -154,7 +166,8 @@ Time-grid and agenda ranges accept:
 - `"day"` or `"week"`;
 - a positive number of consecutive days;
 - an array of visible dates;
-- `{ start, end }` or `{ start, days }`;
+- `{ start, end }` or `{ start, dayCount }`;
+- `{ dates, navigation }` for non-contiguous days with explicit movement;
 - a callback returning any supported definition.
 
 ```tsx
@@ -162,17 +175,22 @@ import { startOfWeek } from "date-fns";
 
 <Calendar
     view="time-grid"
-    range={{
-        start: (anchor) => startOfWeek(anchor, { weekStartsOn: 1 }),
-        days: 7,
-        includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
-        navigationStep: 7
+    viewProps={{
+        range: {
+            start: (anchor) => startOfWeek(anchor, { weekStartsOn: 1 }),
+            dayCount: 7,
+            includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
+            navigation: { stepDays: 7 }
+        }
     }}
 />
 ```
 
 Non-contiguous ranges are supported, so business calendars do not need a
-dedicated work-week view.
+dedicated work-week view. The range owns previous/next behavior through
+`navigation: { stepDays }` or a custom `navigation.resolveAnchor` callback.
+Use anchor-aware `dates` for a recurring non-contiguous pattern; a literal
+`Date[]` represents a fixed set of days.
 
 ### Time-grid scale
 
@@ -182,10 +200,12 @@ label cadence:
 ```tsx
 <Calendar
     view="week"
-    minTime="08:00"
-    maxTime="18:00"
-    slotDuration={30}
-    labelInterval={60}
+    viewProps={{
+        minTime: "08:00",
+        maxTime: "18:00",
+        slotDuration: 30,
+        labelInterval: 60
+    }}
 />
 ```
 
@@ -194,6 +214,38 @@ zero-padded `HH:mm` values; `maxTime` also accepts `24:00`. `slotDuration`
 controls selectable granularity, while `labelInterval` controls time labels
 and major dividers. Invalid or reversed configurations throw rather than being
 silently adjusted.
+
+### Slot sizing
+
+Time-grid slot dimensions use one flat typed contract. `width` and `height`
+fix their slot axis, while `minWidth` and `minHeight` distribute available
+space until the minimum would be crossed and then enable scrolling:
+
+```tsx
+<Calendar
+    view="day"
+    viewProps={{
+        slotSizing: {
+            minWidth: 120,
+            height: 48
+        }
+    }}
+/>
+```
+
+`width` and `minWidth` are mutually exclusive, as are `height` and
+`minHeight`. Omitting both width properties gives fluid columns with no
+minimum. Omitting both height properties retains the fixed `50px` default;
+use `minHeight: 0` for fully fluid rows. Fixed dimensions must be positive
+finite CSS pixel sizes. Minimum dimensions may also be zero. Invalid or
+conflicting values throw `RangeError` during rendering. Fixed dimensions
+shrink-wrap the time grid on that axis until its parent constrains it. Fluid
+height requires a parent with a definite height so there is vertical space to
+distribute.
+
+Time-grid headers use the same column tracks as their slots. A grouped day or
+resource header spans its underlying tracks and never establishes an
+independent width, so custom header content cannot drift out of alignment.
 
 ### Locales and timezones
 
@@ -205,7 +257,7 @@ is the synchronous default; other named locales are loaded lazily and cached.
 ```
 
 Call `preloadCalendarLocale(name)` when a locale should be available before
-render. An explicit `weekStart` overrides the locale convention.
+render. A view-specific `weekStart` overrides the locale convention.
 
 Locales format dates and supply calendar conventions. Application labels such
 as navigation and empty-state text remain caller-controlled through
@@ -216,18 +268,55 @@ as navigation and empty-state text remain caller-controlled through
 Resources are arbitrary values rather than a room-specific abstraction:
 
 ```tsx
+import type { CalendarResourceConfig } from "@chronolanejs/react";
+
+const calendarResources: CalendarResourceConfig<ScheduleEvent, Person> = {
+    items: people,
+    getId: (person) => person.uuid,
+    getTitle: (person) => person.displayName,
+    getEventIds: (event) => event.assigneeUuids
+};
+
 <Calendar
-    view="resource"
-    resources={people}
+    view="day"
     events={events}
-    getResourceId={(person) => person.uuid}
-    getResourceTitle={(person) => person.displayName}
-    getEventResourceIds={(event) => event.assigneeUuids}
+    viewProps={{ resources: calendarResources }}
 />
 ```
 
-The defaults read `resource.id` and `event.resourceId`, `event.resourceIds`, or
-`event.resource.id`.
+The `resources` object keeps its items and accessors under one inferred generic
+contract. The defaults read `resource.id`, select a title from
+`resource.title`, `resource.name`, or `resource.id`, and read assignments from
+`event.resourceIds`, `event.resourceId`, or `event.resource.id`.
+
+Resource IDs are `CalendarResourceId` values: non-empty strings or finite
+numbers. Equality uses JavaScript `Map`/`Set` SameValueZero semantics: `1` and
+`"1"` identify different resources, while `0` and `-0` identify the same one.
+Missing or duplicate item IDs throw before layout is rendered.
+Event assignments use set behavior: repeated IDs produce one segment per
+matching column, while IDs absent from `items` do not produce a segment.
+
+Omitting `resources`, or supplying an empty `items` array, creates one
+ungrouped column per visible day and does not render a resource-header row.
+When resource columns are configured, `groupBy="day"` (the default) renders
+each day above its resources. Set `groupBy="resource"` to render each resource
+above its visible days:
+
+```tsx
+<Calendar
+    view="week"
+    events={events}
+    viewProps={{
+        resources: calendarResources,
+        groupBy: "resource"
+    }}
+/>
+```
+
+Both orders use the same day-resource columns and event assignments; only the
+outer grouping and physical column order change. The concrete item remains
+available as `column.resource`, `slot.resource`, `segment.resource`, and in
+both event-drop positions. Stable IDs are available alongside those values.
 
 ## Customization
 
@@ -235,30 +324,108 @@ The defaults read `resource.id` and `event.resourceId`, `event.resourceIds`, or
 
 Views expose intentional renderer boundaries where applicable:
 
-- `navigationButton`
-- `eventComponent`
-- `slotComponent`
-- `backgroundEventComponent`
-- `columnHeaderComponent`
-- `dayHeaderComponent`
-- `emptyComponent`
+| View | `components` keys |
+| --- | --- |
+| Agenda | `event`, `dayHeader`, `empty`, `navigation` |
+| Month | `event`, `dayHeader`, `navigation` |
+| Time grid and presets | `event`, `slot`, `backgroundEvent`, `dayHeader`, `resourceHeader`, `navigation` |
 
-Custom renderers receive normalized calendar values plus the semantic and
-interaction props required by their view. ChronoLaneJS continues to own layout
-and behavior; the renderer owns markup and presentation.
+```tsx
+<Calendar
+    view="week"
+    events={events}
+    viewProps={{
+        components: {
+            event: ScheduleEvent,
+            slot: ScheduleSlot,
+            navigation: ScheduleNavigation
+        }
+    }}
+/>
+```
+
+Time-grid event renderers receive `{ event, segment, selected, elementProps }`,
+slot renderers receive `{ slot, selected, elementProps }`, and day/resource
+header renderers receive their concrete value, indexes, covered columns, and
+prepared title. Positional values remain available without duplication on the
+segment, slot, or covered columns. Agenda and month event renderers receive the
+normalized `event`, their prepared visible values, `selected`, and
+`elementProps`.
+
+Spread `elementProps` onto the renderer's root element to retain layout,
+accessibility, drag, selection, and editing behavior. ChronoLaneJS owns those
+behaviors while the renderer owns markup and presentation.
 
 ### Styling
 
-The bundled CSS is application-independent. Use `className`, `style`, event
-colors and styles, renderer overrides, or the documented custom-property
-extension points:
+The bundled CSS provides the same neutral, product-ready presentation used by
+the Storybook examples and website playground. Time grids include bordered
+surfaces, aligned header dividers, centered time labels, and compact event
+cards without requiring application CSS.
+
+Use `className`, `style`, event colors and styles, renderer overrides, or the
+documented custom-property extension points to adapt that default:
 
 ```css
 .team-schedule {
     --month-view-day-min-width: 9rem;
-    --time-grid-day-min-width: 10rem;
 }
 ```
+
+`CalendarStyle` provides autocomplete for the supported calendar tokens while
+remaining compatible with regular React styles and application-defined CSS
+variables. The same typed `className` and `style` props are available on
+`Calendar`, `AgendaView`, `MonthView`, `DayView`, `WeekView`, and
+`TimeGridView`:
+
+```tsx
+<Calendar
+    view="week"
+    style={{
+        "--calendar-time-grid-header-row-height": "40px",
+        "--calendar-time-grid-time-axis-width": "72px",
+        "--calendar-time-grid-line-width": "0px",
+        "--calendar-time-grid-frame-width": "1px"
+    }}
+/>
+```
+
+Header height applies to each header row. Resource grouping therefore adds a
+second full-height row. The time-axis token sizes both the label column and its
+empty header corner. Set the line width to `0px` to remove header and slot grid
+lines consistently. Layout-sensitive time-grid tokens accept deterministic
+non-negative pixel lengths. TypeScript cannot exclude negative numeric
+template strings, which browsers treat as invalid for these sizes. The
+frame-width token controls both the visible outer border
+and the time grid's intrinsic border-box geometry, so custom frames cannot
+desynchronize the fixed slot tracks.
+
+Scrollable calendar surfaces retain native browser behavior while using a
+compact inset thumb by default. Override the shared scrollbar tokens on the
+`Calendar` root or any ancestor:
+
+```tsx
+<Calendar
+    className="team-schedule"
+    style={{
+        "--calendar-scrollbar-size": "14px",
+        "--calendar-scrollbar-width": "auto",
+        "--calendar-scrollbar-inset": "4px",
+        "--calendar-scrollbar-thumb": "#64748b",
+        "--calendar-scrollbar-thumb-hover": "#475569",
+        "--calendar-scrollbar-track": "transparent",
+        "--calendar-scrollbar-radius": "999px"
+    }}
+/>
+```
+
+The `calendar-scroll-region` class is the stable advanced extension point for
+projects that need to replace the browser-specific scrollbar rules entirely.
+The CSS variables inherit into time-grid, month, and agenda scroll regions, so
+one root override keeps every built-in view consistent. The
+`--calendar-scrollbar-width` token controls the standards-based scrollbar;
+Chromium and Safari use `--calendar-scrollbar-size` so their inset thumb and
+hidden end buttons can be enforced through the WebKit scrollbar API.
 
 ### Interactions
 
@@ -266,53 +433,89 @@ Selection and editing callbacks receive the normalized source event, never a
 clipped time-grid segment. Event renderers receive that source as `event` and
 the visible positioned portion as `segment`.
 
-Providing `onEventEdit` enables editing, and providing `onEventDrop` enables
-dragging. Use `canEditEvent(event)` or `canDragEvent(event, segment)` to
-restrict individual events or visible resource segments.
+Providing the shared `onEventEdit` callback enables editing. Supplying
+`viewProps.onEventDrop` enables time-grid dragging. Use the shared
+`canEditEvent(event)` or view-specific `canDragEvent(event, segment)` predicates
+to restrict individual events or visible resource segments.
 
 `onEventDrop` receives the source event, proposed `start` and `end`, and
 explicit `source` and `destination` positions. Dropping a clipped multi-day
-event preserves the source event's complete duration.
+event preserves the source event's complete duration. Each position includes
+both the concrete `resource` value and its stable `resourceId`.
 
 ### Custom views
 
 Extend or replace the view registry through `views`:
 
 ```tsx
+const views = {
+    quarter: {
+        component: QuarterView,
+        defaultProps: { months: 3 }
+    }
+};
+
 <Calendar
     view="quarter"
-    views={{
-        quarter: {
-            component: QuarterView,
-            defaultProps: { months: 3 }
-        }
-    }}
+    views={views}
     viewProps={{ compact: true }}
 />
 ```
 
 A custom view receives events, background events, the active view name, shared
-calendar props, registered defaults, and `viewProps`.
+calendar props, registered defaults, and `viewProps`. TypeScript infers the
+allowed custom view names and `viewProps` from the supplied registry.
 
 ## Public API
 
+The complete consumer documentation is organized as GitHub-native Markdown and
+rendered from the same files on the project site:
+
+- [Getting started](./docs/getting-started.md)
+- [Complete API reference](./docs/api.md)
+- [Styling and theming](./docs/styling.md)
+- [Runnable examples](./docs/examples.md)
+- [Accessibility](./docs/accessibility.md)
+
 ChronoLaneJS exports `Calendar` as the default, together with:
 
-- `AgendaView`, `DayView`, `MonthView`, `ResourceView`, `TimeGridView`, and
-  `WeekView`;
+- `AgendaView`, `DayView`, `MonthView`, `TimeGridView`, and `WeekView`;
 - `defaultCalendarViews`;
 - date parsing and timezone helpers;
 - range construction and navigation helpers;
 - locale discovery, loading, and preloading helpers;
-- public prop, event, range, renderer, resource, and layout types.
+- public prop, event, range, renderer, resource, registry, and layout types.
 
 Time-grid layout internals and default renderer implementations remain private
 so they can evolve without expanding the compatibility surface. Public
 functions and components include TSDoc in their generated declarations.
 
+## Runtime support
+
+ChronoLaneJS supports these runtime combinations:
+
+| Runtime | Supported versions |
+| --- | --- |
+| Node.js | `>=22.14.0 <23`, `>=24.10.0 <25`, or `>=26.0.0 <27` |
+| React and React DOM | matching `>=18.2.0 <20` releases |
+| Chrome and Edge | 111 or newer |
+| Firefox | 114 or newer |
+| Safari and iOS Safari | 16.4 or newer |
+
+Node support follows upstream-maintained release lines. Future Node majors are
+not supported until they are added to the compatibility matrix. CI tests the
+minimum supported React release on every supported Node major and also tests
+the repository's current React release during full validation.
+
+The browser targets match the package's explicit Baseline Widely Available
+build target. Supported browsers require native ES modules, `Intl.Locale`, and
+`Intl.DateTimeFormat` with IANA timezone data. They need no polyfills.
+ChronoLaneJS does not ship polyfills; older browsers and runtimes with
+incomplete internationalization data are unsupported.
+
 ## Development
 
-Requires Node.js 20.19 or newer.
+Requires a supported Node.js version from the matrix above.
 
 ```bash
 npm ci
@@ -328,7 +531,7 @@ Useful focused commands:
 | `npm run site` | Run the project website and compact playground |
 | `npm run site:build` | Build the GitHub Pages website |
 | `npm run storybook` | Run the exhaustive component catalog |
-| `npm run storybook:test` | Execute every story in Chromium |
+| `npm run storybook:test` | Execute every story in Chromium and Firefox |
 | `npm run storybook:build` | Build the deployable static catalog |
 | `npm run locales:generate` | Regenerate date-fns locale loaders |
 | `npm run locales:check` | Verify the generated locale registry |

@@ -1,4 +1,7 @@
-import type { CalendarEvent } from "../src/index.js";
+import type {
+    CalendarEvent,
+    CalendarResourceConfig
+} from "../src/index.js";
 
 export interface StoryResource {
     id: string;
@@ -21,6 +24,10 @@ export const resources: StoryResource[] = [
     { id: "workshop", name: "Workshop", group: "Engineering" },
     { id: "terrace", name: "Terrace", group: "Community" }
 ];
+
+export const resourceConfig: CalendarResourceConfig<StoryEvent, StoryResource> = {
+    items: resources
+};
 
 export const basicEvents: StoryEvent[] = [
     {
@@ -182,6 +189,38 @@ export const resourceEvents: StoryEvent[] = [
         end: "2026-09-14T14:30:00",
         color: "#059669",
         resource: { id: "terrace" }
+    },
+    {
+        id: "workshop-lab",
+        title: "Prototype lab",
+        start: "2026-09-15T10:00:00",
+        end: "2026-09-15T12:00:00",
+        color: "#0891b2",
+        resourceId: "workshop"
+    },
+    {
+        id: "terrace-session",
+        title: "Community session",
+        start: "2026-09-16T14:00:00",
+        end: "2026-09-16T15:30:00",
+        color: "#ea580c",
+        resourceId: "terrace"
+    },
+    {
+        id: "cross-team-review",
+        title: "Cross-team review",
+        start: "2026-09-17T09:30:00",
+        end: "2026-09-17T10:30:00",
+        color: "#db2777",
+        resourceIds: ["studio", "terrace"]
+    },
+    {
+        id: "studio-edit",
+        title: "Editing session",
+        start: "2026-09-18T13:00:00",
+        end: "2026-09-18T15:00:00",
+        color: "#4f46e5",
+        resourceId: "studio"
     }
 ];
 

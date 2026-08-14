@@ -164,6 +164,7 @@ export const createTimeScale = <Resource>({
             dayIndex: column.dayIndex,
             columnIndex,
             resource: column.resource,
+            resourceId: column.resourceId,
             isDividerBoundary: slotEndMinute !== endMinute
                 && (slotEndMinute - startMinute) % labelInterval === 0
         }));

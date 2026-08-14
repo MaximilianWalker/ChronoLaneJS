@@ -3,11 +3,11 @@
     align-items: center;
     box-sizing: border-box;
     width: 100%;
-    max-width: 540px;
+    max-width: 570px;
     margin-right: auto;
     margin-left: auto;
     gap: 20px;
-    padding: 10px;
+    padding: 0 0 18px;
 }
 
 .calendar-view_navigation-text {
@@ -15,36 +15,80 @@
     min-width: 0;
     height: max-content;
     margin: 0;
+    color: #1d2939;
+    font-size: 1rem;
+    font-weight: 680;
+    letter-spacing: -0.025em;
     text-align: center;
 }
 
 .calendar-view_navigation-button {
-    flex: 0 0 50px;
-    width: 50px;
-    border: none;
-    border-radius: 4px;
-    font-size: 20px;
+    display: grid;
+    flex: 0 0 40px;
+    box-sizing: border-box;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #d6deea;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+    color: #475569;
     cursor: pointer;
+    transition:
+        border-color 140ms ease,
+        background-color 140ms ease,
+        box-shadow 140ms ease,
+        color 140ms ease,
+        transform 140ms ease;
+}
+
+.calendar-view_navigation-button:hover {
+    border-color: #aebed2;
+    background: #fff;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.06);
+    color: #2563eb;
+    transform: translateY(-1px);
+}
+
+.calendar-view_navigation-button:active {
+    border-color: #bfcbda;
+    background: #f1f5f9;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    transform: translateY(0);
 }
 
 .calendar-view_navigation-button:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: -2px;
+    outline: 3px solid rgba(37, 99, 235, 0.22);
+    outline-offset: 2px;
+}
+
+.calendar-view_navigation-icon {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
 }
 
 @media (max-width: 768px) {
     .calendar-view_navigation {
         gap: 8px;
-        padding: 8px 0;
-    }
-
-    .calendar-view_navigation-text {
-        font-size: 1rem;
+        padding-bottom: 14px;
     }
 
     .calendar-view_navigation-button {
-        flex-basis: 40px;
-        width: 40px;
-        height: 40px;
+        flex-basis: 38px;
+        width: 38px;
+        height: 38px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .calendar-view_navigation-button {
+        transition: none;
     }
 }

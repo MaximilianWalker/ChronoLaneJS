@@ -29,8 +29,8 @@ export default function App() {
                             <span> built for React.</span>
                         </h1>
                         <p className="hero-summary">
-                            Build day, week, month, agenda, resource, and custom
-                            time-grid views with timezone-aware behavior.
+                            Build day, week, month, agenda, and custom time-grid
+                            views with resource columns and timezone-aware behavior.
                         </p>
                         <div className="hero-actions">
                             <a className="button button--primary" href="#playground">
@@ -100,7 +100,7 @@ export default function App() {
                 </section>
 
                 <section className="proof-strip" aria-label="Library highlights">
-                    <div><strong>6</strong><span>Built-in views</span></div>
+                    <div><strong>5</strong><span>Built-in views</span></div>
                     <div><strong>IANA</strong><span>Timezone aware</span></div>
                     <div><strong>18—19</strong><span>React support</span></div>
                     <div><strong>0</strong><span>State assumptions</span></div>

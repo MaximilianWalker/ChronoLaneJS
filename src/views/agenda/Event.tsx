@@ -1,6 +1,6 @@
 import type { ElementType } from "react";
 
-import type { CalendarEvent, CalendarStyle } from "../../types.js";
+import type { CalendarEvent } from "../../types.js";
 import type { AgendaEventProps } from "./types.js";
 
 /**
@@ -11,30 +11,19 @@ import type { AgendaEventProps } from "./types.js";
  */
 export default function Event<EventType extends CalendarEvent = CalendarEvent>({
     event,
-    className,
     timeLabel,
-    onClick,
-    onDoubleClick,
-    onKeyDown,
-    "aria-label": ariaLabel,
-    "aria-keyshortcuts": ariaKeyShortcuts,
-    selected
+    selected,
+    elementProps
 }: AgendaEventProps<EventType>) {
-    const isInteractive = Boolean(onClick || onDoubleClick);
+    const isInteractive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
     const Component: ElementType = isInteractive ? "button" : "div";
-    const style: CalendarStyle = { "--color": event.color };
 
     return (
         <Component
+            {...elementProps}
             type={isInteractive ? "button" : undefined}
-            className={`${className}${selected ? " is-selected" : ""}`}
+            className={`${elementProps.className}${selected ? " is-selected" : ""}`}
             data-event-id={event.id}
-            aria-label={isInteractive ? ariaLabel : undefined}
-            onClick={onClick}
-            onDoubleClick={onDoubleClick}
-            onKeyDown={onKeyDown}
-            aria-keyshortcuts={ariaKeyShortcuts}
-            style={style}
         >
             <time className="agenda-view_event-time">
                 {timeLabel}

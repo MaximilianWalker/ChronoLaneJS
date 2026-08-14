@@ -8,10 +8,12 @@ import {
 } from "storybook/test";
 
 import {
+    CustomSlot,
     CustomTimeGridEvent,
     InteractionHarness
 } from "../harnesses.js";
 import { asCalendarDate } from "../../src/index.js";
+import type { TimeGridViewProps } from "../../src/index.js";
 import {
     ANCHOR_DATE,
     MAX_TIME,
@@ -19,9 +21,24 @@ import {
     basicEvents,
     multiDayEvents,
     overnightEvents,
+    resourceConfig,
     resourceEvents,
-    resources
 } from "../fixtures.js";
+import type { StoryEvent, StoryResource } from "../fixtures.js";
+
+const CUSTOM_RENDERER_COMPONENTS = {
+    event: CustomTimeGridEvent,
+    slot: CustomSlot
+};
+const TIME_GRID_VIEW_PROPS = {
+    minTime: MIN_TIME,
+    maxTime: MAX_TIME,
+    onEventDrop: fn(),
+    onSlotSelect: fn()
+} as const;
+const getTimeGridViewProps = (args: { viewProps?: unknown }) => (
+    args.viewProps as Partial<TimeGridViewProps<StoryEvent, StoryResource>> | undefined
+);
 
 const meta = {
     title: "Scenarios/Interactions",
@@ -30,21 +47,16 @@ const meta = {
         view: "day",
         date: ANCHOR_DATE,
         events: basicEvents,
-        minTime: MIN_TIME,
-        maxTime: MAX_TIME,
-        onEventDrop: fn(),
+        viewProps: TIME_GRID_VIEW_PROPS,
         onEventEdit: fn(),
-        onEventSelect: fn(),
-        onSlotSelect: fn()
+        onEventSelect: fn()
     },
     argTypes: {
-        canDragEvent: { control: false },
         canEditEvent: { control: false },
         events: { control: false },
-        onEventDrop: { control: false },
         onEventEdit: { control: false },
         onEventSelect: { control: false },
-        onSlotSelect: { control: false }
+        viewProps: { control: false }
     }
 } satisfies Meta<typeof InteractionHarness>;
 
@@ -102,8 +114,11 @@ export const SelectOvernightEvent: Story = {
     args: {
         date: "2026-09-15",
         events: overnightEvents,
-        minTime: "00:00",
-        maxTime: "05:00"
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            minTime: "00:00",
+            maxTime: "05:00"
+        }
     },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
@@ -121,9 +136,12 @@ export const SelectOvernightEvent: Story = {
 
 export const SelectMultiResourceEvent: Story = {
     args: {
-        view: "resource",
+        view: "day",
         events: resourceEvents.filter(({ id }) => id === "shared-briefing"),
-        resources
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            resources: resourceConfig
+        }
     },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
@@ -146,28 +164,43 @@ export const SelectSlot: Story = {
         const canvas = within(canvasElement);
         await userEvent.click(canvas.getByRole("button", { name: /Calendar slot.*10:00/i }));
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Selected slot at 10:00");
-        await expect(args.onSlotSelect).toHaveBeenCalledOnce();
+        await expect(getTimeGridViewProps(args)?.onSlotSelect).toHaveBeenCalledOnce();
     }
 };
 
 export const InteractionsWithoutGridLines: Story = {
     args: {
-        showGridLines: false
+        style: {
+            "--calendar-time-grid-line-width": "0px"
+        }
     },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
         const grid = canvas.getByLabelText("Calendar grid");
+        const slot = grid.querySelector<HTMLElement>(".time-grid-view_slot");
+        const header = grid.querySelector<HTMLElement>(".time-grid-view_header");
+        const headerCell = grid.querySelector<HTMLElement>(
+            ".time-grid-view_header-cell"
+        );
         const selectedSlot = canvas.getByRole("button", { name: /Calendar slot.*10:00/i });
         const dropSlot = canvas.getByRole("button", { name: /Calendar slot.*1:00 PM/i });
         const event = canvas.getByRole("button", { name: /Planning/i });
 
-        await expect(grid).not.toHaveClass("has-grid-lines");
+        if (!slot || !header || !headerCell) {
+            throw new Error("The time-grid presentation did not render.");
+        }
+
+        await expect(window.getComputedStyle(slot).borderRightWidth).toBe("0px");
+        await expect(window.getComputedStyle(headerCell).borderLeftWidth).toBe("0px");
+        await expect(
+            window.getComputedStyle(header, "::before").borderBottomWidth
+        ).toBe("0px");
         await userEvent.click(selectedSlot);
-        await expect(args.onSlotSelect).toHaveBeenCalledOnce();
+        await expect(getTimeGridViewProps(args)?.onSlotSelect).toHaveBeenCalledOnce();
 
         await fireEvent.dragStart(event);
         await fireEvent.drop(dropSlot);
-        await expect(args.onEventDrop).toHaveBeenCalledOnce();
+        await expect(getTimeGridViewProps(args)?.onEventDrop).toHaveBeenCalledOnce();
     }
 };
 
@@ -194,7 +227,10 @@ export const KeyboardEdit: Story = {
 export const EventSpecificPermissions: Story = {
     args: {
         canEditEvent: (event) => event.id === "design-review",
-        canDragEvent: (event) => event.id === "design-review"
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            canDragEvent: (event) => event.id === "design-review"
+        }
     },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
@@ -213,7 +249,8 @@ export const EventSpecificPermissions: Story = {
 
 export const AgendaKeyboardEdit: Story = {
     args: {
-        view: "agenda"
+        view: "agenda",
+        viewProps: {}
     },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
@@ -227,7 +264,8 @@ export const AgendaKeyboardEdit: Story = {
 
 export const MonthKeyboardEdit: Story = {
     args: {
-        view: "month"
+        view: "month",
+        viewProps: {}
     },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
@@ -241,7 +279,10 @@ export const MonthKeyboardEdit: Story = {
 
 export const CustomRendererKeyboardEdit: Story = {
     args: {
-        eventComponent: CustomTimeGridEvent
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            components: CUSTOM_RENDERER_COMPONENTS
+        }
     },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
@@ -253,6 +294,30 @@ export const CustomRendererKeyboardEdit: Story = {
     }
 };
 
+export const CustomRendererSelection: Story = {
+    args: {
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            components: CUSTOM_RENDERER_COMPONENTS
+        }
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const event = canvas.getByRole("button", { name: /Planning/i });
+        const slot = canvas.getByRole("button", { name: /Calendar slot.*10:00/i });
+
+        await expect(event).toHaveClass("story-event");
+        await expect(event).toHaveAttribute("data-story-day-index", "0");
+        await userEvent.click(event);
+        await expect(args.onEventSelect).toHaveBeenCalledOnce();
+
+        await expect(slot).toHaveClass("story-slot");
+        await expect(slot).toHaveAttribute("data-story-day-index", "0");
+        await userEvent.click(slot);
+        await expect(getTimeGridViewProps(args)?.onSlotSelect).toHaveBeenCalledOnce();
+    }
+};
+
 export const DragToSlot: Story = {
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
@@ -261,7 +326,7 @@ export const DragToSlot: Story = {
         await fireEvent.dragStart(event);
         await fireEvent.drop(slot);
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Dropped Planning at 13:00");
-        await expect(args.onEventDrop).toHaveBeenCalledOnce();
+        await expect(getTimeGridViewProps(args)?.onEventDrop).toHaveBeenCalledOnce();
     }
 };
 
@@ -273,7 +338,7 @@ export const CancelledDrag: Story = {
         await fireEvent.dragStart(event);
         await fireEvent.dragEnd(event);
         await fireEvent.drop(slot);
-        await expect(args.onEventDrop).not.toHaveBeenCalled();
+        await expect(getTimeGridViewProps(args)?.onEventDrop).not.toHaveBeenCalled();
     }
 };
 
@@ -284,6 +349,6 @@ export const IgnoreDropOutsideSlot: Story = {
         const grid = canvas.getByLabelText("Calendar grid");
         await fireEvent.dragStart(event);
         await fireEvent.drop(grid);
-        await expect(args.onEventDrop).not.toHaveBeenCalled();
+        await expect(getTimeGridViewProps(args)?.onEventDrop).not.toHaveBeenCalled();
     }
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Markdown, { type Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
@@ -14,38 +14,76 @@ const REPOSITORY_URL = "https://github.com/MaximilianWalker/ChronoLaneJS";
 const remarkPlugins = [remarkGfm];
 const rehypePlugins = [rehypeRaw, rehypeSlug];
 
-const getDocumentFromHash = (): DocumentId => {
-    const documentId = window.location.hash.replace(/^#doc-/, "");
-    return isDocumentId(documentId)
-        ? documentId
-        : "overview";
+interface DocumentLocation {
+    id: DocumentId;
+    anchor?: string;
+}
+
+const getDocumentLocation = (): DocumentLocation => {
+    const [documentId, anchor] = window.location.hash
+        .replace(/^#doc-/, "")
+        .split("/", 2);
+    return {
+        id: documentId && isDocumentId(documentId)
+            ? documentId
+            : "documentation",
+        anchor
+    };
 };
 
-const getDocumentIdFromHref = (href?: string): DocumentId | null => {
-    const filename = href?.replace(/^\.\//, "").toLowerCase();
-    if (filename === "readme.md") return "overview";
-    if (filename === "development.md") return "development";
-    if (filename === "roadmap.md") return "roadmap";
-    if (filename === "security.md") return "security";
-    return null;
+const resolveRepositoryPath = (currentPath: string, href: string): string => {
+    const currentDirectory = currentPath.includes("/")
+        ? currentPath.slice(0, currentPath.lastIndexOf("/") + 1)
+        : "";
+    return new URL(href, `https://repository.invalid/${currentDirectory}`)
+        .pathname
+        .replace(/^\//, "");
 };
 
-const markdownComponents: Components = {
-    a: ({ href, children, ...props }) => {
-        const documentId = getDocumentIdFromHref(href);
-        if (documentId) {
-            return (
-                <a {...props} href={`#doc-${documentId}`}>
-                    {children}
-                </a>
-            );
-        }
+export default function Docs() {
+    const [activeId, setActiveId] = useState<DocumentId>(() => getDocumentLocation().id);
+    const activeDocument = documents.find(({ id }) => id === activeId) ?? documents[0]!;
+    const markdownComponents = useMemo<Components>(() => ({
+        a: ({ href, children, ...props }) => {
+            if (!href) return <a {...props}>{children}</a>;
+            if (/^[a-z][a-z\d+.-]*:/i.test(href)) {
+                const opensNewTab = /^https?:/i.test(href);
+                return (
+                    <a
+                        {...props}
+                        href={href}
+                        target={opensNewTab ? "_blank" : undefined}
+                        rel={opensNewTab ? "noreferrer" : undefined}
+                    >
+                        {children}
+                    </a>
+                );
+            }
 
-        if (href === "./LICENSE" || href === "LICENSE") {
+            const [path, anchor] = href.split("#", 2);
+            const repositoryPath = path
+                ? resolveRepositoryPath(activeDocument.githubPath, path)
+                : activeDocument.githubPath;
+            const document = documents.find(({ githubPath }) => (
+                githubPath.toLowerCase() === repositoryPath.toLowerCase()
+            ));
+            if (document) {
+                return (
+                    <a
+                        {...props}
+                        href={`#doc-${document.id}${anchor ? `/${anchor}` : ""}`}
+                    >
+                        {children}
+                    </a>
+                );
+            }
+
             return (
                 <a
                     {...props}
-                    href={`${REPOSITORY_URL}/blob/main/LICENSE`}
+                    href={`${REPOSITORY_URL}/${repositoryPath.endsWith("/")
+                        ? "tree"
+                        : "blob"}/main/${repositoryPath}${anchor ? `#${anchor}` : ""}`}
                     target="_blank"
                     rel="noreferrer"
                 >
@@ -53,30 +91,16 @@ const markdownComponents: Components = {
                 </a>
             );
         }
-
-        const external = href?.startsWith("http");
-        return (
-            <a
-                {...props}
-                href={href}
-                target={external ? "_blank" : undefined}
-                rel={external ? "noreferrer" : undefined}
-            >
-                {children}
-            </a>
-        );
-    }
-};
-
-export default function Docs() {
-    const [activeId, setActiveId] = useState<DocumentId>(getDocumentFromHash);
-    const activeDocument = documents.find(({ id }) => id === activeId) ?? documents[0]!;
+    }), [activeDocument.githubPath]);
 
     useEffect(() => {
         const syncFromHash = () => {
-            setActiveId(getDocumentFromHash());
+            const location = getDocumentLocation();
+            setActiveId(location.id);
             if (window.location.hash.startsWith("#doc-")) {
-                requestAnimationFrame(() => document.getElementById("document")?.scrollIntoView());
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    document.getElementById(location.anchor ?? "document")?.scrollIntoView();
+                }));
             }
         };
         window.addEventListener("hashchange", syncFromHash);
@@ -92,16 +116,20 @@ export default function Docs() {
                         <span>Library docs</span>
                         <span className="docs-live-dot">Live source</span>
                     </div>
-                    {documents.map((document) => (
-                        <a
-                            key={document.id}
-                            className={`docs-nav-link${activeId === document.id ? " is-active" : ""}`}
-                            href={`#doc-${document.id}`}
-                            aria-current={activeId === document.id ? "page" : undefined}
-                        >
-                            <strong>{document.label}</strong>
-                            <span>{document.description}</span>
-                        </a>
+                    {documents.map((document, index) => (
+                        <div key={document.id} className="docs-nav-entry">
+                            {(index === 0 || documents[index - 1]?.category !== document.category) && (
+                                <h2>{document.category}</h2>
+                            )}
+                            <a
+                                className={`docs-nav-link${activeId === document.id ? " is-active" : ""}`}
+                                href={`#doc-${document.id}`}
+                                aria-current={activeId === document.id ? "page" : undefined}
+                            >
+                                <strong>{document.label}</strong>
+                                <span>{document.description}</span>
+                            </a>
+                        </div>
                     ))}
                 </aside>
 

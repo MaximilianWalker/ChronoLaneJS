@@ -11,7 +11,7 @@ import {
     MIN_TIME,
     backgroundEvents,
     basicEvents,
-    resources,
+    resourceConfig,
     resourceEvents
 } from "../fixtures.js";
 
@@ -22,18 +22,19 @@ const meta = {
         view: "week",
         date: ANCHOR_DATE,
         events: basicEvents,
-        minTime: MIN_TIME,
-        maxTime: MAX_TIME,
+        viewProps: {
+            minTime: MIN_TIME,
+            maxTime: MAX_TIME
+        },
         onDateChange: fn()
     },
     argTypes: {
         view: {
             control: "select",
-            options: ["day", "week", "month", "agenda", "resource", "time-grid"]
+            options: ["day", "week", "month", "agenda", "time-grid"]
         },
         events: { control: false },
         backgroundEvents: { control: false },
-        resources: { control: false },
         views: { control: false },
         viewProps: { control: false }
     },
@@ -57,21 +58,17 @@ export const WithBackgroundEvents: Story = {
     }
 };
 
-export const ResourceCalendar: Story = {
+export const ResourceGrouping: Story = {
     args: {
-        view: "resource",
+        view: "week",
         events: resourceEvents,
-        resources,
-        getResourceId: (resource) => (
-            resource && typeof resource === "object" && "id" in resource
-                ? resource.id
-                : undefined
-        ),
-        getResourceTitle: (resource) => (
-            resource && typeof resource === "object" && "name" in resource
-                ? String(resource.name)
-                : "Unknown resource"
-        )
+        viewProps: {
+            minTime: MIN_TIME,
+            maxTime: MAX_TIME,
+            resources: resourceConfig,
+            groupBy: "resource",
+            slotSizing: { width: 92 }
+        }
     }
 };
 
@@ -87,7 +84,53 @@ export const Controlled: Story = {
 
 export const BoundedNavigation: Story = {
     args: {
+        date: "2026-09-17",
+        minDate: "2026-09-16",
+        maxDate: "2026-09-18"
+    },
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelectorAll(
+                ".calendar-view_navigation-button:disabled"
+            )
+        ).toHaveLength(2);
+    }
+};
+
+export const ControlledBeforeMinimum: Story = {
+    args: {
+        date: "2026-08-03",
         minDate: "2026-09-14",
+        viewProps: {
+            minTime: MIN_TIME,
+            maxTime: MAX_TIME,
+            range: {
+                dayCount: 7,
+                navigation: {
+                    resolveAnchor: () => new Date(2026, 0, 1)
+                }
+            }
+        }
+    },
+    render: (args) => <ControlledNavigation {...args} />,
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        await userEvent.click(canvas.getByRole("button", { name: "Next week" }));
+        await expect(canvas.getByText("Controlled anchor: 2026-09-14")).toBeInTheDocument();
+        await expect(args.onDateChange).toHaveBeenCalledOnce();
+    }
+};
+
+export const ControlledAfterMaximum: Story = {
+    args: {
+        date: "2026-10-05",
         maxDate: "2026-09-20"
+    },
+    render: (args) => <ControlledNavigation {...args} />,
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        await userEvent.click(canvas.getByRole("button", { name: "Previous week" }));
+        await expect(canvas.getByText("Controlled anchor: 2026-09-20")).toBeInTheDocument();
+        await expect(args.onDateChange).toHaveBeenCalledOnce();
     }
 };

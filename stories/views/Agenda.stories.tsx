@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect } from "storybook/test";
+import { startOfWeek } from "date-fns/startOfWeek";
 
 import { AgendaView } from "../../src/index.js";
 import {
@@ -29,7 +31,15 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Basic: Story = {};
+export const Basic: Story = {
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelector(
+                ".agenda-view_list.calendar-scroll-region"
+            )
+        ).not.toBeNull();
+    }
+};
 
 export const Empty: Story = {
     args: {
@@ -46,11 +56,25 @@ export const MultiDayGrouping: Story = {
 export const WorkWeek: Story = {
     args: {
         range: {
-            start: new Date(2026, 8, 14),
-            days: 7,
+            start: (anchor) => startOfWeek(anchor, { weekStartsOn: 1 }),
+            dayCount: 7,
             includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
-            navigationStep: 7
+            navigation: { stepDays: 7 }
         }
+    }
+};
+
+export const BoundedNavigation: Story = {
+    args: {
+        minDate: "2026-09-14",
+        maxDate: "2026-09-20"
+    },
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelectorAll(
+                ".calendar-view_navigation-button:disabled"
+            )
+        ).toHaveLength(2);
     }
 };
 

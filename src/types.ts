@@ -1,8 +1,10 @@
 import type {
     ButtonHTMLAttributes,
+    ComponentProps,
     ComponentType,
     CSSProperties,
     ElementType,
+    HTMLAttributes,
     ReactNode,
     SyntheticEvent
 } from "react";
@@ -11,9 +13,40 @@ import type { Locale } from "date-fns";
 export type CalendarDateInput = Date | string | number;
 export type CalendarLocale = string | Locale;
 export type CalendarEventId = string | number;
+/** Stable non-empty string or finite number used for resource identity. */
 export type CalendarResourceId = string | number;
 export type CalendarWeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-export type CalendarStyle = CSSProperties & Partial<Record<`--${string}`, string | number>>;
+/**
+ * Pixel length accepted by layout-sensitive calendar theme tokens.
+ * Negative values are syntactically representable but invalid for these sizes.
+ */
+export type CalendarPixelSize = `${number}px`;
+
+/** Stable CSS custom properties exposed by the bundled calendar theme. */
+export interface CalendarCSSVariables {
+    "--calendar-scrollbar-inset"?: string;
+    "--calendar-scrollbar-radius"?: string;
+    "--calendar-scrollbar-size"?: string;
+    "--calendar-scrollbar-thumb"?: string;
+    "--calendar-scrollbar-thumb-hover"?: string;
+    "--calendar-scrollbar-track"?: string;
+    "--calendar-scrollbar-width"?: "auto" | "none" | "thin";
+    "--calendar-time-grid-frame-width"?: CalendarPixelSize;
+    "--calendar-time-grid-header-row-height"?: CalendarPixelSize;
+    "--calendar-time-grid-line-width"?: CalendarPixelSize;
+    "--calendar-time-grid-time-axis-width"?: CalendarPixelSize;
+}
+
+/** React styles with typed calendar tokens and application-defined variables. */
+export type CalendarStyle = CSSProperties
+    & CalendarCSSVariables
+    & Partial<Record<`--${string}`, string | number>>;
+
+/** Prepared attributes and interaction handlers for a renderer's root element. */
+export interface CalendarRendererElementProps extends HTMLAttributes<HTMLElement> {
+    className: string;
+    style?: CalendarStyle;
+}
 
 export interface CalendarEvent {
     id?: CalendarEventId;
@@ -23,8 +56,8 @@ export interface CalendarEvent {
     end: CalendarDateInput;
     color?: string;
     variant?: string;
-    resourceId?: unknown;
-    resourceIds?: unknown[];
+    resourceId?: CalendarResourceId;
+    resourceIds?: CalendarResourceId[];
     resource?: unknown;
     style?: CalendarStyle;
     titleStyle?: CSSProperties;
@@ -34,18 +67,96 @@ export interface CalendarEvent {
 export type NormalizedCalendarEvent<Event extends CalendarEvent = CalendarEvent> =
     Omit<Event, "start" | "end"> & { start: Date; end: Date };
 
+/** Resource columns and accessors supplied to a time-grid view. */
+export interface CalendarResourceConfig<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> {
+    /** Concrete resources rendered once per visible day. */
+    items: Resource[];
+    /** Returns the stable identity used to match resources and events. */
+    getId?: (resource: Resource) => CalendarResourceId;
+    /** Returns the prepared heading content for a resource column. */
+    getTitle?: (resource: Resource) => ReactNode;
+    /** Returns every resource ID to which an event is assigned. */
+    getEventIds?: (
+        event: NormalizedCalendarEvent<Event>
+    ) => CalendarResourceId[];
+}
+
 export interface CalendarRangeContext {
+    /** Locale-derived or explicitly configured first weekday. */
     weekStartsOn: CalendarWeekStart;
 }
 
-export interface CalendarRangeOptions {
-    start?: Date | ((anchorDate: Date, context: CalendarRangeContext) => Date);
-    end?: Date | ((anchorDate: Date, context: CalendarRangeContext) => Date);
-    days?: number;
-    includeDay?: (day: Date) => boolean;
-    navigationStep?: number;
+export interface CalendarRange {
+    /** Inclusive first visible day. */
+    start: Date;
+    /** Inclusive last visible day. */
+    end: Date;
+    /** Normalized, unique visible days in chronological order. */
+    days: Date[];
+    [key: string]: unknown;
 }
 
+/** Previous/next behavior owned by a configurable range definition. */
+export type CalendarRangeNavigation =
+    | {
+        /** Positive calendar-day movement applied to the current anchor. */
+        stepDays: number;
+        resolveAnchor?: never;
+    }
+    | {
+        stepDays?: never;
+        /** Resolves the next anchor for one previous or next action. */
+        resolveAnchor: (
+            anchorDate: Date,
+            direction: -1 | 1,
+            range: CalendarRange,
+            context: CalendarRangeContext
+        ) => Date;
+    };
+
+type CalendarRangeBoundary =
+    | Date
+    | ((anchorDate: Date, context: CalendarRangeContext) => Date);
+
+/** Visible-day definition paired with optional range-owned navigation. */
+export type CalendarRangeOptions = {
+    /** Overrides navigation derived from the range's generated span. */
+    navigation?: CalendarRangeNavigation;
+} & (
+    | {
+        /** Fixed or anchor-aware explicit visible days. */
+        dates:
+            | Date[]
+            | ((anchorDate: Date, context: CalendarRangeContext) => Date[]);
+        start?: never;
+        end?: never;
+        dayCount?: never;
+        includeDay?: never;
+    }
+    | {
+        dates?: never;
+        /** Inclusive start, defaulting to the current anchor. */
+        start?: CalendarRangeBoundary;
+        /** Retains generated days for which the predicate returns true. */
+        includeDay?: (day: Date) => boolean;
+    } & (
+        | {
+            /** Inclusive end; mutually exclusive with `dayCount`. */
+            end: CalendarRangeBoundary;
+            dayCount?: never;
+        }
+        | {
+            end?: never;
+            /** Positive generated-day count; mutually exclusive with `end`. */
+            dayCount: number;
+        }
+    )
+);
+
+/** Preset, shorthand, configured, or anchor-aware calendar range input. */
 export type CalendarRangeDefinition =
     | "day"
     | "week"
@@ -54,11 +165,15 @@ export type CalendarRangeDefinition =
     | CalendarRangeOptions
     | ((anchorDate: Date, context: CalendarRangeContext) => CalendarRangeDefinition);
 
-export interface CalendarRange {
-    start: Date;
-    end: Date;
-    days: Date[];
-    [key: string]: unknown;
+export interface ResolvedCalendarRange extends CalendarRange {
+    /** Resolves the next anchor using the strategy carried by this range. */
+    navigate: (direction: -1 | 1) => Date;
+}
+
+/** Controlled half-open selection boundaries normalized by the active view. */
+export interface CalendarSelectionRange {
+    start: CalendarDateInput;
+    end: CalendarDateInput;
 }
 
 /** Context supplied to every calendar date and time formatter. */
@@ -130,9 +245,9 @@ export interface CalendarMessages {
     moreEvents: (context: CalendarMoreEventsMessageContext) => string;
 }
 
-export interface CalendarViewDefinition {
-    component: ElementType;
-    defaultProps?: Record<string, unknown>;
+export interface CalendarViewDefinition<Component extends ElementType = ElementType> {
+    component: Component;
+    defaultProps?: Partial<ComponentProps<Component>>;
 }
 
 export interface CalendarNavigationButtonProps
@@ -142,7 +257,14 @@ export interface CalendarNavigationButtonProps
 
 export type CalendarNavigationButton = ComponentType<CalendarNavigationButtonProps>;
 
+/** Renderer replacements shared by every built-in calendar view. */
+export interface CalendarComponents {
+    navigation?: CalendarNavigationButton;
+}
+
 export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
+    className?: string;
+    style?: CalendarStyle;
     events?: Event[];
     backgroundEvents?: Event[];
     date?: CalendarDateInput;
@@ -167,5 +289,4 @@ export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
         event: NormalizedCalendarEvent<Event>,
         interaction: SyntheticEvent
     ) => void;
-    navigationButton?: CalendarNavigationButton;
 }

@@ -1,5 +1,7 @@
+import { addDays } from "date-fns/addDays";
 import { startOfWeek } from "date-fns/startOfWeek";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, fn, userEvent, within } from "storybook/test";
 
 import { TimeGridView } from "../../src/index.js";
 import {
@@ -16,7 +18,8 @@ const meta = {
         date: ANCHOR_DATE,
         events: basicEvents,
         minTime: MIN_TIME,
-        maxTime: MAX_TIME
+        maxTime: MAX_TIME,
+        onDateChange: fn()
     },
     argTypes: {
         events: { control: false },
@@ -29,30 +32,36 @@ type Story = StoryObj<typeof meta>;
 
 export const ConsecutiveDays: Story = {
     args: {
-        range: 3,
-        navigationStep: 3
+        range: 3
     }
 };
 
 export const WorkingWeek: Story = {
     args: {
         range: {
-            start: new Date(2026, 8, 14),
-            days: 7,
+            start: (anchor) => startOfWeek(anchor, { weekStartsOn: 1 }),
+            dayCount: 7,
             includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
-            navigationStep: 7
+            navigation: { stepDays: 7 }
         }
     }
 };
 
 export const ExplicitDates: Story = {
     args: {
-        range: [
-            new Date(2026, 8, 14),
-            new Date(2026, 8, 16),
-            new Date(2026, 8, 18)
-        ],
-        navigationStep: 7
+        range: {
+            dates: (anchor) => [
+                anchor,
+                addDays(anchor, 2),
+                addDays(anchor, 4)
+            ],
+            navigation: { stepDays: 7 }
+        }
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        await userEvent.click(canvas.getByRole("button", { name: "Next range" }));
+        await expect(args.onDateChange).toHaveBeenCalledWith(new Date(2026, 8, 21));
     }
 };
 
@@ -60,9 +69,14 @@ export const AnchorAwareCallback: Story = {
     args: {
         range: (anchor, { weekStartsOn }) => ({
             start: startOfWeek(anchor, { weekStartsOn }),
-            days: 7,
+            dayCount: 7,
             includeDay: (day) => day.getDay() !== 0 && day.getDay() !== 6,
-            navigationStep: 7
+            navigation: { stepDays: 7 }
         })
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        await userEvent.click(canvas.getByRole("button", { name: "Next range" }));
+        await expect(args.onDateChange).toHaveBeenCalledWith(new Date(2026, 8, 21));
     }
 };

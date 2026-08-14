@@ -37,7 +37,15 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Basic: Story = {};
+export const Basic: Story = {
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelector(
+                ".month-view_grid-wrapper.calendar-scroll-region"
+            )
+        ).not.toBeNull();
+    }
+};
 
 export const HiddenOutsideDays: Story = {
     args: {
@@ -58,12 +66,31 @@ export const SelectedDayAndEvent: Story = {
     args: {
         selectedDate: MONTH_DATE,
         selectedEventIds: ["planning"]
+    },
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelectorAll(".month-view_day.is-selected")
+        ).toHaveLength(1);
     }
 };
 
 export const BackgroundAvailability: Story = {
     args: {
         backgroundEvents
+    }
+};
+
+export const BoundedNavigation: Story = {
+    args: {
+        minDate: "2026-09-10",
+        maxDate: "2026-09-20"
+    },
+    play: async ({ canvasElement }) => {
+        await expect(
+            canvasElement.querySelectorAll(
+                ".calendar-view_navigation-button:disabled"
+            )
+        ).toHaveLength(2);
     }
 };
 
