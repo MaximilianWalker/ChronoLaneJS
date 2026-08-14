@@ -1,9 +1,11 @@
-# Contributing to ChronoLaneJS
+# ChronoLaneJS development guide
 
-ChronoLaneJS welcomes focused bug fixes, tests, documentation improvements, and
-features that keep the calendar application-independent.
+This guide defines the coding, documentation, validation, and release standards
+for repository development.
 
 ## Development
+
+The requirements below apply to every repository change.
 
 ```bash
 npm install
@@ -37,13 +39,13 @@ rather than disabling the global checks. Run `npm run storybook` for interactive
 development, `npm run storybook:test` for the Chromium suite, and
 `npm run storybook:build` to verify the deployable catalog.
 
-The GitHub Pages website renders `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`,
+The GitHub Pages website renders `README.md`, `DEVELOPMENT.md`, `ROADMAP.md`,
 and `SECURITY.md` directly, so update the canonical Markdown instead of adding
 site-only documentation. Run `npm run site` to preview the website and compact
 playground, or `npm run site:build` to verify its production output.
 
-Open an issue before starting a breaking API or architectural change so the
-contract can be agreed before implementation.
+Document and agree the contract before starting a breaking API or architectural
+change so the implementation has an explicit decision record.
 
 ## Component boundaries
 

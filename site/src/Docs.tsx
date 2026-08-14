@@ -24,7 +24,7 @@ const getDocumentFromHash = (): DocumentId => {
 const getDocumentIdFromHref = (href?: string): DocumentId | null => {
     const filename = href?.replace(/^\.\//, "").toLowerCase();
     if (filename === "readme.md") return "overview";
-    if (filename === "contributing.md") return "contributing";
+    if (filename === "development.md") return "development";
     if (filename === "roadmap.md") return "roadmap";
     if (filename === "security.md") return "security";
     return null;

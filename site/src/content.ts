@@ -1,9 +1,9 @@
-import contributing from "../../CONTRIBUTING.md?raw";
+import development from "../../DEVELOPMENT.md?raw";
 import readme from "../../README.md?raw";
 import roadmap from "../../ROADMAP.md?raw";
 import security from "../../SECURITY.md?raw";
 
-export type DocumentId = "overview" | "contributing" | "roadmap" | "security";
+export type DocumentId = "overview" | "development" | "roadmap" | "security";
 
 export interface DocumentSource {
     id: DocumentId;
@@ -24,11 +24,11 @@ export const documents: readonly DocumentSource[] = [
         githubPath: "README.md"
     },
     {
-        id: "contributing",
-        label: "Contributing",
-        description: "Development workflow and project conventions",
-        source: contributing,
-        githubPath: "CONTRIBUTING.md"
+        id: "development",
+        label: "Development guide",
+        description: "Coding standards, validation requirements, and release workflow",
+        source: development,
+        githubPath: "DEVELOPMENT.md"
     },
     {
         id: "roadmap",

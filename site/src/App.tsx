@@ -1,5 +1,14 @@
-import { Footer, Header, REPOSITORY_URL } from "./Chrome.js";
+import {
+    CoffeeIcon,
+    Footer,
+    Header,
+    REPOSITORY_URL,
+    SUPPORT_URL
+} from "./Chrome.js";
 import Playground from "./Playground.js";
+
+const PORTFOLIO_URL = "https://diogocrava.dev";
+const LINKEDIN_URL = "https://www.linkedin.com/in/diogo-crava/";
 
 export default function App() {
     return (
@@ -150,6 +159,70 @@ export default function App() {
                                 View on GitHub <span aria-hidden="true">↗</span>
                             </a>
                             <a className="button button--secondary" href={`${import.meta.env.BASE_URL}docs/`}>Read the docs</a>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="author-section section" id="author" aria-labelledby="author-title">
+                    <div className="author-visual" aria-hidden="true">
+                        <span className="author-monogram">DC</span>
+                        <div className="author-orbit author-orbit--outer" />
+                        <div className="author-orbit author-orbit--inner" />
+                        <div className="author-portrait-frame">
+                            <img
+                                src={`${import.meta.env.BASE_URL}diogo-crava.png`}
+                                alt=""
+                                loading="lazy"
+                            />
+                        </div>
+                        <div className="author-terminal">
+                            <span aria-hidden="true">&gt;</span>
+                            <p>
+                                My name is <strong>Diogo Crava</strong>
+                                <small>Full-stack developer</small>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="author-content">
+                        <p className="eyebrow">Behind ChronoLaneJS</p>
+                        <h2 id="author-title">
+                            Built with intent
+                            <span> by Diogo Crava.</span>
+                        </h2>
+                        <p className="author-lead">
+                            I&apos;m a full-stack developer who enjoys turning
+                            difficult product behavior into clear, dependable tools.
+                            ChronoLaneJS is my take on calendar infrastructure that
+                            stays precise, flexible, and pleasant to build with.
+                        </p>
+
+                        <div className="author-links" aria-label="Diogo Crava links">
+                            <a href={PORTFOLIO_URL} target="_blank" rel="noreferrer">
+                                Portfolio <span aria-hidden="true">↗</span>
+                            </a>
+                            <a href="https://github.com/MaximilianWalker" target="_blank" rel="noreferrer">
+                                GitHub <span aria-hidden="true">↗</span>
+                            </a>
+                            <a href={LINKEDIN_URL} target="_blank" rel="noreferrer">
+                                LinkedIn <span aria-hidden="true">↗</span>
+                            </a>
+                        </div>
+
+                        <div className="author-support">
+                            <span className="author-support-icon">
+                                <CoffeeIcon />
+                            </span>
+                            <div>
+                                <p>Support the work</p>
+                                <span>
+                                    If ChronoLaneJS saves you time, a coffee helps
+                                    fund the next carefully built release.
+                                </span>
+                            </div>
+                            <a href={SUPPORT_URL} target="_blank" rel="noreferrer">
+                                Buy me a coffee <span aria-hidden="true">↗</span>
+                            </a>
                         </div>
                     </div>
                 </section>
