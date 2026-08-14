@@ -29,7 +29,7 @@
   &middot;
   <a href="./ROADMAP.md">Roadmap</a>
   &middot;
-  <a href="./CONTRIBUTING.md">Contributing</a>
+  <a href="./DEVELOPMENT.md">Development</a>
 </p>
 
 ---
@@ -336,12 +336,15 @@ Useful focused commands:
 GitHub Actions validates the package and Storybook independently. Published
 GitHub releases are prepared for npm trusted publishing with provenance.
 
-## Contributing
+## Author
 
-Focused bug fixes, tests, documentation improvements, and
-application-independent features are welcome. Read
-[CONTRIBUTING.md](./CONTRIBUTING.md) before changing public APIs or component
-boundaries, and consult the [roadmap](./ROADMAP.md) for the canonical backlog.
+**[Diogo Marques Crava](https://diogocrava.dev)**
+
+- Website: [diogocrava.dev](https://diogocrava.dev)
+- GitHub: [@MaximilianWalker](https://github.com/MaximilianWalker)
+- LinkedIn: [Diogo Crava](https://www.linkedin.com/in/diogo-crava/)
+
+Feel free to contact me through any of the platforms above.
 
 ## License
 
