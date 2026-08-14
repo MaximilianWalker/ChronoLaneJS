@@ -166,7 +166,8 @@ Time-grid and agenda ranges accept:
 - `"day"` or `"week"`;
 - a positive number of consecutive days;
 - an array of visible dates;
-- `{ start, end }` or `{ start, days }`;
+- `{ start, end }` or `{ start, dayCount }`;
+- `{ dates, navigation }` for non-contiguous days with explicit movement;
 - a callback returning any supported definition.
 
 ```tsx
@@ -177,16 +178,19 @@ import { startOfWeek } from "date-fns";
     viewProps={{
         range: {
             start: (anchor) => startOfWeek(anchor, { weekStartsOn: 1 }),
-            days: 7,
+            dayCount: 7,
             includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
-            navigationStep: 7
+            navigation: { stepDays: 7 }
         }
     }}
 />
 ```
 
 Non-contiguous ranges are supported, so business calendars do not need a
-dedicated work-week view.
+dedicated work-week view. The range owns previous/next behavior through
+`navigation: { stepDays }` or a custom `navigation.resolveAnchor` callback.
+Use anchor-aware `dates` for a recurring non-contiguous pattern; a literal
+`Date[]` represents a fixed set of days.
 
 ### Time-grid scale
 

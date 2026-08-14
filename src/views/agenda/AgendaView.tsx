@@ -1,11 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import {
-    getCalendarRangeBounds,
-    moveCalendarDate,
-    resolveCalendarRange
-} from "../../core/range.js";
+import { resolveCalendarRange } from "../../core/range.js";
 import CalendarNavigation from "../../components/CalendarNavigation.js";
 import { createEventInteractionProps } from "../../components/eventInteraction.js";
 import {
@@ -52,8 +48,6 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     date,
     defaultDate,
     range = 30,
-    navigationStep,
-    navigateDate,
     weekStart: weekStartProp,
     minDate,
     maxDate,
@@ -85,11 +79,11 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
         timeZone,
         onDateChange
     });
-    const days = useMemo(() => resolveCalendarRange(range, anchorDate, {
+    const resolvedRange = useMemo(() => resolveCalendarRange(range, anchorDate, {
         weekStartsOn: weekStart,
         defaultRange: 30
     }), [anchorDate, range, weekStart]);
-    const { start: rangeStart, end: rangeEnd } = getCalendarRangeBounds(days);
+    const { days, start: rangeStart, end: rangeEnd } = resolvedRange;
     const calendarEvents = useMemo(
         () => normalizeEvents(events, timeZone),
         [events, timeZone]
@@ -104,13 +98,6 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
         )))
     })).filter((group) => group.events.length > 0), [calendarEvents, days]);
 
-    const effectiveNavigationStep = navigationStep
-        ?? (range && typeof range === "object" && !Array.isArray(range)
-            ? range.navigationStep
-            : null)
-        ?? Math.max(1, Math.round(
-            (rangeEnd.getTime() - rangeStart.getTime()) / 86_400_000
-        ) + 1);
     const navigationBoundaries = useMemo(
         () => normalizeCalendarNavigationBoundaries(minDate, maxDate, timeZone),
         [maxDate, minDate, timeZone]
@@ -127,9 +114,7 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     const header = formatters.rangeHeader(calendarRange, formatContext);
 
     const navigate = useCallback((direction: -1 | 1) => {
-        const nextDate = navigateDate
-            ? navigateDate(anchorDate, direction, { days, start: rangeStart, end: rangeEnd })
-            : moveCalendarDate(anchorDate, direction, effectiveNavigationStep);
+        const nextDate = resolvedRange.navigate(direction);
         setDate(resolveCalendarNavigationDate(
             anchorDate,
             nextDate,
@@ -138,12 +123,8 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
         ));
     }, [
         anchorDate,
-        days,
-        effectiveNavigationStep,
-        navigateDate,
         navigationBoundaries,
-        rangeEnd,
-        rangeStart,
+        resolvedRange,
         setDate,
         timeZone
     ]);

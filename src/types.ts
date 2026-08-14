@@ -85,17 +85,78 @@ export interface CalendarResourceConfig<
 }
 
 export interface CalendarRangeContext {
+    /** Locale-derived or explicitly configured first weekday. */
     weekStartsOn: CalendarWeekStart;
 }
 
-export interface CalendarRangeOptions {
-    start?: Date | ((anchorDate: Date, context: CalendarRangeContext) => Date);
-    end?: Date | ((anchorDate: Date, context: CalendarRangeContext) => Date);
-    days?: number;
-    includeDay?: (day: Date) => boolean;
-    navigationStep?: number;
+export interface CalendarRange {
+    /** Inclusive first visible day. */
+    start: Date;
+    /** Inclusive last visible day. */
+    end: Date;
+    /** Normalized, unique visible days in chronological order. */
+    days: Date[];
+    [key: string]: unknown;
 }
 
+/** Previous/next behavior owned by a configurable range definition. */
+export type CalendarRangeNavigation =
+    | {
+        /** Positive calendar-day movement applied to the current anchor. */
+        stepDays: number;
+        resolveAnchor?: never;
+    }
+    | {
+        stepDays?: never;
+        /** Resolves the next anchor for one previous or next action. */
+        resolveAnchor: (
+            anchorDate: Date,
+            direction: -1 | 1,
+            range: CalendarRange,
+            context: CalendarRangeContext
+        ) => Date;
+    };
+
+type CalendarRangeBoundary =
+    | Date
+    | ((anchorDate: Date, context: CalendarRangeContext) => Date);
+
+/** Visible-day definition paired with optional range-owned navigation. */
+export type CalendarRangeOptions = {
+    /** Overrides navigation derived from the range's generated span. */
+    navigation?: CalendarRangeNavigation;
+} & (
+    | {
+        /** Fixed or anchor-aware explicit visible days. */
+        dates:
+            | Date[]
+            | ((anchorDate: Date, context: CalendarRangeContext) => Date[]);
+        start?: never;
+        end?: never;
+        dayCount?: never;
+        includeDay?: never;
+    }
+    | {
+        dates?: never;
+        /** Inclusive start, defaulting to the current anchor. */
+        start?: CalendarRangeBoundary;
+        /** Retains generated days for which the predicate returns true. */
+        includeDay?: (day: Date) => boolean;
+    } & (
+        | {
+            /** Inclusive end; mutually exclusive with `dayCount`. */
+            end: CalendarRangeBoundary;
+            dayCount?: never;
+        }
+        | {
+            end?: never;
+            /** Positive generated-day count; mutually exclusive with `end`. */
+            dayCount: number;
+        }
+    )
+);
+
+/** Preset, shorthand, configured, or anchor-aware calendar range input. */
 export type CalendarRangeDefinition =
     | "day"
     | "week"
@@ -104,11 +165,9 @@ export type CalendarRangeDefinition =
     | CalendarRangeOptions
     | ((anchorDate: Date, context: CalendarRangeContext) => CalendarRangeDefinition);
 
-export interface CalendarRange {
-    start: Date;
-    end: Date;
-    days: Date[];
-    [key: string]: unknown;
+export interface ResolvedCalendarRange extends CalendarRange {
+    /** Resolves the next anchor using the strategy carried by this range. */
+    navigate: (direction: -1 | 1) => Date;
 }
 
 /** Controlled half-open selection boundaries normalized by the active view. */

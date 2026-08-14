@@ -208,25 +208,43 @@ import { startOfWeek } from "date-fns/startOfWeek";
             start: (anchor, { weekStartsOn }) => startOfWeek(anchor, {
                 weekStartsOn
             }),
-            days: 7,
+            dayCount: 7,
             includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
-            navigationStep: 7
+            navigation: { stepDays: 7 }
         }
     }}
 />
 ```
 
-Explicit non-contiguous days are supported:
+The range definition owns both the visible days and navigation. `stepDays`
+expresses ordinary calendar-day movement; use `resolveAnchor` when the next
+anchor follows domain-specific rules.
+
+Explicit non-contiguous days can carry the same navigation strategy:
 
 ```tsx
-const visibleDays = [
-    new Date(2026, 8, 14),
-    new Date(2026, 8, 16),
-    new Date(2026, 8, 18)
-];
+import { addDays } from "date-fns/addDays";
 
-<Calendar view="time-grid" viewProps={{ range: visibleDays }} />
+<Calendar
+    view="time-grid"
+    viewProps={{
+        range: {
+            dates: (anchor) => [
+                anchor,
+                addDays(anchor, 2),
+                addDays(anchor, 4)
+            ],
+            navigation: { stepDays: 7 }
+        }
+    }}
+/>
 ```
+
+The shorthand presets own matching defaults: `"day"` moves one day, `"week"`
+moves seven, and a numeric range moves by its count. A callback can return any
+definition above, including its `navigation`; resolution keeps the two
+together. A literal `Date[]` is an absolute, fixed range. Hide controls for a
+fixed range, or use anchor-aware `dates` as above when it should navigate.
 
 `onRangeChange` receives normalized `start`, `end`, and `days` after every
 resolved range change.

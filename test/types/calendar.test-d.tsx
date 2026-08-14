@@ -5,11 +5,13 @@ import Calendar, {
     DayView,
     MonthView,
     TimeGridView,
-    WeekView
+    WeekView,
+    resolveCalendarRange
 } from "../../src/index.js";
 import type {
     CalendarEvent,
     CalendarProps,
+    CalendarRangeOptions,
     CalendarResourceConfig,
     CalendarSelectionRange,
     CalendarViewProps,
@@ -44,6 +46,17 @@ const selectedRange = {
 const monthViewProps = {
     maxEventsPerDay: 3
 } satisfies CalendarViewProps<"month", ProjectEvent>;
+const projectRange = {
+    dates: [
+        new Date(2026, 8, 14),
+        new Date(2026, 8, 16),
+        new Date(2026, 8, 18)
+    ],
+    navigation: { stepDays: 7 }
+} satisfies CalendarRangeOptions;
+const resolvedProjectRange = resolveCalendarRange(projectRange, new Date(2026, 8, 14));
+
+void resolvedProjectRange.navigate(1);
 const projectResources: CalendarResourceConfig<ProjectEvent, ProjectResource> = {
     items: resources,
     getId: (resource) => resource.id,
@@ -163,7 +176,7 @@ void (
         }}
     />
 );
-void <Calendar view="time-grid" events={events} viewProps={{ range: [new Date()] }} />;
+void <Calendar view="time-grid" events={events} viewProps={{ range: projectRange }} />;
 void (
     <Calendar
         view="week"
@@ -194,6 +207,29 @@ void <MonthView className="month" style={{ minHeight: 600 }} />;
 void <WeekView className="week" style={{ color: "navy" }} />;
 void <TimeGridView className="custom-range" style={{ minHeight: 600 }} />;
 void <DayView selectedRange={selectedRange} timeZone="Europe/Lisbon" />;
+
+// @ts-expect-error Navigation behavior belongs to the range definition.
+void <TimeGridView navigationStep={7} />;
+
+// @ts-expect-error Month navigation is fixed to the displayed month.
+void <MonthView navigateDate={() => new Date()} />;
+
+const legacyRangeCount = {
+    // @ts-expect-error Generated range counts use dayCount.
+    days: 7
+} satisfies CalendarRangeOptions;
+
+void legacyRangeCount;
+
+const invalidRangeNavigation = {
+    dayCount: 7,
+    navigation: {
+        // @ts-expect-error Custom range navigation must resolve a Date anchor.
+        resolveAnchor: () => "2026-09-21"
+    }
+} satisfies CalendarRangeOptions;
+
+void invalidRangeNavigation;
 
 const invalidSelectedRange = {
     start: "2026-09-14T10:00:00",

@@ -3,7 +3,7 @@ import type { TimeGridViewProps } from "../types.js";
 import TimeGridView from "../TimeGridView.js";
 
 /**
- * Renders {@link TimeGridView} with seven-day range and navigation defaults.
+ * Renders {@link TimeGridView} with the seven-day range preset.
  *
  * Any supplied time-grid prop overrides the preset default.
  */
@@ -12,7 +12,6 @@ export default function WeekView<
     Resource = unknown
 >({
     range = "week",
-    navigationStep = 7,
     viewName = "week",
     ...props
 }: TimeGridViewProps<Event, Resource>) {
@@ -20,7 +19,6 @@ export default function WeekView<
         <TimeGridView
             {...props}
             range={range}
-            navigationStep={navigationStep}
             viewName={viewName}
         />
     );

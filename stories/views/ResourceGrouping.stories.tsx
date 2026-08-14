@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
+import { addDays } from "date-fns/addDays";
 
 import {
     DayView,
@@ -460,12 +461,14 @@ export const CustomTimeGridRange: Story = {
     render: (args) => (
         <TimeGridView<StoryEvent, StoryResource>
             {...args}
-            range={[
-                new Date(2026, 8, 14),
-                new Date(2026, 8, 16),
-                new Date(2026, 8, 18)
-            ]}
-            navigationStep={7}
+            range={{
+                dates: (anchor) => [
+                    anchor,
+                    addDays(anchor, 2),
+                    addDays(anchor, 4)
+                ],
+                navigation: { stepDays: 7 }
+            }}
         />
     )
 };

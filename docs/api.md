@@ -141,8 +141,8 @@ A controlled `date` outside the interval is rendered unchanged. The direction
 farther outside is disabled; the direction back toward the interval remains
 available and its first navigation request is clamped directly to the nearest
 boundary. The clamped `Date` is passed to `onDateChange`, so the application
-must still update controlled state. Results returned by `navigateDate` are
-normalized and clamped by the same rule.
+must still update controlled state. Anchors produced by a range's custom
+`navigation.resolveAnchor` strategy are validated and clamped by the same rule.
 
 An invalid boundary throws a contextual `TypeError`. Supplying `minDate` after
 `maxDate` throws `RangeError` during render.
@@ -153,13 +153,11 @@ An invalid boundary throws a contextual `TypeError`. Supplying `minDate` after
 Multi-day events appear once. It accepts all shared props plus:
 
 <!-- api:AgendaViewProps AgendaComponents AgendaDayHeaderProps AgendaEventProps AgendaEmptyProps -->
-<!-- props:AgendaViewProps range navigationStep navigateDate weekStart components -->
+<!-- props:AgendaViewProps range weekStart components -->
 
 | Prop | Type | Default | Meaning | Example |
 | --- | --- | --- | --- | --- |
-| `range` | `CalendarRangeDefinition` | `30` | Visible days resolved from the anchor. | `14`, `"week"`, or `{ days: 30, includeDay }` |
-| `navigationStep` | `number` | range option or visible span | Number of days used by default previous/next navigation. | `14` |
-| `navigateDate` | `(anchor, direction, range) => CalendarDateInput` | none | Replaces default date movement. | `(date, direction) => addMonths(date, direction)` |
+| `range` | `CalendarRangeDefinition` | `30` | Owns both the visible days and previous/next anchor behavior. | `14`, `"week"`, or `{ dayCount: 30, navigation: { stepDays: 30 } }` |
 | `weekStart` | `CalendarWeekStart` | locale convention | Overrides the locale's first weekday for week definitions. | `1` for Monday |
 | `components` | `AgendaComponents<Event>` | default renderers | Replaces agenda event, day header, empty state, or navigation renderers. | `{ event: AgendaEvent }` |
 
@@ -169,7 +167,7 @@ Multi-day events appear once. It accepts all shared props plus:
 every day it overlaps.
 
 <!-- api:MonthViewProps MonthComponents MonthDayHeaderProps MonthEventProps -->
-<!-- props:MonthViewProps weekStart showOutsideDays maxEventsPerDay selectedDate navigateDate onSelectDay onShowMore components -->
+<!-- props:MonthViewProps weekStart showOutsideDays maxEventsPerDay selectedDate onSelectDay onShowMore components -->
 
 | Prop | Type | Default | Meaning | Example |
 | --- | --- | --- | --- | --- |
@@ -177,32 +175,31 @@ every day it overlaps.
 | `showOutsideDays` | `boolean` | `true` | Shows events in leading/trailing cells outside the active month. Cells and headings remain visible either way. | `false` |
 | `maxEventsPerDay` | `number` | `4` | Maximum visible event rows before the overflow control. | `3` |
 | `selectedDate` | `CalendarDateInput` | none | Visually marks one day after validation and wall-clock normalization in `timeZone`. State is application-owned. | `"2026-09-14"` |
-| `navigateDate` | `(anchor, direction, range) => CalendarDateInput` | add one month | Replaces month navigation. The range includes `monthStart` and `monthEnd`. | `(date, direction) => addQuarters(date, direction)` |
 | `onSelectDay` | `(day, interaction) => void` | none | Enables day-heading buttons and reports the normalized day. | `(day) => setSelectedDate(day)` |
 | `onShowMore` | `({ day, events }, interaction) => void` | none | Handles the overflow control with all hidden normalized events for that day. | `({ events }) => openList(events)` |
 | `components` | `MonthComponents<Event>` | default renderers | Replaces event, day-header, or navigation renderers. | `{ dayHeader: MonthDay }` |
 
 `maxEventsPerDay` is used as an array slice boundary; use a non-negative integer
-for deterministic results.
+for deterministic results. Month navigation always resolves the previous or
+next displayed month; custom range navigation belongs only to configurable
+agenda and time-grid ranges.
 
 ## `DayView`, `WeekView`, and `TimeGridView`
 
-All three accept `TimeGridViewProps<Event, Resource>`. `DayView` defaults
-`range="day"`, `navigationStep={1}`, and `viewName="day"`. `WeekView` defaults
-`range="week"`, `navigationStep={7}`, and `viewName="week"`. Explicit direct
-view props override those defaults. `TimeGridView` defaults to a week range and
-`viewName="time-grid"`.
+All three accept `TimeGridViewProps<Event, Resource>`. `DayView` defaults to
+`range="day"` and `viewName="day"`; the day preset moves one day. `WeekView`
+defaults to `range="week"` and `viewName="week"`; the week preset moves seven
+days. Explicit `range` values carry their own navigation. `TimeGridView`
+defaults to the week preset and `viewName="time-grid"`.
 
 <!-- api:TimeGridViewProps TimeGridGroupBy TimeOfDay TimeGridSlotSizing -->
-<!-- props:TimeGridViewProps resources groupBy range navigationStep navigateDate weekStart minTime maxTime slotDuration labelInterval slotSizing selectedRange canDragEvent onEventDrop onSlotSelect components -->
+<!-- props:TimeGridViewProps resources groupBy range weekStart minTime maxTime slotDuration labelInterval slotSizing selectedRange canDragEvent onEventDrop onSlotSelect components -->
 
 | Prop | Type | Default | Meaning | Example |
 | --- | --- | --- | --- | --- |
 | `resources` | `CalendarResourceConfig<Event, Resource>` | none | Creates one column per resource per visible day. | `{ items: rooms, getId: (room) => room.code }` |
 | `groupBy` | `"day" \| "resource"` | `"day"` | Chooses the outer header/column grouping when resources exist. | `"resource"` |
-| `range` | `CalendarRangeDefinition` | `"week"` | Days rendered by the grid. | `"day"`, `5`, or explicit dates |
-| `navigationStep` | `number` | range option or visible span | Number of days moved by default navigation. | `7` |
-| `navigateDate` | `(anchor, direction, range) => CalendarDateInput` | none | Replaces default movement. | `(date, direction) => addWeeks(date, direction)` |
+| `range` | `CalendarRangeDefinition` | `"week"` | Owns the days rendered by the grid and how previous/next resolves a new anchor. | `"day"`, `5`, or `{ dates, navigation }` |
 | `weekStart` | `CalendarWeekStart` | locale convention | First day for `"week"` ranges. | `1` |
 | `minTime` | `TimeOfDay` | `"00:00"` | Inclusive visible wall-clock start. | `"08:30"` |
 | `maxTime` | `TimeOfDay \| "24:00"` | `"24:00"` | Exclusive visible wall-clock end. `24:00` is valid only here. | `"18:00"` |
@@ -286,10 +283,10 @@ Missing/invalid IDs throw `TypeError`; duplicate resource IDs throw
 
 ## Range types
 
-<!-- api:CalendarRange CalendarRangeContext CalendarRangeDefinition CalendarRangeOptions CalendarWeekStart -->
+<!-- api:CalendarRange CalendarRangeContext CalendarRangeDefinition CalendarRangeNavigation CalendarRangeOptions ResolvedCalendarRange CalendarWeekStart -->
 <!-- props:CalendarRange start end days -->
 <!-- props:CalendarRangeContext weekStartsOn -->
-<!-- props:CalendarRangeOptions start end days includeDay navigationStep -->
+<!-- props:ResolvedCalendarRange navigate -->
 
 `CalendarWeekStart` is `0 | 1 | 2 | 3 | 4 | 5 | 6`, Sunday through Saturday.
 `CalendarRangeContext` contains `weekStartsOn`.
@@ -298,21 +295,87 @@ Missing/invalid IDs throw `TypeError`; duplicate resource IDs throw
 
 - `"day"` or `"week"`;
 - a positive integer consecutive-day count;
-- an explicit `Date[]`, normalized, deduplicated, and sorted;
+- a fixed explicit `Date[]`, normalized, deduplicated, and sorted;
 - `CalendarRangeOptions`;
 - a callback `(anchorDate, context) => CalendarRangeDefinition`.
 
 | `CalendarRangeOptions` field | Type | Meaning | Example |
 | --- | --- | --- | --- |
 | `start` | `Date` or callback | Inclusive range start; defaults to the anchor. | `(anchor) => startOfWeek(anchor)` |
-| `end` | `Date` or callback | Inclusive end. Use either `end` or `days`. | `new Date(2026, 8, 18)` |
-| `days` | `number` | Positive integer count when `end` is omitted. | `5` |
+| `end` | `Date` or callback | Inclusive end. Use exactly one of `end` or `dayCount`. | `new Date(2026, 8, 18)` |
+| `dayCount` | `number` | Positive integer generated-day count when `end` is omitted. | `5` |
+| `dates` | `Date[]` or callback | Explicit non-contiguous days. Use a callback for an anchor-relative pattern; this form cannot be combined with span fields. | `(anchor) => [anchor, addDays(anchor, 2)]` |
 | `includeDay` | `(day) => boolean` | Filters generated days; at least one must remain. | `(day) => day.getDay() !== 0` |
-| `navigationStep` | `number` | View hint for default navigation; range helper functions ignore it. | `7` |
+| `navigation` | `CalendarRangeNavigation` | Optional strategy carried into the resolved range. | `{ stepDays: 7 }` |
+
+`CalendarRangeNavigation` has exactly one of these shapes:
+
+```ts
+type CalendarRangeNavigation =
+    | { stepDays: number }
+    | {
+        resolveAnchor: (
+            anchorDate,
+            direction,
+            resolvedRange,
+            context
+        ) => Date
+    };
+```
+
+`stepDays` is a positive integer calendar-day movement. `resolveAnchor`
+supports domain-specific movement and must return a valid `Date`. It receives
+the current anchor, `-1` or `1`, the normalized `CalendarRange`, and
+`CalendarRangeContext`.
+
+```tsx
+const workWeek: CalendarRangeDefinition = {
+    start: (anchor, { weekStartsOn }) => startOfWeek(anchor, { weekStartsOn }),
+    dayCount: 7,
+    includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
+    navigation: { stepDays: 7 }
+};
+
+const reviewDays: CalendarRangeDefinition = {
+    dates: (anchor) => [
+        anchor,
+        addDays(anchor, 2),
+        addDays(anchor, 4)
+    ],
+    navigation: {
+        resolveAnchor: (anchor, direction) => addWeeks(anchor, direction)
+    }
+};
+```
+
+Presets and shorthand counts own deterministic defaults: `"day"` moves one
+day, `"week"` moves seven, and `range={5}` moves five. A generated span without
+an explicit strategy moves by its unfiltered `dayCount` or `start`/`end` span.
+An explicit array derives an anchor movement from its inclusive first-to-last
+span, but its literal days remain absolute. Use it with `showControls={false}`
+for a fixed range. Anchor-aware `dates` regenerate a recurring non-contiguous
+pattern after navigation. Wrapping either form in `{ dates, navigation }`
+supplies a different strategy. Callback-produced definitions retain whichever
+strategy they return.
 
 `CalendarRange` contains inclusive `start`, inclusive `end`, and the resolved
 `days`. It is open to view-specific fields; month ranges include `monthStart`
-and `monthEnd`.
+and `monthEnd`. `ResolvedCalendarRange` adds `navigate(direction)`, which
+returns the next valid anchor from the strategy resolved with those days.
+
+### Range navigation migration
+
+The old view-level controls are removed rather than retained as aliases:
+
+| Removed form | Canonical replacement |
+| --- | --- |
+| `navigationStep={7}` | `range={{ ..., navigation: { stepDays: 7 } }}` |
+| `navigateDate={resolver}` | `range={{ ..., navigation: { resolveAnchor: resolver } }}` |
+| range option `{ days: 7 }` | `{ dayCount: 7 }` |
+
+`MonthView.navigateDate` has no replacement because a month view always moves
+to the previous or next displayed month. Use a configurable time-grid or
+agenda range when the visible unit requires custom navigation.
 
 ## Interaction and drop payloads
 
@@ -531,8 +594,8 @@ the same name overrides a built-in for that `Calendar`.
 
 | Function | Behavior | Errors | Example |
 | --- | --- | --- | --- |
-| `createCalendarRange` | Creates inclusive normalized days from valid `start` plus `end` or positive `days`, then optionally filters. | `TypeError` for invalid boundaries; `RangeError` for invalid count/reversed range. | `createCalendarRange({ start, days: 5 })` |
-| `resolveCalendarRange` | Resolves any `CalendarRangeDefinition`, normalizes, deduplicates, sorts, and requires at least one day. | `TypeError` for unsupported/invalid definitions; `RangeError` for empty/invalid results. | `resolveCalendarRange("week", anchor, { weekStartsOn: 1 })` |
+| `createCalendarRange` | Creates inclusive normalized days from valid `start` plus `end` or positive `dayCount`, then optionally filters. | `TypeError` for invalid boundaries; `RangeError` for invalid count/reversed range. | `createCalendarRange({ start, dayCount: 5 })` |
+| `resolveCalendarRange` | Resolves days and navigation into one `ResolvedCalendarRange`. The result exposes `start`, `end`, `days`, and `navigate(direction)`. | `TypeError` for unsupported/ambiguous definitions or invalid custom navigation; `RangeError` for empty/invalid ranges or steps. | `resolveCalendarRange("week", anchor, { weekStartsOn: 1 })` |
 | `getCalendarRangeBounds` | Returns first/last dates from a non-empty resolved array. | `RangeError` when empty. | `getCalendarRangeBounds(days)` |
 | `moveCalendarDate` | Adds positive integer days in direction `-1` or `1`. | `RangeError` for another direction or invalid step. | `moveCalendarDate(date, 1, 7)` |
 
@@ -546,7 +609,7 @@ the same name overrides a built-in for that `Calendar`.
 | Selection | invalid selected day/range boundary, or an end not after its start | `TypeError` or `RangeError` |
 | Locale | empty/malformed object/name | `TypeError` or `RangeError` |
 | Locale loading | failed dynamic module | `Error` with the original cause |
-| Ranges | invalid boundaries, count, definition, direction, or empty result | `TypeError` or `RangeError` |
+| Ranges | invalid/ambiguous definition, boundary, count, navigation strategy/result, direction, or empty result | `TypeError` or `RangeError` |
 | Resources | missing/invalid/duplicate IDs or non-array assignments | `TypeError` or `RangeError` |
 | Time window | malformed `HH:mm` or `maxTime <= minTime` | `TypeError` or `RangeError` |
 | Time scale | non-positive slot duration or incompatible label interval | `RangeError` |

@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
+import { addDays } from "date-fns/addDays";
+import { startOfWeek } from "date-fns/startOfWeek";
 
 import {
     TimeGridView,
@@ -43,29 +45,30 @@ type Story = StoryObj<typeof meta>;
 export const WorkWeek: Story = {
     args: {
         range: {
-            start: new Date(2026, 8, 14),
-            days: 7,
+            start: (anchor) => startOfWeek(anchor, { weekStartsOn: 1 }),
+            dayCount: 7,
             includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
-            navigationStep: 7
+            navigation: { stepDays: 7 }
         }
     }
 };
 
 export const NonContiguousDays: Story = {
     args: {
-        range: [
-            new Date(2026, 8, 14),
-            new Date(2026, 8, 16),
-            new Date(2026, 8, 18)
-        ],
-        navigationStep: 7
+        range: {
+            dates: (anchor) => [
+                anchor,
+                addDays(anchor, 2),
+                addDays(anchor, 4)
+            ],
+            navigation: { stepDays: 7 }
+        }
     }
 };
 
 export const TwoDayRange: Story = {
     args: {
-        range: 2,
-        navigationStep: 2
+        range: 2
     }
 };
 

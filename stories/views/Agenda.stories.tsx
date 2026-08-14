@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
+import { startOfWeek } from "date-fns/startOfWeek";
 
 import { AgendaView } from "../../src/index.js";
 import {
@@ -55,10 +56,10 @@ export const MultiDayGrouping: Story = {
 export const WorkWeek: Story = {
     args: {
         range: {
-            start: new Date(2026, 8, 14),
-            days: 7,
+            start: (anchor) => startOfWeek(anchor, { weekStartsOn: 1 }),
+            dayCount: 7,
             includeDay: (day) => day.getDay() >= 1 && day.getDay() <= 5,
-            navigationStep: 7
+            navigation: { stepDays: 7 }
         }
     }
 };

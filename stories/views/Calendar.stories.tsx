@@ -104,7 +104,12 @@ export const ControlledBeforeMinimum: Story = {
         viewProps: {
             minTime: MIN_TIME,
             maxTime: MAX_TIME,
-            navigateDate: () => "2026-01-01"
+            range: {
+                dayCount: 7,
+                navigation: {
+                    resolveAnchor: () => new Date(2026, 0, 1)
+                }
+            }
         }
     },
     render: (args) => <ControlledNavigation {...args} />,

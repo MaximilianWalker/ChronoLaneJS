@@ -91,14 +91,17 @@ Last reviewed: 2026-08-14
   - Controlled anchors outside the interval remain rendered. Movement farther
     outside is disabled, and the first inward request clamps directly to the
     nearest boundary through `onDateChange`.
-  - Built-in and custom `navigateDate` proposals share the same normalization
+  - Built-in and range-owned navigation proposals share the same normalization
     and clamping contract across agenda, month, and time-grid views.
-- [ ] **[P1][RANGE-01] Make range resolution and navigation one coherent
+- [x] **[P1][RANGE-01] Make range resolution and navigation one coherent
   contract.**
-  - Remove the duplicate `navigationStep` locations.
-  - Ensure callback-produced and non-contiguous ranges carry their navigation
-    behavior after resolution.
-  - Replace or remove `navigateDate` once the range strategy owns navigation.
+  - `resolveCalendarRange` returns normalized bounds, days, and one
+    `navigate(direction)` function instead of discarding navigation metadata.
+  - Range definitions use `dayCount` for generated spans, `dates` for explicit
+    days, and one nested `navigation` strategy with `stepDays` or
+    `resolveAnchor`.
+  - Redundant view-level `navigationStep` and `navigateDate` props are removed;
+    callback-produced and non-contiguous definitions retain their strategy.
 - [x] **[P1][RESOURCE-01] Use stable resource identifier types.**
   - Replace `unknown` resource identifiers with `CalendarResourceId` or a
     constrained generic identifier.

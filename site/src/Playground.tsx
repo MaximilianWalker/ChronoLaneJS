@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { startOfWeek } from "date-fns/startOfWeek";
 
 import Calendar from "../../src/Calendar.js";
 import type {
@@ -174,10 +175,10 @@ const backgroundEvents: PlaygroundEvent[] = [
 ];
 
 const customRange = {
-    start: new Date(2026, 8, 14),
-    days: 7,
+    start: (anchor: Date) => startOfWeek(anchor, { weekStartsOn: 1 }),
+    dayCount: 7,
     includeDay: (day: Date) => day.getDay() >= 1 && day.getDay() <= 5,
-    navigationStep: 7
+    navigation: { stepDays: 7 }
 };
 
 export default function Playground() {

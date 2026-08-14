@@ -7,7 +7,6 @@ import type {
     CalendarComponents,
     CalendarDateInput,
     CalendarEvent,
-    CalendarRange,
     CalendarRendererElementProps,
     CalendarWeekStart,
     NormalizedCalendarEvent,
@@ -35,22 +34,12 @@ export interface MonthComponents<Event extends CalendarEvent = CalendarEvent>
     dayHeader?: ComponentType<MonthDayHeaderProps>;
 }
 
-export interface MonthRange extends CalendarRange {
-    monthStart: Date;
-    monthEnd: Date;
-}
-
 export interface MonthViewProps<Event extends CalendarEvent = CalendarEvent>
     extends SharedViewProps<Event> {
     weekStart?: CalendarWeekStart;
     showOutsideDays?: boolean;
     maxEventsPerDay?: number;
     selectedDate?: CalendarDateInput;
-    navigateDate?: (
-        anchorDate: Date,
-        direction: -1 | 1,
-        range: MonthRange
-    ) => CalendarDateInput;
     onSelectDay?: (day: Date, interaction: SyntheticEvent) => void;
     onShowMore?: (
         group: { day: Date; events: NormalizedCalendarEvent<Event>[] },

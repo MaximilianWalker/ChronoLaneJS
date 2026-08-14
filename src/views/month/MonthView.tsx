@@ -69,7 +69,6 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     selectedDate,
     selectedEventIds = EMPTY_EVENTS,
     canEditEvent,
-    navigateDate,
     onDateChange,
     onRangeChange,
     onSelectDay,
@@ -141,15 +140,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     const navigationContext = { view: viewName, range: calendarRange };
 
     const navigate = useCallback((direction: -1 | 1) => {
-        const nextDate = navigateDate
-            ? navigateDate(anchorDate, direction, {
-                start: rangeStart,
-                end: rangeEnd,
-                days,
-                monthStart,
-                monthEnd
-            })
-            : addMonths(anchorDate, direction);
+        const nextDate = addMonths(anchorDate, direction);
         setDate(resolveCalendarNavigationDate(
             anchorDate,
             nextDate,
@@ -158,13 +149,7 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
         ));
     }, [
         anchorDate,
-        days,
-        monthEnd,
-        monthStart,
-        navigateDate,
         navigationBoundaries,
-        rangeEnd,
-        rangeStart,
         setDate,
         timeZone
     ]);

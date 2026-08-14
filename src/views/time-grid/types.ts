@@ -6,9 +6,7 @@ import type {
 
 import type {
     CalendarComponents,
-    CalendarDateInput,
     CalendarEvent,
-    CalendarRange,
     CalendarRangeDefinition,
     CalendarResourceConfig,
     CalendarResourceId,
@@ -206,12 +204,6 @@ export interface TimeGridViewProps<
     resources?: CalendarResourceConfig<Event, Resource>;
     groupBy?: TimeGridGroupBy;
     range?: CalendarRangeDefinition;
-    navigationStep?: number;
-    navigateDate?: (
-        anchorDate: Date,
-        direction: -1 | 1,
-        range: CalendarRange
-    ) => CalendarDateInput;
     weekStart?: CalendarWeekStart;
     minTime?: TimeOfDay;
     maxTime?: TimeOfDay | "24:00";

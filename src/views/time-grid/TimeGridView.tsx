@@ -16,11 +16,7 @@ import {
     defaultCalendarFormatters,
     defaultCalendarMessages
 } from "../../core/localization.js";
-import {
-    getCalendarRangeBounds,
-    moveCalendarDate,
-    resolveCalendarRange
-} from "../../core/range.js";
+import { resolveCalendarRange } from "../../core/range.js";
 import {
     getCalendarNavigationState,
     normalizeCalendarNavigationBoundaries,
@@ -101,8 +97,6 @@ export default function TimeGridView<
     date: controlledDate,
     defaultDate,
     range = "week",
-    navigationStep,
-    navigateDate,
     weekStart: weekStartProp,
     minDate = null,
     maxDate = null,
@@ -148,10 +142,10 @@ export default function TimeGridView<
         timeZone,
         onDateChange
     });
-    const days = useMemo(() => resolveCalendarRange(range, anchorDate, {
+    const resolvedRange = useMemo(() => resolveCalendarRange(range, anchorDate, {
         weekStartsOn: weekStart
     }), [anchorDate, range, weekStart]);
-    const { start: rangeStart, end: rangeEnd } = getCalendarRangeBounds(days);
+    const { days, start: rangeStart, end: rangeEnd } = resolvedRange;
     const navigationBoundaries = useMemo(
         () => normalizeCalendarNavigationBoundaries(minDate, maxDate, timeZone),
         [maxDate, minDate, timeZone]
@@ -243,13 +237,6 @@ export default function TimeGridView<
     const formatContext = { locale: calendarLocale, view: viewName };
     const navigationContext = { view: viewName, range: calendarRange };
     const header = formatters.rangeHeader(calendarRange, formatContext);
-    const effectiveNavigationStep = navigationStep
-        ?? (range && typeof range === "object" && !Array.isArray(range)
-            ? range.navigationStep
-            : null)
-        ?? Math.max(1, Math.round(
-            (rangeEnd.getTime() - rangeStart.getTime()) / 86_400_000
-        ) + 1);
     const navigationState = getCalendarNavigationState({
         anchorDate,
         periodStart: rangeStart,
@@ -259,13 +246,7 @@ export default function TimeGridView<
     const canDropEvents = onEventDrop != null;
 
     const navigate = useCallback((direction: -1 | 1) => {
-        const nextDate = navigateDate
-            ? navigateDate(anchorDate, direction, {
-                days,
-                start: rangeStart,
-                end: rangeEnd
-            })
-            : moveCalendarDate(anchorDate, direction, effectiveNavigationStep);
+        const nextDate = resolvedRange.navigate(direction);
         setDate(resolveCalendarNavigationDate(
             anchorDate,
             nextDate,
@@ -274,12 +255,8 @@ export default function TimeGridView<
         ));
     }, [
         anchorDate,
-        days,
-        effectiveNavigationStep,
-        navigateDate,
         navigationBoundaries,
-        rangeEnd,
-        rangeStart,
+        resolvedRange,
         setDate,
         timeZone
     ]);

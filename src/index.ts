@@ -57,6 +57,7 @@ export type {
     CalendarRange,
     CalendarRangeContext,
     CalendarRangeDefinition,
+    CalendarRangeNavigation,
     CalendarRangeOptions,
     CalendarRendererElementProps,
     CalendarResourceConfig,
@@ -68,6 +69,7 @@ export type {
     CalendarViewDefinition,
     CalendarWeekStart,
     NormalizedCalendarEvent,
+    ResolvedCalendarRange,
     SharedViewProps
 } from "./types.js";
 export type {

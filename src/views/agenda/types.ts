@@ -2,9 +2,7 @@ import type { ComponentType } from "react";
 
 import type {
     CalendarComponents,
-    CalendarDateInput,
     CalendarEvent,
-    CalendarRange,
     CalendarRangeDefinition,
     CalendarRendererElementProps,
     CalendarWeekStart,
@@ -39,12 +37,6 @@ export interface AgendaComponents<Event extends CalendarEvent = CalendarEvent>
 export interface AgendaViewProps<Event extends CalendarEvent = CalendarEvent>
     extends SharedViewProps<Event> {
     range?: CalendarRangeDefinition;
-    navigationStep?: number;
-    navigateDate?: (
-        anchorDate: Date,
-        direction: -1 | 1,
-        range: CalendarRange
-    ) => CalendarDateInput;
     weekStart?: CalendarWeekStart;
     components?: AgendaComponents<Event>;
 }
