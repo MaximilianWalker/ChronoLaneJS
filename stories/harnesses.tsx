@@ -250,7 +250,7 @@ export function CustomTimeGridEvent({
             {...elementProps}
             type={interactive ? "button" : undefined}
             className={`${elementProps.className} story-event${selected ? " is-selected" : ""}`}
-            data-story-day-index={segment.dayIndex}
+            data-story-day={format(segment.day, "yyyy-MM-dd")}
         >
             <strong>{event.title}</strong>
             <span>{format(event.start, "HH:mm")}–{format(event.end, "HH:mm")}</span>
@@ -272,7 +272,7 @@ export function CustomSlot({
             {...elementProps}
             type={interactive ? "button" : undefined}
             className={`${elementProps.className} story-slot${selected ? " is-selected" : ""}`}
-            data-story-day-index={slot.dayIndex}
+            data-story-day={format(slot.day, "yyyy-MM-dd")}
         />
     );
 }
@@ -287,7 +287,7 @@ export function CustomBackground({
         <div
             {...elementProps}
             data-background-event-id={event.id}
-            data-story-day-index={segment.dayIndex}
+            data-story-day={format(segment.day, "yyyy-MM-dd")}
             style={{
                 ...elementProps.style,
                 backgroundImage: "repeating-linear-gradient(135deg, transparent 0 8px, rgba(15, 23, 42, 0.08) 8px 16px)"

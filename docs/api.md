@@ -379,9 +379,10 @@ agenda range when the visible unit requires custom navigation.
 
 ## Interaction and drop payloads
 
-<!-- api:TimeGridColumn TimeGridSlot TimeGridEventSegment TimeGridEventLayout TimeGridEventDropPosition TimeGridEventDrop -->
-<!-- props:TimeGridColumn key day dayIndex resource resourceId resourceIndex -->
-<!-- props:TimeGridSlot key start end duration timeIndex day dayIndex columnIndex resource resourceId isDividerBoundary -->
+<!-- api:TimeGridColumn TimeGridSlot TimeGridEventSegment TimeGridEventDropPosition TimeGridEventDrop -->
+<!-- props:TimeGridColumn day resource resourceId -->
+<!-- props:TimeGridSlot start end duration day resource resourceId -->
+<!-- props:TimeGridEventSegment start end day resource resourceId -->
 <!-- props:TimeGridEventDropPosition day resource resourceId -->
 <!-- props:TimeGridEventDrop event start end source destination -->
 
@@ -389,29 +390,42 @@ agenda range when the visible unit requires custom navigation.
 
 | Field | Meaning | Example |
 | --- | --- | --- |
-| `key` | Stable internal key for the visible day/resource combination. | `"2026-09-14::studio"` |
-| `day`, `dayIndex` | Normalized visible day and its zero-based range index. | `new Date(2026, 8, 14)`, `0` |
-| `resource`, `resourceId`, `resourceIndex` | Concrete resource data and identity, or `null` when resources are absent. | `{ id: "studio", name: "Studio" }`, `"studio"`, `0` |
+| `day` | Normalized visible day represented by the column. | `new Date(2026, 8, 14)` |
+| `resource` | Concrete resource item, or `null` when the grid has no resources. | `{ id: "studio", name: "Studio" }` |
+| `resourceId` | Stable resource identity, or `null` without resources. | `"studio"` |
 
 ### `TimeGridSlot<Resource>`
 
 | Field | Meaning | Example |
 | --- | --- | --- |
-| `key` | Stable key for the slot/column pair. | `"2026-09-14::studio::2"` |
 | `start`, `end` | Half-open wall-clock interval. | `09:00` through `09:30` on the owning day |
 | `duration` | Actual minutes; the last uneven slot may be shorter. | `30` |
-| `timeIndex` | Zero-based vertical slot index. | `2` |
-| `day`, `dayIndex` | Owning normalized day and its range index. | `new Date(2026, 8, 14)`, `0` |
-| `columnIndex` | Zero-based flattened day/resource column index. | `1` |
-| `resource`, `resourceId` | Concrete resource assignment and identity, or `null`. | `{ id: "studio" }`, `"studio"` |
-| `isDividerBoundary` | Whether a major label divider follows this slot. | `true` at an hourly boundary |
+| `day` | Normalized day owning the slot. | `new Date(2026, 8, 14)` |
+| `resource` | Concrete resource item, or `null` without resources. | `{ id: "studio", name: "Studio" }` |
+| `resourceId` | Stable resource identity, or `null` without resources. | `"studio"` |
 
-### `TimeGridEventSegment` and `TimeGridEventLayout`
+### `TimeGridEventSegment<Resource>`
 
-A segment contains the visible clipped boundary plus `event` (the complete
-source), day/column/resource context, and one-based CSS `startRow`/`endRow`.
-`TimeGridEventLayout` adds `laneIndex` and `laneCount` for overlaps. Consumers
-normally read these through renderer payloads rather than constructing them.
+| Field | Meaning | Example |
+| --- | --- | --- |
+| `start`, `end` | Visible half-open event interval after clipping to the day and time window. | `09:00` through `10:00` |
+| `day` | Normalized day owning this visible segment. | `new Date(2026, 8, 14)` |
+| `resource` | Concrete resource column item, or `null` without resources. | `{ id: "studio", name: "Studio" }` |
+| `resourceId` | Stable resource column identity, or `null` without resources. | `"studio"` |
+
+The complete normalized source event is the separate `event` renderer/callback
+argument. CSS rows, overlap lanes, generated keys, and flattened column indexes
+are private; the library supplies their effect through `elementProps`.
+
+### Export-surface migration
+
+| Removed public contract | Replacement |
+| --- | --- |
+| `TimeGridEventLayout` and segment row/lane/index fields | Use `TimeGridEventSegment` for semantic interval/resource data and spread the positioned `elementProps` in renderers. |
+| `TimeGridColumn.key`, `dayIndex`, and `resourceIndex` | Use `day`, `resource`, and `resourceId`; derive application-specific ordering from the `columns` array only when needed. |
+| `TimeGridSlot.key`, indexes, and divider state | Use `start`, `end`, `duration`, `day`, `resource`, and `resourceId`; slot placement and classes remain library-owned. |
+| `setDate` and `setTime` package exports | Pass `CalendarDateInput`, use the public normalization functions, or use the corresponding date-fns operation directly. |
+| `createCalendarRange`, `getCalendarRangeBounds`, and `moveCalendarDate` package exports | Describe the range with `CalendarRangeDefinition`; call `resolveCalendarRange` when custom view code needs resolved days/navigation. |
 
 ### `TimeGridEventDrop`
 
@@ -444,8 +458,8 @@ behavior owned by the library.
 <!-- props:TimeGridSlotProps slot selected elementProps -->
 <!-- props:TimeGridEventProps event segment selected elementProps -->
 <!-- props:TimeGridBackgroundEventProps event segment elementProps -->
-<!-- props:TimeGridDayHeaderProps day dayIndex columns title -->
-<!-- props:TimeGridResourceHeaderProps resource resourceId resourceIndex columns title -->
+<!-- props:TimeGridDayHeaderProps day columns title -->
+<!-- props:TimeGridResourceHeaderProps resource resourceId columns title -->
 <!-- props:AgendaComponents event dayHeader empty -->
 <!-- props:AgendaDayHeaderProps day label -->
 <!-- props:AgendaEventProps event timeLabel selected elementProps -->
@@ -468,11 +482,11 @@ include native HTML attributes such as `aria-label`, `onClick`, `onKeyDown`,
 | agenda `empty` | Prepared empty-state message. | `{ message: "No events in this range." }` |
 | month `event` | Complete normalized `event`, represented `day`, prepared `timeLabel`, selection state, and root props. | `{ event: planning, day: monday, timeLabel: "9:00 AM", selected: false, elementProps }` |
 | month `dayHeader` | Normalized `day`, prepared `label`, and whether it lies outside the active month. | `{ day: monday, label: "14", outsideMonth: false }` |
-| time-grid `event` | Complete normalized `event`, visible positioned `segment`, selection state, and root props. | `{ event: planning, segment: { dayIndex: 0, startRow: 3, endRow: 5, laneIndex: 0, laneCount: 2 }, selected: true, elementProps }` |
+| time-grid `event` | Complete normalized `event`, semantic visible `segment`, selection state, and positioned root props. | `{ event: planning, segment: { start: nine, end: ten, day: monday, resource: studio, resourceId: "studio" }, selected: true, elementProps }` |
 | time-grid `slot` | Complete slot, range-overlap selection state, and root props. | `{ slot: { start: nine, end: nineThirty, duration: 30, resourceId: "studio" }, selected: false, elementProps }` |
-| time-grid `backgroundEvent` | Complete normalized event, visible segment, and non-interactive root props. | `{ event: lunchClosure, segment: { dayIndex: 0, startRow: 9, endRow: 11 }, elementProps }` |
-| time-grid `dayHeader` | Normalized `day`, zero-based `dayIndex`, covered columns, and prepared string `title`. | `{ day: monday, dayIndex: 0, columns: [studioColumn], title: "Mon 14" }` |
-| time-grid `resourceHeader` | Concrete resource, identity/index, covered columns, and prepared React `title`. | `{ resource: studio, resourceId: "studio", resourceIndex: 0, columns: [studioColumn], title: "Studio" }` |
+| time-grid `backgroundEvent` | Complete normalized event, semantic visible segment, and non-interactive positioned root props. | `{ event: lunchClosure, segment: { start: noon, end: one, day: monday, resource: studio, resourceId: "studio" }, elementProps }` |
+| time-grid `dayHeader` | Normalized `day`, covered semantic columns, and prepared string `title`. | `{ day: monday, columns: [{ day: monday, resource: studio, resourceId: "studio" }], title: "Mon 14" }` |
+| time-grid `resourceHeader` | Concrete resource, its identity, covered semantic columns, and prepared React `title`. | `{ resource: studio, resourceId: "studio", columns: [studioColumn], title: "Studio" }` |
 
 ```tsx
 import type { TimeGridEventProps } from "@chronolanejs/react";
@@ -485,7 +499,7 @@ function MeetingEvent({ event, segment, selected, elementProps }: TimeGridEventP
         <Root
             {...elementProps}
             type={interactive ? "button" : undefined}
-            data-day-index={segment.dayIndex}
+            data-resource-id={segment.resourceId ?? undefined}
             aria-pressed={interactive ? selected : undefined}
         >
             <strong>{event.title}</strong>
@@ -567,7 +581,7 @@ the same name overrides a built-in for that `Calendar`.
 
 ## Date functions
 
-<!-- api:parseCalendarDate asCalendarDate toCalendarTimeZone calendarDateFromTimestamp setDate setTime -->
+<!-- api:parseCalendarDate asCalendarDate toCalendarTimeZone calendarDateFromTimestamp -->
 
 | Function | Signature summary | Result and errors | Example |
 | --- | --- | --- | --- |
@@ -575,8 +589,10 @@ the same name overrides a built-in for that `Calendar`.
 | `asCalendarDate` | `(input, timeZone?) => Date` | Parses, validates, and attaches a wall-clock zone. Throws `TypeError` when invalid. | `asCalendarDate("2026-09-14", "Europe/Lisbon")` |
 | `toCalendarTimeZone` | `(date, timeZone?) => Date` | Attaches an IANA zone while preserving visible fields; does not preserve the instant. | `toCalendarTimeZone(new Date(2026, 8, 14, 9), "Asia/Tokyo")` |
 | `calendarDateFromTimestamp` | `(milliseconds, timeZone?) => Date` | Preserves the instant and derives visible fields in the zone. | `calendarDateFromTimestamp(Date.now(), "UTC")` |
-| `setDate` | `(time, year=1970, month=0, day=1) => Date` | Replaces calendar fields without mutation. Month is zero-based. | `setDate(time, 2026, 8, 14)` |
-| `setTime` | `(date, hours=0, minutes=0, seconds=0, milliseconds=0) => Date` | Replaces time fields without mutation. | `setTime(day, 9, 30)` |
+
+Field-level date setters are implementation details. Consumers should pass
+`CalendarDateInput` values to components or use the normalization functions
+above when a concrete calendar `Date` is required.
 
 ## Locale functions
 
@@ -588,16 +604,18 @@ the same name overrides a built-in for that `Calendar`.
 | `loadCalendarLocale` | Loads and caches a supported named locale, or validates and resolves an object immediately. Concurrent loads share a promise. | `TypeError`, `RangeError`, or `Error` when dynamic import fails. | `await loadCalendarLocale("fr-FR")` |
 | `preloadCalendarLocale` | Alias of `loadCalendarLocale`, named for pre-render use. | same as above | `await preloadCalendarLocale("ja-JP")` |
 
-## Range functions
+## Range function
 
-<!-- api:createCalendarRange resolveCalendarRange getCalendarRangeBounds moveCalendarDate -->
+<!-- api:resolveCalendarRange -->
 
 | Function | Behavior | Errors | Example |
 | --- | --- | --- | --- |
-| `createCalendarRange` | Creates inclusive normalized days from valid `start` plus `end` or positive `dayCount`, then optionally filters. | `TypeError` for invalid boundaries; `RangeError` for invalid count/reversed range. | `createCalendarRange({ start, dayCount: 5 })` |
 | `resolveCalendarRange` | Resolves days and navigation into one `ResolvedCalendarRange`. The result exposes `start`, `end`, `days`, and `navigate(direction)`. | `TypeError` for unsupported/ambiguous definitions or invalid custom navigation; `RangeError` for empty/invalid ranges or steps. | `resolveCalendarRange("week", anchor, { weekStartsOn: 1 })` |
-| `getCalendarRangeBounds` | Returns first/last dates from a non-empty resolved array. | `RangeError` when empty. | `getCalendarRangeBounds(days)` |
-| `moveCalendarDate` | Adds positive integer days in direction `-1` or `1`. | `RangeError` for another direction or invalid step. | `moveCalendarDate(date, 1, 7)` |
+
+Range construction, bounds extraction, and movement helpers stay private.
+Consumers describe ranges with `CalendarRangeDefinition`; custom view code can
+call `resolveCalendarRange` when it needs the normalized days and navigation
+contract outside a built-in view.
 
 ## Error reference
 

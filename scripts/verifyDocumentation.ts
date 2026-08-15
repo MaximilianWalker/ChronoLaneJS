@@ -39,11 +39,20 @@ const entrySymbol = checker.getSymbolAtLocation(entry);
 assert.ok(entrySymbol, "The public package entry must have a module symbol.");
 
 const publicExports = checker.getExportsOfModule(entrySymbol).map(({ name }) => name);
+const publicExportNames = new Set(publicExports);
 const undocumentedExports = publicExports.filter((name) => !documentedExports.has(name));
 assert.deepEqual(
     undocumentedExports,
     [],
     `docs/api.md is missing public exports: ${undocumentedExports.join(", ")}`
+);
+const staleExports = [...documentedExports]
+    .filter((name) => !publicExportNames.has(name))
+    .sort();
+assert.deepEqual(
+    staleExports,
+    [],
+    `docs/api.md documents non-public exports: ${staleExports.join(", ")}`
 );
 
 const publicProperties = new Set<string>();
@@ -69,6 +78,14 @@ assert.deepEqual(
     undocumentedProps,
     [],
     `docs/api.md is missing public properties: ${undocumentedProps.join(", ")}`
+);
+const staleProps = [...documentedProps]
+    .filter((property) => !publicProperties.has(property))
+    .sort();
+assert.deepEqual(
+    staleProps,
+    [],
+    `docs/api.md documents non-public properties: ${staleProps.join(", ")}`
 );
 
 const markdownFiles = [

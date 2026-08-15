@@ -1,8 +1,7 @@
 import type { CalendarResourceId } from "../../../types.js";
-import type {
-    TimeGridColumn,
-    TimeGridGroupBy
-} from "../types.js";
+import { toTimeGridColumn } from "../contracts.js";
+import type { TimeGridColumn, TimeGridGroupBy } from "../types.js";
+import type { LayoutColumn } from "./types.js";
 
 interface TimeGridHeaderCellBase<Resource> {
     key: string;
@@ -36,15 +35,15 @@ export interface TimeGridHeaderRows<Resource = unknown> {
 
 interface ColumnGroup<Resource> {
     columnIndex: number;
-    columns: TimeGridColumn<Resource>[];
+    columns: LayoutColumn<Resource>[];
 }
 
 /** Groups adjacent columns that share the selected outer dimension. */
 const groupColumns = <Resource>(
-    columns: TimeGridColumn<Resource>[],
+    columns: LayoutColumn<Resource>[],
     belongsToGroup: (
-        first: TimeGridColumn<Resource>,
-        next: TimeGridColumn<Resource>
+        first: LayoutColumn<Resource>,
+        next: LayoutColumn<Resource>
     ) => boolean
 ): ColumnGroup<Resource>[] => {
     const groups: ColumnGroup<Resource>[] = [];
@@ -75,7 +74,7 @@ const createDayCell = <Resource>({
         kind: "day",
         key: `day-${column.day.getTime()}-${columnIndex}`,
         columnIndex,
-        columns,
+        columns: columns.map(toTimeGridColumn),
         day: column.day,
         dayIndex: column.dayIndex
     };
@@ -99,7 +98,7 @@ const createResourceCell = <Resource>({
         kind: "resource",
         key: `resource-${typeof column.resourceId}-${column.resourceId}-${columnIndex}`,
         columnIndex,
-        columns,
+        columns: columns.map(toTimeGridColumn),
         resource: column.resource as Resource,
         resourceId: column.resourceId,
         resourceIndex: column.resourceIndex
@@ -108,7 +107,7 @@ const createResourceCell = <Resource>({
 
 /** Builds hierarchical header rows aligned with the ordered grid columns. */
 export const createTimeGridHeaderRows = <Resource>(
-    columns: TimeGridColumn<Resource>[],
+    columns: LayoutColumn<Resource>[],
     groupBy: TimeGridGroupBy
 ): TimeGridHeaderRows<Resource> => {
     const hasResources = columns.some(({ resourceId }) => resourceId != null);

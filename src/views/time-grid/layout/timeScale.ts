@@ -1,12 +1,12 @@
 import { addDays } from "date-fns/addDays";
 
 import { setTime } from "../../../core/date.js";
+import type { TimeOfDay } from "../types.js";
 import type {
-    TimeGridColumn,
-    TimeGridDivider,
-    TimeGridSlot,
-    TimeOfDay
-} from "../types.js";
+    LayoutColumn,
+    LayoutDivider,
+    LayoutSlot
+} from "./types.js";
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const MILLISECONDS_PER_DAY = 86_400_000;
@@ -105,15 +105,15 @@ export const getGridRows = (
 
 interface CreateTimeScaleOptions<Resource> {
     firstDay: Date;
-    columns: TimeGridColumn<Resource>[];
+    columns: LayoutColumn<Resource>[];
     timeWindow: ResolvedTimeWindow;
     slotDuration: number;
     labelInterval: number;
 }
 
 interface TimeScale<Resource> {
-    slots: TimeGridSlot<Resource>[];
-    dividers: TimeGridDivider[];
+    slots: LayoutSlot<Resource>[];
+    dividers: LayoutDivider[];
     totalMinutes: number;
 }
 

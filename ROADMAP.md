@@ -174,11 +174,13 @@ Last reviewed: 2026-08-15
   - Resource columns are already a capability of every time-grid range.
   - Remove `ResourceView` and the `resource` view name; document resources on
     day, week, and custom time-grid ranges.
-- [ ] **[P1][API-12] Audit the package export surface.**
-  - Export only stable consumer contracts.
-  - Keep layout-only fields such as rows, lanes, and column indexes private
-    unless a renderer explicitly needs them.
-  - Add an API report so accidental exports become reviewable changes.
+- [x] **[P1][API-12] Audit the package export surface.**
+  - The root entry exports stable normalization, locale, view, and renderer
+    contracts; low-level date/range construction helpers stay internal.
+  - Renderer payloads expose semantic dates, intervals, and resource identity;
+    generated keys, rows, lanes, and indexes stay inside time-grid layout code.
+  - A committed API Extractor report, exact runtime export allowlist, and
+    bidirectional docs verification make accidental surface drift fail checks.
 - [ ] **[P2][API-13] Accept readonly consumer collections.**
   - Events, background events, resources, selected IDs, and explicit range
     days should accept readonly arrays without requiring copies.

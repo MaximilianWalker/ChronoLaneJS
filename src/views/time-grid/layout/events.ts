@@ -4,16 +4,16 @@ import type {
     CalendarResourceId,
     NormalizedCalendarEvent
 } from "../../../types.js";
-import type {
-    TimeGridColumn,
-    TimeGridEventLayout,
-    TimeGridEventSegment
-} from "../types.js";
 import {
     atDayMinute,
     getGridRows
 } from "./timeScale.js";
 import type { ResolvedTimeWindow } from "./timeScale.js";
+import type {
+    LayoutColumn,
+    LayoutEvent,
+    LayoutEventSegment
+} from "./types.js";
 
 const EMPTY_RESOURCE_IDS = new Set<CalendarResourceId>();
 
@@ -22,7 +22,7 @@ interface CreateEventSegmentsOptions<
     Resource
 > {
     events: NormalizedCalendarEvent<Event>[];
-    columns: TimeGridColumn<Resource>[];
+    columns: LayoutColumn<Resource>[];
     timeWindow: ResolvedTimeWindow;
     getEventIds: (
         event: NormalizedCalendarEvent<Event>
@@ -32,7 +32,7 @@ interface CreateEventSegmentsOptions<
 /** Tests whether an event's resource assignments include a grid column. */
 const belongsToColumn = <Resource>(
     eventResourceIds: Set<CalendarResourceId>,
-    column: TimeGridColumn<Resource>
+    column: LayoutColumn<Resource>
 ): boolean => (
     column.resourceId == null || eventResourceIds.has(column.resourceId)
 );
@@ -52,7 +52,7 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
     columns,
     timeWindow,
     getEventIds
-}: CreateEventSegmentsOptions<Event, Resource>): TimeGridEventSegment<Event, Resource>[] => {
+}: CreateEventSegmentsOptions<Event, Resource>): LayoutEventSegment<Event, Resource>[] => {
     const resourceIdsByEvent = columns.some(({ resourceId }) => resourceId != null)
         ? new Map(events.map((event) => [event, getEventIds(event)]))
         : null;
@@ -85,7 +85,7 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
                 dayIndex: column.dayIndex,
                 columnIndex,
                 resource: column.resource,
-                columnResourceId: column.resourceId,
+                resourceId: column.resourceId,
                 resourceIndex: column.resourceIndex,
                 ...getGridRows(
                     visibleStart,
@@ -109,18 +109,18 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
  * @returns Event segments augmented with lane indexes and cluster lane counts.
  */
 export const assignEventLanes = <Event extends CalendarEvent, Resource>(
-    events: TimeGridEventSegment<Event, Resource>[],
+    events: LayoutEventSegment<Event, Resource>[],
     columnCount: number
-): TimeGridEventLayout<Event, Resource>[] => {
+): LayoutEvent<Event, Resource>[] => {
     const eventsByColumn = Array.from(
         { length: columnCount },
-        () => [] as TimeGridEventSegment<Event, Resource>[]
+        () => [] as LayoutEventSegment<Event, Resource>[]
     );
     events.forEach((event) => eventsByColumn[event.columnIndex]?.push(event));
 
     return eventsByColumn.flatMap((columnEvents) => {
-        const eventsWithLanes: TimeGridEventLayout<Event, Resource>[] = [];
-        let cluster: Array<TimeGridEventSegment<Event, Resource> & { laneIndex: number }> = [];
+        const eventsWithLanes: LayoutEvent<Event, Resource>[] = [];
+        let cluster: Array<LayoutEventSegment<Event, Resource> & { laneIndex: number }> = [];
         let clusterEnd = -1;
         let laneEnds: number[] = [];
 

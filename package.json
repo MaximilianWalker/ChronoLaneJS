@@ -48,8 +48,10 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json",
-    "check": "npm run locales:check && npm run docs:check && npm run release:verify && npm run test && npm run test:timezones && npm run types:check && npm run types:test && npm run lint && npm run build && npm run package:verify",
+    "api:check": "npm run types:build && api-extractor run",
+    "api:report": "npm run types:build && api-extractor run --local",
+    "build": "vite build && npm run types:build",
+    "check": "npm run locales:check && npm run docs:check && npm run release:verify && npm run test && npm run test:timezones && npm run types:check && npm run types:test && npm run lint && npm run build && npm run api:check && npm run package:verify",
     "dev": "vite build --watch",
     "docs:check": "tsx scripts/verifyDocumentation.ts",
     "examples:check": "npm run build && npm ci --prefix examples/vite && npm run build --prefix examples/vite && npm ci --prefix examples/next && npm run build --prefix examples/next",
@@ -61,6 +63,7 @@
     "release:verify": "node scripts/verifyRelease.mjs",
     "test": "node --import tsx --no-warnings --test \"test/**/*.test.ts\"",
     "test:timezones": "tsx scripts/verifyTimezones.ts",
+    "types:build": "tsc -p tsconfig.build.json",
     "types:check": "tsc -p tsconfig.json",
     "types:test": "tsc -p tsconfig.types-test.json",
     "types:check:storybook": "tsc -p tsconfig.storybook.json",
@@ -83,6 +86,7 @@
   "devDependencies": {
     "@date-fns/tz": "^1.5.0",
     "@eslint/js": "^10.0.1",
+    "@microsoft/api-extractor": "^7.58.12",
     "@storybook/addon-a11y": "^10.5.7",
     "@storybook/addon-docs": "^10.5.7",
     "@storybook/addon-vitest": "^10.5.7",

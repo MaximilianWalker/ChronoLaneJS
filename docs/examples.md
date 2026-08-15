@@ -180,7 +180,7 @@ function ProductEvent({ event, segment, selected, elementProps }: TimeGridEventP
             {...elementProps}
             type={interactive ? "button" : undefined}
             className={`${elementProps.className} product-event`}
-            data-resource-id={segment.columnResourceId ?? undefined}
+            data-resource-id={segment.resourceId ?? undefined}
             aria-pressed={interactive ? selected : undefined}
         >
             <strong>{event.title}</strong>
@@ -195,7 +195,8 @@ function ProductEvent({ event, segment, selected, elementProps }: TimeGridEventP
 />
 ```
 
-Use `event` for application identity and `segment` for visible layout context.
+Use `event` for application identity and `segment` for the clipped interval,
+day, and resource context. Positioning stays in `elementProps`.
 Always spread `elementProps`; see [Accessibility](./accessibility.md).
 
 ## Interaction state updates

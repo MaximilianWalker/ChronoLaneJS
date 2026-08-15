@@ -23,6 +23,14 @@ import type {
     TimeGridSlotProps
 } from "../../src/index.js";
 
+// @ts-expect-error Low-level range construction stays package-private.
+import { createCalendarRange } from "../../src/index.js";
+// @ts-expect-error Layout models stay package-private.
+import type { TimeGridEventLayout } from "../../src/index.js";
+
+void createCalendarRange;
+void (undefined as unknown as TimeGridEventLayout);
+
 interface ProjectEvent extends CalendarEvent {
     id: string;
     category: "meeting" | "focus";
@@ -96,9 +104,11 @@ const ProjectEventRenderer = ({
     elementProps
 }: TimeGridEventProps<ProjectEvent, ProjectResource>) => {
     void event.category;
-    void segment.dayIndex;
-    void segment.columnResourceId;
+    void segment.day;
+    void segment.resourceId;
     void segment.resource?.name;
+    // @ts-expect-error CSS row placement is private layout state.
+    void segment.startRow;
     void selected;
     void elementProps.onClick;
     return null;
@@ -109,9 +119,11 @@ const ProjectSlotRenderer = ({
     selected,
     elementProps
 }: TimeGridSlotProps<ProjectResource>) => {
-    void slot.dayIndex;
+    void slot.day;
     void slot.resourceId;
     void slot.resource?.name;
+    // @ts-expect-error CSS column placement is private layout state.
+    void slot.columnIndex;
     void selected;
     void elementProps.style;
     return null;
@@ -119,13 +131,13 @@ const ProjectSlotRenderer = ({
 
 const ProjectDayHeader = ({
     day,
-    dayIndex,
     columns,
     title
 }: TimeGridDayHeaderProps<ProjectResource>) => {
     void day;
-    void dayIndex;
     void columns[0]?.resource?.name;
+    // @ts-expect-error Generated keys are private layout state.
+    void columns[0]?.key;
     void title;
     return null;
 };
@@ -133,14 +145,12 @@ const ProjectDayHeader = ({
 const ProjectResourceHeader = ({
     resource,
     resourceId,
-    resourceIndex,
     columns,
     title
 }: TimeGridResourceHeaderProps<ProjectResource>) => {
     void resource.name;
     void resourceId;
-    void resourceIndex;
-    void columns[0]?.dayIndex;
+    void columns[0]?.day;
     void title;
     return null;
 };

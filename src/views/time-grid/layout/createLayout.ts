@@ -9,24 +9,20 @@ import {
     resolveCalendarResources
 } from "../resources.js";
 import type { ResolvedCalendarResource } from "../resources.js";
-import type {
-    TimeGridColumn,
-    TimeGridGroupBy,
-    TimeGridLayout,
-    TimeOfDay
-} from "../types.js";
+import type { TimeGridGroupBy, TimeOfDay } from "../types.js";
 import { assignEventLanes, createEventSegments } from "./events.js";
 import {
     createTimeScale,
     resolveTimeWindow
 } from "./timeScale.js";
+import type { LayoutColumn, TimeGridLayout } from "./types.js";
 
 /** Builds one column per day, or an ordered day-resource cross product. */
 const createColumns = <Resource>(
     days: Date[],
     resources: ResolvedCalendarResource<Resource>[],
     groupBy: TimeGridGroupBy
-): TimeGridColumn<Resource>[] => {
+): LayoutColumn<Resource>[] => {
     if (resources.length === 0) {
         return days.map((day, dayIndex) => ({
             key: `${day.getTime()}`,
@@ -43,7 +39,7 @@ const createColumns = <Resource>(
         dayIndex: number,
         { id, item }: ResolvedCalendarResource<Resource>,
         resourceIndex: number
-    ): TimeGridColumn<Resource> => ({
+    ): LayoutColumn<Resource> => ({
         key: `${day.getTime()}-${typeof id}-${id}`,
         day,
         dayIndex,
