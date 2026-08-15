@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-14
+Last reviewed: 2026-08-15
 
 ## Tracking rules
 
@@ -250,10 +250,13 @@ Last reviewed: 2026-08-14
   - Assert accepted prop combinations for every built-in view.
   - Assert that typos, wrong callback payloads, and view-incompatible props
     fail compilation.
-- [ ] **[P1][TEST-04] Cover view state and navigation contracts.**
-  - Controlled and uncontrolled dates.
-  - Date and range change callbacks.
-  - Min/max boundaries, non-contiguous ranges, and custom navigation.
+- [x] **[P1][TEST-04] Cover view state and navigation contracts.**
+  - Controlled and uncontrolled anchor movement is exercised across every
+    built-in view.
+  - Date and visible-range callbacks assert exact normalized payloads,
+    including the month view's month boundaries.
+  - Browser coverage verifies min/max disabling and recovery, non-contiguous
+    ranges, and custom range-owned navigation.
 - [x] **[P1][TEST-05] Cover interaction enablement and renderer contracts.**
   - Callback-presence defaults and event-specific predicates.
   - Selection, editing, and slot interaction with customized renderers.

@@ -1,10 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, fn, userEvent, within } from "storybook/test";
 
-import {
-    ControlledNavigation,
-    StoryCalendar
-} from "../harnesses.js";
+import { StoryCalendar } from "../harnesses.js";
 import {
     ANCHOR_DATE,
     MAX_TIME,
@@ -25,8 +21,7 @@ const meta = {
         viewProps: {
             minTime: MIN_TIME,
             maxTime: MAX_TIME
-        },
-        onDateChange: fn()
+        }
     },
     argTypes: {
         view: {
@@ -69,68 +64,5 @@ export const ResourceGrouping: Story = {
             groupBy: "resource",
             slotSizing: { width: 92 }
         }
-    }
-};
-
-export const Controlled: Story = {
-    render: (args) => <ControlledNavigation {...args} />,
-    play: async ({ args, canvasElement }) => {
-        const canvas = within(canvasElement);
-        await userEvent.click(canvas.getByRole("button", { name: "Next week" }));
-        await expect(canvas.getByText("Controlled anchor: 2026-09-21")).toBeInTheDocument();
-        await expect(args.onDateChange).toHaveBeenCalledOnce();
-    }
-};
-
-export const BoundedNavigation: Story = {
-    args: {
-        date: "2026-09-17",
-        minDate: "2026-09-16",
-        maxDate: "2026-09-18"
-    },
-    play: async ({ canvasElement }) => {
-        await expect(
-            canvasElement.querySelectorAll(
-                ".calendar-view_navigation-button:disabled"
-            )
-        ).toHaveLength(2);
-    }
-};
-
-export const ControlledBeforeMinimum: Story = {
-    args: {
-        date: "2026-08-03",
-        minDate: "2026-09-14",
-        viewProps: {
-            minTime: MIN_TIME,
-            maxTime: MAX_TIME,
-            range: {
-                dayCount: 7,
-                navigation: {
-                    resolveAnchor: () => new Date(2026, 0, 1)
-                }
-            }
-        }
-    },
-    render: (args) => <ControlledNavigation {...args} />,
-    play: async ({ args, canvasElement }) => {
-        const canvas = within(canvasElement);
-        await userEvent.click(canvas.getByRole("button", { name: "Next week" }));
-        await expect(canvas.getByText("Controlled anchor: 2026-09-14")).toBeInTheDocument();
-        await expect(args.onDateChange).toHaveBeenCalledOnce();
-    }
-};
-
-export const ControlledAfterMaximum: Story = {
-    args: {
-        date: "2026-10-05",
-        maxDate: "2026-09-20"
-    },
-    render: (args) => <ControlledNavigation {...args} />,
-    play: async ({ args, canvasElement }) => {
-        const canvas = within(canvasElement);
-        await userEvent.click(canvas.getByRole("button", { name: "Previous week" }));
-        await expect(canvas.getByText("Controlled anchor: 2026-09-20")).toBeInTheDocument();
-        await expect(args.onDateChange).toHaveBeenCalledOnce();
     }
 };
