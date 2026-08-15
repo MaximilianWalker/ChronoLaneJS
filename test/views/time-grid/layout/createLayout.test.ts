@@ -377,7 +377,7 @@ test("matches typed IDs by value and deduplicates event assignments", () => {
     });
 
     assert.deepEqual(
-        layout.events.map(({ columnResourceId }) => columnResourceId),
+        layout.events.map(({ resourceId }) => resourceId),
         [1]
     );
 });

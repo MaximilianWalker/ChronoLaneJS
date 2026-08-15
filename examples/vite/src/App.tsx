@@ -71,7 +71,7 @@ function MeetingRenderer({
             type={interactive ? "button" : undefined}
             className={`${elementProps.className} example-event`}
             aria-pressed={interactive ? selected : undefined}
-            data-resource-id={segment.columnResourceId ?? undefined}
+            data-resource-id={segment.resourceId ?? undefined}
         >
             <strong>{event.title}</strong>
             <span>{event.owner}</span>

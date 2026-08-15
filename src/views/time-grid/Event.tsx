@@ -23,11 +23,7 @@ export default function Event({
             type={isInteractive ? "button" : undefined}
             className={`${elementProps.className}${selected ? " is-selected" : ""} ${event.variant ?? "default"}`}
             data-event-id={event.id}
-            data-day-index={segment.dayIndex}
-            data-column-index={segment.columnIndex}
-            data-lane-index={segment.laneIndex}
-            data-lane-count={segment.laneCount}
-            data-resource-id={segment.columnResourceId ?? undefined}
+            data-resource-id={segment.resourceId ?? undefined}
         >
             <div className="time-grid-view_event-color-bar" />
             <div className="time-grid-view_event-content">

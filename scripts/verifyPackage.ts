@@ -19,14 +19,35 @@ const {
 
 const bundle = await readFile(new URL("../dist/index.js", import.meta.url), "utf8");
 const styles = await readFile(new URL("../dist/chronolanejs.css", import.meta.url), "utf8");
+const runtimeExports = [
+    "AgendaView",
+    "DEFAULT_CALENDAR_LOCALE",
+    "DayView",
+    "MonthView",
+    "TimeGridView",
+    "WeekView",
+    "asCalendarDate",
+    "calendarDateFromTimestamp",
+    "calendarLocaleNames",
+    "default",
+    "defaultCalendarFormatters",
+    "defaultCalendarMessages",
+    "defaultCalendarViews",
+    "loadCalendarLocale",
+    "parseCalendarDate",
+    "preloadCalendarLocale",
+    "resolveCalendarLocaleName",
+    "resolveCalendarRange",
+    "toCalendarTimeZone"
+];
 
 assert.match(bundle, /^"use client";/);
 assert.doesNotMatch(bundle, /next\/dynamic|@mui|uni-sync/);
 assert.match(styles, /\.time-grid-view/);
+assert.deepEqual(Object.keys(packageModule).sort(), runtimeExports);
 assert.equal(parseCalendarDate("2026-09-01").getDate(), 1);
 assert.equal(typeof DayView, "function");
 assert.equal(typeof TimeGridView, "function");
-assert.equal("ResourceView" in packageModule, false);
 assert.equal("resource" in defaultCalendarViews, false);
 assert.equal(typeof defaultCalendarFormatters.time, "function");
 assert.equal(typeof defaultCalendarMessages.eventLabel, "function");

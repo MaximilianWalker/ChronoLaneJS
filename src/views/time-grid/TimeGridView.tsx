@@ -29,20 +29,21 @@ import type {
     CalendarStyle
 } from "../../types.js";
 import Background from "./Background.js";
+import {
+    toTimeGridEventSegment,
+    toTimeGridSlot
+} from "./contracts.js";
 import DayHeader from "./DayHeader.js";
 import { createEventDrop } from "./drop.js";
 import Event from "./Event.js";
 import { createLayout } from "./layout/createLayout.js";
 import { createTimeGridHeaderRows } from "./layout/headers.js";
+import type { LayoutEvent, LayoutSlot } from "./layout/types.js";
 import ResourceHeader from "./ResourceHeader.js";
 import { resolveCalendarResourceTitle } from "./resources.js";
 import { resolveSlotDimension } from "./sizing.js";
 import Slot from "./Slot.js";
-import type {
-    TimeGridEventLayout,
-    TimeGridSlot as TimeGridSlotValue,
-    TimeGridViewProps
-} from "./types.js";
+import type { TimeGridViewProps } from "./types.js";
 
 const EMPTY_ITEMS: never[] = [];
 const EMPTY_COMPONENTS = Object.freeze({});
@@ -55,7 +56,7 @@ const percentage = (value: number): number => Number(value.toFixed(6));
 const getLaneStyle = ({
     laneIndex,
     laneCount
-}: Pick<TimeGridEventLayout, "laneIndex" | "laneCount">): CalendarStyle => {
+}: Pick<LayoutEvent, "laneIndex" | "laneCount">): CalendarStyle => {
     const laneWidth = 100 / laneCount;
 
     return {
@@ -132,7 +133,7 @@ export default function TimeGridView<
         navigation: NavigationComponent
     } = components;
     const [draggedEvent, setDraggedEvent] = useState<
-        TimeGridEventLayout<Event, Resource> | null
+        LayoutEvent<Event, Resource> | null
     >(null);
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
@@ -267,7 +268,7 @@ export default function TimeGridView<
 
     const handleDrop = useCallback((
         interaction: DragEvent<HTMLElement>,
-        slot: TimeGridSlotValue<Resource>
+        slot: LayoutSlot<Resource>
     ) => {
         interaction.preventDefault();
         if (!draggedEvent || !onEventDrop) return;
@@ -327,7 +328,6 @@ export default function TimeGridView<
                                     ? (
                                         <DayHeaderComponent
                                             day={headerCell.day}
-                                            dayIndex={headerCell.dayIndex}
                                             columns={headerCell.columns}
                                             title={formatters.dayHeader(
                                                 headerCell.day,
@@ -339,7 +339,6 @@ export default function TimeGridView<
                                         <ResourceHeaderComponent
                                             resource={headerCell.resource}
                                             resourceId={headerCell.resourceId}
-                                            resourceIndex={headerCell.resourceIndex}
                                             columns={headerCell.columns}
                                             title={resolveCalendarResourceTitle(
                                                 resources,
@@ -382,20 +381,28 @@ export default function TimeGridView<
                         }}
                     >
                         {slots.map((slot) => {
+                            const rendererSlot = toTimeGridSlot(slot);
                             const selected = calendarSelectedRange
                                 && calendarSelectedRange.start < slot.end
                                 && calendarSelectedRange.end > slot.start;
                             const handleSelect = onSlotSelect
-                                ? (interaction: SyntheticEvent) => onSlotSelect(slot, interaction)
+                                ? (interaction: SyntheticEvent) => onSlotSelect(
+                                    rendererSlot,
+                                    interaction
+                                )
                                 : undefined;
 
                             return (
                                 <SlotComponent
                                     key={`${slot.key}-slot`}
-                                    slot={slot}
+                                    slot={rendererSlot}
                                     selected={Boolean(selected)}
                                     elementProps={{
-                                        className: "time-grid-view_slot",
+                                        className: `time-grid-view_slot${slot.columnIndex === 0
+                                            ? " is-first-column"
+                                            : ""}${slot.isDividerBoundary
+                                            ? " is-divider-boundary"
+                                            : ""}`,
                                         "aria-label": handleSelect
                                             ? messages.slotLabel({
                                                 view: viewName,
@@ -429,23 +436,27 @@ export default function TimeGridView<
                                     gridTemplateRows: gridRows
                                 }}
                             >
-                                {(backgroundEventsByColumn[columnIndex] ?? []).map((segment) => (
-                                    <BackgroundEventComponent
-                                        key={`${segment.id ?? "background"}-${segment.start.getTime()}-${columnIndex}`}
-                                        event={segment.event}
-                                        segment={segment}
-                                        elementProps={{
-                                            className: "time-grid-view_background-event",
-                                            "aria-hidden": true,
-                                            style: {
-                                                "--color": segment.event.color,
-                                                gridColumn: "1 / 2",
-                                                gridRow: `${segment.startRow} / ${segment.endRow}`,
-                                                ...segment.event.style
-                                            }
-                                        }}
-                                    />
-                                ))}
+                                {(backgroundEventsByColumn[columnIndex] ?? []).map((segment) => {
+                                    const rendererSegment = toTimeGridEventSegment(segment);
+
+                                    return (
+                                        <BackgroundEventComponent
+                                            key={`${segment.id ?? "background"}-${segment.start.getTime()}-${columnIndex}`}
+                                            event={segment.event}
+                                            segment={rendererSegment}
+                                            elementProps={{
+                                                className: "time-grid-view_background-event",
+                                                "aria-hidden": true,
+                                                style: {
+                                                    "--color": segment.event.color,
+                                                    gridColumn: "1 / 2",
+                                                    gridRow: `${segment.startRow} / ${segment.endRow}`,
+                                                    ...segment.event.style
+                                                }
+                                            }}
+                                        />
+                                    );
+                                })}
                             </div>
                         ))}
                         {columns.map((column, columnIndex) => (
@@ -463,8 +474,9 @@ export default function TimeGridView<
                             >
                                 {(eventsByColumn[columnIndex] ?? []).map((segment) => {
                                     const { event } = segment;
+                                    const rendererSegment = toTimeGridEventSegment(segment);
                                     const draggable = canDropEvents
-                                        && (canDragEvent?.(event, segment) ?? true);
+                                        && (canDragEvent?.(event, rendererSegment) ?? true);
                                     const interactionProps = createEventInteractionProps({
                                         event,
                                         onEventSelect,
@@ -484,7 +496,7 @@ export default function TimeGridView<
                                         <EventComponent
                                             key={`${event.id ?? event.title ?? "event"}-${segment.start.getTime()}-${segment.end.getTime()}-${columnIndex}`}
                                             event={event}
-                                            segment={segment}
+                                            segment={rendererSegment}
                                             selected={selected}
                                             elementProps={{
                                                 className: "time-grid-view_event",

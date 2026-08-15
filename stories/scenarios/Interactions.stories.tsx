@@ -307,12 +307,12 @@ export const CustomRendererSelection: Story = {
         const slot = canvas.getByRole("button", { name: /Calendar slot.*10:00/i });
 
         await expect(event).toHaveClass("story-event");
-        await expect(event).toHaveAttribute("data-story-day-index", "0");
+        await expect(event).toHaveAttribute("data-story-day", "2026-09-14");
         await userEvent.click(event);
         await expect(args.onEventSelect).toHaveBeenCalledOnce();
 
         await expect(slot).toHaveClass("story-slot");
-        await expect(slot).toHaveAttribute("data-story-day-index", "0");
+        await expect(slot).toHaveAttribute("data-story-day", "2026-09-14");
         await userEvent.click(slot);
         await expect(getTimeGridViewProps(args)?.onSlotSelect).toHaveBeenCalledOnce();
     }

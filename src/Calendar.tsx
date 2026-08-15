@@ -36,7 +36,7 @@ const EMPTY_VIEWS: CalendarViewRegistry = Object.freeze({});
 /** A component or component definition registered under an application view name. */
 export type CalendarViewRegistration = ElementType | CalendarViewDefinition;
 
-/** Application-defined views accepted by the root {@link Calendar} component. */
+/** Application-defined views accepted by the root `Calendar` component. */
 export type CalendarViewRegistry = Record<string, CalendarViewRegistration>;
 
 interface CalendarRootProps {
@@ -141,7 +141,7 @@ type StrictUnion<Union, All = Union> = Union extends Union
     : never;
 
 /**
- * Props accepted by the root {@link Calendar} component.
+ * Props accepted by the root `Calendar` component.
  *
  * @remarks
  * Built-in views form a discriminated union keyed by `view`; omitting `view`

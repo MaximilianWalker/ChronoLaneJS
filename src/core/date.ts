@@ -79,7 +79,7 @@ export function toCalendarTimeZone(value: Date, timeZone?: string): Date {
 /**
  * Creates a calendar date for an absolute timestamp.
  *
- * Unlike {@link toCalendarTimeZone}, this preserves the represented instant
+ * Unlike `toCalendarTimeZone`, this preserves the represented instant
  * and derives the visible fields in the requested time zone.
  *
  * @param timestamp - Milliseconds since the Unix epoch.

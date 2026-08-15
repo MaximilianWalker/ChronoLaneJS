@@ -42,10 +42,19 @@ development, `npm run storybook:test` for the Chromium and Firefox suites, and
 The GitHub Pages website renders `README.md`, `DEVELOPMENT.md`, `ROADMAP.md`,
 `SECURITY.md`, and every file under `docs/` directly, so update the canonical
 Markdown instead of adding site-only documentation. Public exports and props
-must be present in `docs/api.md`; `npm run docs:check` enforces that coverage.
+must be present in `docs/api.md`; `npm run docs:check` rejects both missing and
+stale export or prop entries. The built package runtime is also checked against
+an exact export allowlist so implementation helpers cannot appear silently.
 Runnable Vite and Next.js integrations live under `examples/` and are validated
 with `npm run examples:check`. Run `npm run site` to preview the website and
 compact playground, or `npm run site:build` to verify its production output.
+
+The generated declaration contract is committed as
+`etc/chronolanejs.api.md`. After an intentional public type or signature
+change, run `npm run api:report` and review the report diff. `npm run api:check`
+regenerates declarations without accepting changes and fails when the committed
+report has drifted; the complete `npm run check` workflow includes this gate.
+The report is generated output and must not be edited by hand.
 
 Document and agree the contract before starting a breaking API or architectural
 change so the implementation has an explicit decision record.
