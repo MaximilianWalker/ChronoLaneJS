@@ -46,7 +46,7 @@ import Slot from "./Slot.js";
 import type { TimeGridViewProps } from "./types.js";
 
 const EMPTY_ITEMS: never[] = [];
-const EMPTY_COMPONENTS = Object.freeze({});
+const EMPTY_COMPONENTS = /* @__PURE__ */ Object.freeze({});
 const DEFAULT_SLOT_HEIGHT = 50;
 
 /** Rounds percentages to stable CSS values without visible precision noise. */

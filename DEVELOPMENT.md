@@ -48,8 +48,9 @@ stale export or prop entries. The built package runtime is also checked against
 an exact export allowlist so implementation helpers cannot appear silently.
 Runnable Vite and Next.js integrations live under `examples/` as independent
 consumer packages. `npm run check` validates the publishable root package;
-`npm run examples:check` installs each consumer's locked dependencies, lints
-both applications, and production-builds them against the package. Run
+`npm run examples:check` packs one artifact, installs that exact tarball into
+temporary clean copies of both consumers, verifies the public package boundary,
+and production-builds both applications. Run
 `npm run site` to preview the website and compact playground, or
 `npm run site:build` to verify its production output.
 
@@ -135,21 +136,17 @@ Git tags and the npm registry are the canonical version history;
 semantic-release does not commit generated version changes back to the
 repository.
 
-The workflow is deliberately inactive until the repository variable
-`NPM_RELEASES_ENABLED` equals `true`. After every remaining P0 gate passes:
+The release bootstrap is complete. `0.1.0-rc.0` was published manually under
+the `next` tag with a matching GitHub prerelease, the trusted publisher was
+registered, and `NPM_RELEASES_ENABLED=true` enabled automatic releases. The
+first release-bearing promotion contained breaking commits, so
+semantic-release correctly selected `1.0.0`; subsequent qualifying promotions
+continue from the published Git tags.
 
-1. Promote this inactive release automation to `main` while
-   `NPM_RELEASES_ENABLED` remains unset.
-2. Enable two-factor authentication for the `maximilianwalker` npm account.
-3. Publish `0.1.0-rc.0` manually with the npm `next` tag to create the package.
-4. Create the matching `v0.1.0-rc.0` GitHub prerelease from the published
-   commit.
-5. Register the trusted publisher described below on the npm package.
-6. Require two-factor authentication and disallow token-based publication in
-   the package settings.
-7. Set `NPM_RELEASES_ENABLED=true` in the GitHub repository variables.
-8. Merge a release-bearing `dev` to `main` promotion. A `fix:` or `feat:`
-   promotion after the bootstrap prerelease publishes stable `0.1.0`.
+`npm run release:verify` checks that the workflow stays restricted to enabled
+`main` releases, retains OIDC permission, and runs every validation command
+before semantic-release. The workflow uses the default fail-closed step
+behavior, so any failed validation prevents the publication step.
 
 Do not add an npm access token to the repository or workflow. Semantic-release
 publishes through npm trusted publishing with the workflow's short-lived OIDC

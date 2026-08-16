@@ -31,7 +31,7 @@ import Event from "./Event.js";
 import type { AgendaViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
-const EMPTY_COMPONENTS = Object.freeze({});
+const EMPTY_COMPONENTS = /* @__PURE__ */ Object.freeze({});
 
 /**
  * Renders events grouped by their first visible day within a configurable range.

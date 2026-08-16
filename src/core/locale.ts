@@ -1,7 +1,10 @@
 import { enUS } from "date-fns/locale/en-US";
 import type { Locale } from "date-fns";
 
-import { calendarLocaleLoaders } from "./localeLoaders.generated.js";
+import {
+    calendarLocaleLoaderNames,
+    calendarLocaleLoaders
+} from "./localeLoaders.generated.js";
 import type { CalendarLocale, CalendarWeekStart } from "../types.js";
 
 /** The BCP 47 name of the synchronously available default locale. */
@@ -10,27 +13,29 @@ export const DEFAULT_CALENDAR_LOCALE = "en-US";
 /** The date-fns locale object used before any lazy locale is requested. */
 export const defaultCalendarLocale = enUS;
 
-const localeAliases: Readonly<Record<string, string>> = Object.freeze({
+const localeAliases: Readonly<Record<string, string>> = /* @__PURE__ */ Object.freeze({
     en: "en-US",
     "pt-PT": "pt",
     zh: "zh-CN",
     "zh-Hans": "zh-CN",
     "zh-Hant": "zh-TW"
 });
-const directLocaleNames = new Set([
+const directLocaleNames = /* @__PURE__ */ (() => new Set([
     DEFAULT_CALENDAR_LOCALE,
-    ...Object.keys(calendarLocaleLoaders)
-]);
+    ...calendarLocaleLoaderNames
+]))();
 const loadedLocales = new Map<string, Locale>([
     [DEFAULT_CALENDAR_LOCALE, defaultCalendarLocale]
 ]);
 const pendingLocales = new Map<string, Promise<Locale>>();
 
 /** All locale names accepted by the built-in date-fns locale registry. */
-export const calendarLocaleNames = Object.freeze(Array.from(new Set([
-    ...directLocaleNames,
-    ...Object.keys(localeAliases)
-])).sort());
+export const calendarLocaleNames = /* @__PURE__ */ (() => Object.freeze(
+    Array.from(new Set([
+        ...directLocaleNames,
+        ...Object.keys(localeAliases)
+    ])).sort()
+))();
 
 /** Determines whether a value implements the date-fns `Locale` contract used here. */
 const isDateFnsLocale = (locale: unknown): locale is Locale => Boolean(

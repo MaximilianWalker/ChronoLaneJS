@@ -1,7 +1,7 @@
 # Consumer examples
 
 These applications validate ChronoLaneJS from the consumer side. Each has its
-own lockfile and consumes the repository root through `file:../..`.
+own lockfile and uses `file:../..` for local development.
 
 | Application | Coverage | Commands |
 | --- | --- | --- |
@@ -14,11 +14,16 @@ Build the package before starting either application:
 npm run build
 ```
 
-Run both production consumer builds with:
+Run the packed-artifact verification with:
 
 ```bash
 npm run examples:check
 ```
+
+The check creates one npm tarball, installs that exact artifact into temporary
+clean copies of both applications, and verifies package metadata, runtime
+exports, declarations, CSS, the client directive, lazy locales, server
+rendering, and tree shaking before production-building Vite and Next.js.
 
 The canonical explanations and excerpts are in the
 [examples guide](../docs/examples.md), which is also published on the GitHub

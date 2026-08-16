@@ -22,9 +22,10 @@ npm install --prefix examples/next
 npm run dev --prefix examples/next
 ```
 
-Both examples use `file:../..` so they consume the local package exactly as an
-application dependency. The first public release can replace it with a normal
-published version.
+Both examples use `file:../..` for their interactive local-development
+workflow. `npm run examples:check` instead creates one package tarball and
+installs that exact artifact into temporary clean copies before type-checking
+and production-building both consumers.
 
 ## Minimal Vite integration
 

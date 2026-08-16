@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-15
+Last reviewed: 2026-08-16
 
 ## Tracking rules
 
@@ -31,18 +31,19 @@ Last reviewed: 2026-08-15
     package metadata.
   - The `maximilianwalker` publishing identity owns the organization and has
     package write access through its Developers team.
-- [ ] **[P0][REL-03] Verify the release workflow end to end.**
-  - After every remaining release gate passes, bootstrap the package with a
-    `0.1.0-rc.0` release candidate under the npm `next` tag from an account
-    protected by two-factor authentication.
-  - Create the matching GitHub prerelease, configure
-    `MaximilianWalker/ChronoLaneJS` and `publish.yml` as the package's trusted
-    publisher, then enable the gated automatic release workflow.
-  - Merge a release-bearing `dev` to `main` promotion and verify that
-    semantic-release publishes stable `0.1.0` with provenance.
-  - Install the exact tarball in a clean consumer project and verify package
-    metadata.
-  - Confirm that a failed validation prevents publication.
+- [x] **[P0][REL-03] Verify the release workflow end to end.**
+  - `0.1.0-rc.0` was published under npm's `next` tag with a matching GitHub
+    prerelease from the two-factor-protected publishing account.
+  - `MaximilianWalker/ChronoLaneJS` and `publish.yml` are configured as the npm
+    trusted publisher, and the gated automatic release workflow is enabled.
+  - A release-bearing `dev` promotion published `1.0.0` through
+    semantic-release with provenance. The major version correctly reflected
+    the breaking commits included in the initial stable promotion; a later
+    promotion published `1.0.1` through the same path.
+  - `npm run examples:check` creates one exact tarball and verifies its files,
+    metadata, runtime exports, declarations, and styles from clean consumers.
+  - `npm run release:verify` enforces fail-closed validation ordering before
+    semantic-release can publish.
 - [x] **[P0][REL-04] Define the supported runtime matrix.**
   - CI tests matching React and React DOM 18.2 and 19.0 releases against the
     supported Node 22, 24, and 26 lines, including a production package build
@@ -268,7 +269,7 @@ Last reviewed: 2026-08-15
     and 19.0 releases on every supported Node line.
   - Every combination runs unit tests, a production package build, and the
     built package's server-render verification.
-- [ ] **[P1][TEST-07] Add clean consumer fixtures.**
+- [x] **[P1][TEST-07] Add clean consumer fixtures.**
   - Install the packed artifact into representative Vite and Next.js apps.
   - Verify ESM exports, declarations, CSS, the client directive, lazy locales,
     SSR import safety, and tree shaking.

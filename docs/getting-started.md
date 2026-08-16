@@ -5,8 +5,7 @@ view. See the [API reference](./api.md) for every prop and exported type.
 
 ## Install
 
-The package is prepared for its first public release but is not published yet.
-Once released, install it with its peer dependencies:
+Install the published package with its peer dependencies:
 
 ```bash
 npm install @chronolanejs/react react react-dom date-fns @date-fns/tz

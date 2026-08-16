@@ -41,11 +41,10 @@ and custom time-grid views. It provides timezone-aware date handling,
 range navigation, event layout, interactions, and accessible defaults while
 keeping state management and persistence outside the component.
 
-> [!IMPORTANT]
-> ChronoLaneJS is pre-1.0, and `@chronolanejs/react` has not been published to
-> npm yet. The public API is usable through the repository and Storybook, but
-> breaking changes may be made before the first stable release. Release gates
-> and remaining work are tracked in the [roadmap](./ROADMAP.md).
+> [!NOTE]
+> `@chronolanejs/react` is published on npm through a provenance-enabled trusted
+> publishing workflow. Remaining follow-up work is tracked in the
+> [roadmap](./ROADMAP.md).
 
 ## Why ChronoLaneJS?
 
@@ -80,7 +79,7 @@ website and full catalog are rebuilt and deployed together from `main`.
 
 ## Installation
 
-The first public release will install as:
+Install the package and its peer dependencies with:
 
 ```bash
 npm install @chronolanejs/react react react-dom date-fns @date-fns/tz
@@ -92,8 +91,7 @@ Import the package stylesheet once at your application entry point:
 import "@chronolanejs/react/styles.css";
 ```
 
-Until the npm release, clone the repository and run Storybook to evaluate the
-library locally:
+To evaluate the development build and Storybook locally, clone the repository:
 
 ```bash
 git clone https://github.com/MaximilianWalker/ChronoLaneJS.git
@@ -534,13 +532,13 @@ Useful focused commands:
 | `npm run storybook` | Run the exhaustive component catalog |
 | `npm run storybook:test` | Execute every story in Chromium and Firefox |
 | `npm run storybook:build` | Build the deployable static catalog |
-| `npm run examples:check` | Install, lint, and build the independent Vite and Next.js consumers |
+| `npm run examples:check` | Pack one artifact, install it into clean Vite and Next.js consumers, and verify both production builds |
 | `npm run locales:generate` | Regenerate date-fns locale loaders |
 | `npm run locales:check` | Verify the generated locale registry |
 
-GitHub Actions validates the package, consumer examples, and Storybook as
-independent boundaries. Published GitHub releases are prepared for npm trusted
-publishing with provenance.
+GitHub Actions validates the package, packed-artifact consumers, and Storybook
+as independent boundaries. Releases use npm trusted publishing with
+provenance.
 
 ## Author
 

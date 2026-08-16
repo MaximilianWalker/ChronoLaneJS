@@ -30,8 +30,8 @@ import type { MonthViewProps } from "./views/month/types.js";
 import type { TimeGridViewProps } from "./views/time-grid/types.js";
 
 const EMPTY_EVENTS: never[] = [];
-const EMPTY_PROPS = Object.freeze({});
-const EMPTY_VIEWS: CalendarViewRegistry = Object.freeze({});
+const EMPTY_PROPS = /* @__PURE__ */ Object.freeze({});
+const EMPTY_VIEWS: CalendarViewRegistry = /* @__PURE__ */ Object.freeze({});
 
 /** A component or component definition registered under an application view name. */
 export type CalendarViewRegistration = ElementType | CalendarViewDefinition;

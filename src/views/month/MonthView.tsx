@@ -39,7 +39,7 @@ import Event from "./Event.js";
 import type { MonthViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
-const EMPTY_COMPONENTS = Object.freeze({});
+const EMPTY_COMPONENTS = /* @__PURE__ */ Object.freeze({});
 
 /**
  * Renders a locale-aware month grid with event overflow and outside-day support.

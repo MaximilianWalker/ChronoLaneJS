@@ -12,7 +12,7 @@ import type { ElementType } from "react";
  * Pass a `views` entry with the same key to the root `Calendar` component to
  * override one.
  */
-export const defaultCalendarViews: Readonly<Record<string, ElementType>> = Object.freeze({
+export const defaultCalendarViews: Readonly<Record<string, ElementType>> = /* @__PURE__ */ Object.freeze({
     agenda: AgendaView,
     day: DayView,
     month: MonthView,
