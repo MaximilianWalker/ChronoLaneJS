@@ -577,7 +577,13 @@ date values are already prepared before message functions run.
 | `defaultProps` | no | Partial defaults merged before explicit root and `viewProps` values. | `{ heading: "Quarter" }` |
 
 `defaultCalendarViews` is the immutable built-in registry. A caller entry with
-the same name overrides a built-in for that `Calendar`.
+the same name overrides a built-in for that `Calendar`. The registry accepts
+dynamic string lookup and returns a React element type when the name exists:
+
+```ts
+const viewName: string = getSavedViewName();
+const BuiltInView = defaultCalendarViews[viewName];
+```
 
 ## Date functions
 

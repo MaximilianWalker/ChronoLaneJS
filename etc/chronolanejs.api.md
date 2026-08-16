@@ -385,13 +385,7 @@ export const defaultCalendarFormatters: Readonly<CalendarFormatters>;
 export const defaultCalendarMessages: Readonly<CalendarMessages>;
 
 // @public
-export const defaultCalendarViews: Readonly<{
-    agenda: typeof AgendaView;
-    day: typeof DayView;
-    month: typeof MonthView;
-    "time-grid": typeof TimeGridView;
-    week: typeof WeekView;
-}>;
+export const defaultCalendarViews: Readonly<Record<string, ElementType>>;
 
 // @public
 export const loadCalendarLocale: (locale?: CalendarLocale) => Promise<Locale>;

@@ -265,7 +265,7 @@ export default function Calendar<
     };
     const registeredViews: CalendarViewRegistry = views ?? EMPTY_VIEWS;
     const builtInView = view in defaultCalendarViews
-        ? defaultCalendarViews[view as keyof typeof defaultCalendarViews]
+        ? defaultCalendarViews[view]
         : undefined;
     const viewDefinition = registeredViews[view] ?? builtInView;
     if (!viewDefinition) {

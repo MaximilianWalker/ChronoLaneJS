@@ -6,6 +6,7 @@ import Calendar, {
     MonthView,
     TimeGridView,
     WeekView,
+    defaultCalendarViews,
     resolveCalendarRange
 } from "../../src/index.js";
 import type {
@@ -43,6 +44,9 @@ interface ProjectResource {
 
 const events: ProjectEvent[] = [];
 const resources: ProjectResource[] = [];
+const dynamicViewName: string = "week";
+
+void defaultCalendarViews[dynamicViewName];
 const slotSizing: TimeGridSlotSizing = {
     minWidth: 92,
     height: 40
