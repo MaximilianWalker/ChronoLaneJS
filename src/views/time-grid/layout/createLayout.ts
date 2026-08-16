@@ -1,45 +1,70 @@
 import { sortEvents } from "../../../core/events.js";
 import type {
     CalendarEvent,
+    CalendarResourceConfig,
     NormalizedCalendarEvent
 } from "../../../types.js";
 import {
-    getDefaultEventResourceIds,
-    getDefaultResourceId
+    resolveCalendarEventResourceIds,
+    resolveCalendarResources
 } from "../resources.js";
-import type {
-    TimeGridColumn,
-    TimeGridLayout,
-    TimeOfDay
-} from "../types.js";
+import type { ResolvedCalendarResource } from "../resources.js";
+import type { TimeGridGroupBy, TimeOfDay } from "../types.js";
 import { assignEventLanes, createEventSegments } from "./events.js";
 import {
     createTimeScale,
     resolveTimeWindow
 } from "./timeScale.js";
+import type { LayoutColumn, TimeGridLayout } from "./types.js";
 
-/** Builds one column per day, or one column per day-resource pair. */
+/** Builds one column per day, or an ordered day-resource cross product. */
 const createColumns = <Resource>(
     days: Date[],
-    resources: Resource[]
-): TimeGridColumn<Resource>[] => {
+    resources: ResolvedCalendarResource<Resource>[],
+    groupBy: TimeGridGroupBy
+): LayoutColumn<Resource>[] => {
     if (resources.length === 0) {
         return days.map((day, dayIndex) => ({
             key: `${day.getTime()}`,
             day,
             dayIndex,
             resource: null,
+            resourceId: null,
             resourceIndex: null
         }));
     }
 
-    return days.flatMap((day, dayIndex) => resources.map((resource, resourceIndex) => ({
-        key: `${day.getTime()}-${resourceIndex}`,
+    const createColumn = (
+        day: Date,
+        dayIndex: number,
+        { id, item }: ResolvedCalendarResource<Resource>,
+        resourceIndex: number
+    ): LayoutColumn<Resource> => ({
+        key: `${day.getTime()}-${typeof id}-${id}`,
         day,
         dayIndex,
-        resource,
+        resource: item,
+        resourceId: id,
         resourceIndex
-    })));
+    });
+
+    return groupBy === "day"
+        ? days.flatMap((day, dayIndex) => resources.map(
+            (resource, resourceIndex) => createColumn(
+                day,
+                dayIndex,
+                resource,
+                resourceIndex
+            )
+        ))
+        : resources.flatMap((resource, resourceIndex) => days.map(
+            (day, dayIndex) => createColumn(
+                day,
+                dayIndex,
+                resource,
+                resourceIndex
+            )
+        ));
 };
 
 /** Inputs required to construct a complete time-grid layout. */
@@ -50,13 +75,12 @@ export interface CreateLayoutOptions<
     days: Date[];
     events: NormalizedCalendarEvent<Event>[];
     backgroundEvents: NormalizedCalendarEvent<Event>[];
-    resources?: Resource[];
+    resources?: CalendarResourceConfig<Event, Resource>;
+    groupBy?: TimeGridGroupBy;
     minTime: TimeOfDay;
     maxTime: TimeOfDay | "24:00";
     slotDuration: number;
     labelInterval: number;
-    getResourceId?: (resource: Resource) => unknown;
-    getEventResourceIds?: (event: NormalizedCalendarEvent<Event>) => unknown[];
 }
 
 /**
@@ -71,20 +95,26 @@ export const createLayout = <Event extends CalendarEvent, Resource>({
     days,
     events,
     backgroundEvents,
-    resources = [],
+    resources,
+    groupBy = "day",
     minTime,
     maxTime,
     slotDuration,
-    labelInterval,
-    getResourceId = getDefaultResourceId,
-    getEventResourceIds = getDefaultEventResourceIds
+    labelInterval
 }: CreateLayoutOptions<Event, Resource>): TimeGridLayout<Event, Resource> => {
     const firstDay = days[0];
     if (!firstDay) {
         throw new RangeError("A time-grid layout requires at least one day.");
     }
+    if (groupBy !== "day" && groupBy !== "resource") {
+        throw new TypeError('groupBy must be either "day" or "resource".');
+    }
 
-    const columns = createColumns(days, resources);
+    const columns = createColumns(
+        days,
+        resolveCalendarResources(resources),
+        groupBy
+    );
     const timeWindow = resolveTimeWindow(minTime, maxTime);
     const timeScale = createTimeScale({
         firstDay,
@@ -96,8 +126,9 @@ export const createLayout = <Event extends CalendarEvent, Resource>({
     const segmentOptions = {
         columns,
         timeWindow,
-        getResourceId,
-        getEventResourceIds
+        getEventIds: (event: NormalizedCalendarEvent<Event>) => (
+            resolveCalendarEventResourceIds(event, resources?.getEventIds)
+        )
     };
     const eventSegments = createEventSegments<Event, Resource>({
         ...segmentOptions,

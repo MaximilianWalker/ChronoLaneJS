@@ -1,38 +1,40 @@
 import { sortEvents } from "../../../core/events.js";
 import type {
     CalendarEvent,
+    CalendarResourceId,
     NormalizedCalendarEvent
 } from "../../../types.js";
-import type {
-    TimeGridColumn,
-    TimeGridEventLayout,
-    TimeGridEventSegment
-} from "../types.js";
 import {
     atDayMinute,
     getGridRows
 } from "./timeScale.js";
 import type { ResolvedTimeWindow } from "./timeScale.js";
+import type {
+    LayoutColumn,
+    LayoutEvent,
+    LayoutEventSegment
+} from "./types.js";
+
+const EMPTY_RESOURCE_IDS = new Set<CalendarResourceId>();
 
 interface CreateEventSegmentsOptions<
     Event extends CalendarEvent,
     Resource
 > {
     events: NormalizedCalendarEvent<Event>[];
-    columns: TimeGridColumn<Resource>[];
+    columns: LayoutColumn<Resource>[];
     timeWindow: ResolvedTimeWindow;
-    getResourceId: (resource: Resource) => unknown;
-    getEventResourceIds: (event: NormalizedCalendarEvent<Event>) => unknown[];
+    getEventIds: (
+        event: NormalizedCalendarEvent<Event>
+    ) => Set<CalendarResourceId>;
 }
 
 /** Tests whether an event's resource assignments include a grid column. */
 const belongsToColumn = <Resource>(
-    eventResourceIds: unknown[],
-    column: TimeGridColumn<Resource>,
-    getResourceId: (resource: Resource) => unknown
+    eventResourceIds: Set<CalendarResourceId>,
+    column: LayoutColumn<Resource>
 ): boolean => (
-    column.resource == null
-    || eventResourceIds.includes(getResourceId(column.resource))
+    column.resourceId == null || eventResourceIds.has(column.resourceId)
 );
 
 /**
@@ -49,13 +51,11 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
     events,
     columns,
     timeWindow,
-    getResourceId,
-    getEventResourceIds
-}: CreateEventSegmentsOptions<Event, Resource>): TimeGridEventSegment<Event, Resource>[] => {
-    const resourceIdsByEvent = new Map(events.map((event) => [
-        event,
-        getEventResourceIds(event)
-    ]));
+    getEventIds
+}: CreateEventSegmentsOptions<Event, Resource>): LayoutEventSegment<Event, Resource>[] => {
+    const resourceIdsByEvent = columns.some(({ resourceId }) => resourceId != null)
+        ? new Map(events.map((event) => [event, getEventIds(event)]))
+        : null;
 
     return columns.flatMap((column, columnIndex) => {
         const visibleDayStart = atDayMinute(column.day, timeWindow.startMinute);
@@ -63,9 +63,8 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
 
         return events.flatMap((event) => {
             if (!belongsToColumn(
-                resourceIdsByEvent.get(event) ?? [],
-                column,
-                getResourceId
+                resourceIdsByEvent?.get(event) ?? EMPTY_RESOURCE_IDS,
+                column
             )) return [];
 
             const visibleStart = event.start > visibleDayStart
@@ -86,6 +85,7 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
                 dayIndex: column.dayIndex,
                 columnIndex,
                 resource: column.resource,
+                resourceId: column.resourceId,
                 resourceIndex: column.resourceIndex,
                 ...getGridRows(
                     visibleStart,
@@ -109,18 +109,18 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
  * @returns Event segments augmented with lane indexes and cluster lane counts.
  */
 export const assignEventLanes = <Event extends CalendarEvent, Resource>(
-    events: TimeGridEventSegment<Event, Resource>[],
+    events: LayoutEventSegment<Event, Resource>[],
     columnCount: number
-): TimeGridEventLayout<Event, Resource>[] => {
+): LayoutEvent<Event, Resource>[] => {
     const eventsByColumn = Array.from(
         { length: columnCount },
-        () => [] as TimeGridEventSegment<Event, Resource>[]
+        () => [] as LayoutEventSegment<Event, Resource>[]
     );
     events.forEach((event) => eventsByColumn[event.columnIndex]?.push(event));
 
     return eventsByColumn.flatMap((columnEvents) => {
-        const eventsWithLanes: TimeGridEventLayout<Event, Resource>[] = [];
-        let cluster: Array<TimeGridEventSegment<Event, Resource> & { laneIndex: number }> = [];
+        const eventsWithLanes: LayoutEvent<Event, Resource>[] = [];
+        let cluster: Array<LayoutEventSegment<Event, Resource> & { laneIndex: number }> = [];
         let clusterEnd = -1;
         let laneEnds: number[] = [];
 

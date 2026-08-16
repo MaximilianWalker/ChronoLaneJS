@@ -12,12 +12,17 @@ import { startOfMonth } from "date-fns/startOfMonth";
 import { startOfWeek } from "date-fns/startOfWeek";
 import CalendarNavigation from "../../components/CalendarNavigation.js";
 import { createEventInteractionProps } from "../../components/eventInteraction.js";
-import { asCalendarDate } from "../../core/date.js";
 import {
     eventOverlapsDay,
     normalizeEvents,
     sortEvents
 } from "../../core/events.js";
+import {
+    getCalendarNavigationState,
+    normalizeCalendarNavigationBoundaries,
+    resolveCalendarNavigationDate
+} from "../../core/navigation.js";
+import { normalizeCalendarSelectedDate } from "../../core/selection.js";
 import {
     DEFAULT_CALENDAR_LOCALE,
     readCalendarLocale,
@@ -34,6 +39,7 @@ import Event from "./Event.js";
 import type { MonthViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
+const EMPTY_COMPONENTS = Object.freeze({});
 
 /**
  * Renders a locale-aware month grid with event overflow and outside-day support.
@@ -44,6 +50,8 @@ const EMPTY_EVENTS: never[] = [];
  * and navigation behavior remain independently replaceable.
  */
 export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
+    className,
+    style,
     events = EMPTY_EVENTS,
     backgroundEvents = EMPTY_EVENTS,
     date,
@@ -62,17 +70,19 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     selectedDate,
     selectedEventIds = EMPTY_EVENTS,
     canEditEvent,
-    navigateDate,
     onDateChange,
     onRangeChange,
     onSelectDay,
     onEventSelect,
     onEventEdit,
     onShowMore,
-    eventComponent: EventComponent = Event,
-    dayHeaderComponent: DayHeaderComponent = DayHeader,
-    navigationButton
+    components = EMPTY_COMPONENTS
 }: MonthViewProps<Event>) {
+    const {
+        event: EventComponent = Event,
+        dayHeader: DayHeaderComponent = DayHeader,
+        navigation: NavigationComponent
+    } = components;
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
     const { anchorDate, setDate } = useCalendarViewDate({
@@ -82,9 +92,9 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
         onDateChange
     });
     const monthStart = startOfMonth(anchorDate);
-    const monthEnd = endOfMonth(anchorDate);
+    const monthEnd = startOfDay(endOfMonth(anchorDate));
     const rangeStart = startOfWeek(monthStart, { weekStartsOn: weekStart });
-    const rangeEnd = endOfWeek(monthEnd, { weekStartsOn: weekStart });
+    const rangeEnd = startOfDay(endOfWeek(monthEnd, { weekStartsOn: weekStart }));
     const days = useMemo(() => eachDayOfInterval({
         start: rangeStart,
         end: rangeEnd
@@ -98,6 +108,12 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
         () => normalizeEvents(backgroundEvents, timeZone),
         [backgroundEvents, timeZone]
     );
+    const calendarSelectedDate = useMemo(
+        () => selectedDate == null
+            ? null
+            : normalizeCalendarSelectedDate(selectedDate, timeZone),
+        [selectedDate, timeZone]
+    );
     const dayEntries = useMemo(() => days.map((day) => ({
         day,
         events: sortEvents(calendarEvents.filter((event) => eventOverlapsDay(event, day))),
@@ -109,29 +125,35 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
         { length: Math.ceil(dayEntries.length / 7) },
         (_, index) => dayEntries.slice(index * 7, (index + 1) * 7)
     ), [dayEntries]);
-    const minBoundary = minDate == null
-        ? null
-        : startOfDay(asCalendarDate(minDate, timeZone));
-    const maxBoundary = maxDate == null
-        ? null
-        : startOfDay(asCalendarDate(maxDate, timeZone));
+    const navigationBoundaries = useMemo(
+        () => normalizeCalendarNavigationBoundaries(minDate, maxDate, timeZone),
+        [maxDate, minDate, timeZone]
+    );
+    const navigationState = getCalendarNavigationState({
+        anchorDate,
+        periodStart: monthStart,
+        periodEnd: monthEnd,
+        ...navigationBoundaries
+    });
     const calendarRange = { start: rangeStart, end: rangeEnd, days };
     const headerRange = { start: monthStart, end: monthEnd, days };
     const formatContext = { locale: calendarLocale, view: viewName };
     const navigationContext = { view: viewName, range: calendarRange };
 
     const navigate = useCallback((direction: -1 | 1) => {
-        const nextDate = navigateDate
-            ? navigateDate(anchorDate, direction, {
-                start: rangeStart,
-                end: rangeEnd,
-                days,
-                monthStart,
-                monthEnd
-            })
-            : addMonths(anchorDate, direction);
-        setDate(nextDate);
-    }, [anchorDate, days, monthEnd, monthStart, navigateDate, rangeEnd, rangeStart, setDate]);
+        const nextDate = addMonths(anchorDate, direction);
+        setDate(resolveCalendarNavigationDate(
+            anchorDate,
+            nextDate,
+            navigationBoundaries,
+            timeZone
+        ));
+    }, [
+        anchorDate,
+        navigationBoundaries,
+        setDate,
+        timeZone
+    ]);
 
     useEffect(() => {
         onRangeChange?.({
@@ -144,21 +166,25 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     }, [days, monthEnd, monthStart, onRangeChange, rangeEnd, rangeStart]);
 
     return (
-        <div className="month-view" data-time-zone={timeZone}>
+        <div
+            className={`month-view ${className ?? ""}`.trim()}
+            data-time-zone={timeZone}
+            style={style}
+        >
             {showControls && (
                 <CalendarNavigation
                     header={formatters.rangeHeader(headerRange, formatContext)}
                     onPrevious={() => navigate(-1)}
                     onNext={() => navigate(1)}
-                    previousDisabled={Boolean(minBoundary && monthStart <= minBoundary)}
-                    nextDisabled={Boolean(maxBoundary && monthEnd >= maxBoundary)}
+                    previousDisabled={navigationState.previousDisabled}
+                    nextDisabled={navigationState.nextDisabled}
                     previousLabel={messages.previous(navigationContext)}
                     nextLabel={messages.next(navigationContext)}
-                    navigationButton={navigationButton}
+                    navigation={NavigationComponent}
                 />
             )}
             <div
-                className="month-view_grid-wrapper"
+                className="month-view_grid-wrapper calendar-scroll-region"
                 aria-label={messages.monthGridLabel({ view: viewName })}
                 tabIndex={0}
             >
@@ -176,8 +202,8 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                 const outsideMonth = !isSameMonth(day, anchorDate);
                                 const visibleEvents = dayEvents.slice(0, maxEventsPerDay);
                                 const hiddenEvents = dayEvents.slice(maxEventsPerDay);
-                                const daySelected = selectedDate
-                                    && isSameDay(day, asCalendarDate(selectedDate, timeZone));
+                                const daySelected = calendarSelectedDate
+                                    && isSameDay(day, calendarSelectedDate);
 
                                 return (
                                     <div
@@ -222,24 +248,31 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                                     const startTime = formatters.time(event.start, formatContext);
                                                     const endDate = formatters.date(event.end, formatContext);
                                                     const endTime = formatters.time(event.end, formatContext);
+                                                    const interactive = interactionProps.onClick != null
+                                                        || interactionProps.onDoubleClick != null;
                                                     return (
                                                         <EventComponent
                                                             key={`${event.id ?? event.title}-${event.start.getTime()}-${day.getTime()}`}
-                                                            className="month-view_event"
                                                             event={event}
                                                             day={day}
                                                             timeLabel={startTime}
-                                                            aria-label={messages.eventLabel({
-                                                                view: viewName,
-                                                                title: event.title,
-                                                                description: event.description,
-                                                                startDate,
-                                                                startTime,
-                                                                endDate,
-                                                                endTime
-                                                            })}
                                                             selected={event.id != null && selectedEventIds.includes(event.id)}
-                                                            {...interactionProps}
+                                                            elementProps={{
+                                                                className: "month-view_event",
+                                                                ...interactionProps,
+                                                                "aria-label": interactive
+                                                                    ? messages.eventLabel({
+                                                                        view: viewName,
+                                                                        title: event.title,
+                                                                        description: event.description,
+                                                                        startDate,
+                                                                        startTime,
+                                                                        endDate,
+                                                                        endTime
+                                                                    })
+                                                                    : undefined,
+                                                                style: { "--color": event.color }
+                                                            }}
                                                         />
                                                     );
                                                 })}

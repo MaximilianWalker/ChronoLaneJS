@@ -1,19 +1,17 @@
 import type {
     ComponentType,
-    CSSProperties,
-    DragEventHandler,
-    KeyboardEventHandler,
-    MouseEventHandler,
     ReactNode,
     SyntheticEvent
 } from "react";
 
 import type {
-    CalendarDateInput,
+    CalendarComponents,
     CalendarEvent,
-    CalendarStyle,
-    CalendarRange,
     CalendarRangeDefinition,
+    CalendarResourceConfig,
+    CalendarResourceId,
+    CalendarRendererElementProps,
+    CalendarSelectionRange,
     CalendarWeekStart,
     NormalizedCalendarEvent,
     SharedViewProps
@@ -26,53 +24,74 @@ type TimeMinute = `${"0" | "1" | "2" | "3" | "4" | "5"}${DecimalDigit}`;
 /** A zero-padded 24-hour wall-clock time with minute precision. */
 export type TimeOfDay = `${TimeHour}:${TimeMinute}`;
 
+/** Outer grouping dimension used when both days and resources are visible. */
+export type TimeGridGroupBy = "day" | "resource";
+
+type TimeGridSlotWidth =
+    | {
+        /** Fixed positive pixel width of each day or resource slot. */
+        width?: number;
+        minWidth?: never;
+    }
+    | {
+        width?: never;
+        /** Non-negative pixel minimum for fluid day or resource slots. */
+        minWidth?: number;
+    };
+
+type TimeGridSlotHeight =
+    | {
+        /** Fixed positive pixel height of each `slotDuration` interval. */
+        height?: number;
+        minHeight?: never;
+    }
+    | {
+        height?: never;
+        /** Non-negative pixel minimum for fluid `slotDuration` intervals. */
+        minHeight?: number;
+    };
+
+/**
+ * Mutually exclusive fixed or minimum dimensions for each time-grid slot axis.
+ *
+ * @remarks
+ * Omitting both width properties makes columns fully fluid. Omitting both
+ * height properties uses a fixed 50px slot height. Set `minHeight` to `0` for
+ * fully fluid rows.
+ */
+export type TimeGridSlotSizing = TimeGridSlotWidth & TimeGridSlotHeight;
+
+/** Semantic day and resource identity exposed to time-grid header renderers. */
 export interface TimeGridColumn<Resource = unknown> {
-    key: string;
     day: Date;
-    dayIndex: number;
     resource: Resource | null;
-    resourceIndex: number | null;
+    resourceId: CalendarResourceId | null;
 }
 
+/** Application-facing time interval represented by one selectable grid slot. */
 export interface TimeGridSlot<Resource = unknown> {
-    key: string;
     start: Date;
     end: Date;
     duration: number;
-    timeIndex: number;
     day: Date;
-    dayIndex: number;
-    columnIndex: number;
     resource: Resource | null;
-    isDividerBoundary: boolean;
+    resourceId: CalendarResourceId | null;
 }
 
-export type TimeGridEventSegment<
-    Event extends CalendarEvent = CalendarEvent,
-    Resource = unknown
-> = Omit<NormalizedCalendarEvent<Event>, "resource"> & {
-    event: NormalizedCalendarEvent<Event>;
+/** Visible, clipped portion of an event in one day and resource column. */
+export interface TimeGridEventSegment<Resource = unknown> {
+    start: Date;
+    end: Date;
     day: Date;
-    dayIndex: number;
-    columnIndex: number;
     resource: Resource | null;
-    resourceIndex: number | null;
-    startRow: number;
-    endRow: number;
-};
-
-export type TimeGridEventLayout<
-    Event extends CalendarEvent = CalendarEvent,
-    Resource = unknown
-> = TimeGridEventSegment<Event, Resource> & {
-    laneIndex: number;
-    laneCount: number;
-};
+    resourceId: CalendarResourceId | null;
+}
 
 /** Calendar position occupied by an event before or after a drop. */
 export interface TimeGridEventDropPosition<Resource = unknown> {
     day: Date;
     resource: Resource | null;
+    resourceId: CalendarResourceId | null;
 }
 
 /** Complete application-facing result of dropping a time-grid event. */
@@ -87,129 +106,79 @@ export interface TimeGridEventDrop<
     destination: TimeGridEventDropPosition<Resource>;
 }
 
-export interface TimeGridDivider {
-    key: string;
-    time: Date;
-    startRow: number;
-    rowSpan: number;
-}
-
-export interface TimeGridLayout<
-    Event extends CalendarEvent = CalendarEvent,
-    Resource = unknown
-> {
-    columns: TimeGridColumn<Resource>[];
-    slots: TimeGridSlot<Resource>[];
-    dividers: TimeGridDivider[];
-    events: TimeGridEventLayout<Event, Resource>[];
-    backgroundEvents: TimeGridEventSegment<Event, Resource>[];
-    totalMinutes: number;
-}
-
 export interface TimeGridSlotProps<Resource = unknown> {
-    className: string;
-    timeIndex: number;
-    dayIndex: number;
-    columnIndex: number;
-    slotDuration: number;
-    day: Date;
-    resource: Resource | null;
-    startTime: Date;
-    endTime: Date;
-    "aria-label": string;
-    onClick?: MouseEventHandler<HTMLElement>;
-    onDragOver?: DragEventHandler<HTMLElement>;
-    onDrop?: DragEventHandler<HTMLElement>;
-    style: CalendarStyle;
+    slot: TimeGridSlot<Resource>;
+    selected: boolean;
+    elementProps: CalendarRendererElementProps;
 }
 
 export interface TimeGridEventProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > {
-    className: string;
     event: NormalizedCalendarEvent<Event>;
-    segment: TimeGridEventLayout<Event, Resource>;
-    dayIndex: number;
-    columnIndex: number;
-    laneIndex: number;
-    laneCount: number;
-    resource: Resource | null;
-    resourceId?: unknown;
-    draggable: boolean;
-    onClick?: MouseEventHandler<HTMLElement>;
-    onDoubleClick?: MouseEventHandler<HTMLElement>;
-    onKeyDown?: KeyboardEventHandler<HTMLElement>;
-    onDragStart?: DragEventHandler<HTMLElement>;
-    onDragEnd?: DragEventHandler<HTMLElement>;
-    "aria-label": string;
-    "aria-keyshortcuts"?: string;
-    style: CalendarStyle;
-    titleStyle?: CSSProperties;
-    descriptionStyle?: CSSProperties;
+    segment: TimeGridEventSegment<Resource>;
+    selected: boolean;
+    elementProps: CalendarRendererElementProps;
 }
 
 export interface TimeGridBackgroundEventProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > {
-    className: string;
     event: NormalizedCalendarEvent<Event>;
-    segment: TimeGridEventSegment<Event, Resource>;
-    dayIndex: number;
-    columnIndex: number;
-    resource: Resource | null;
-    style: CalendarStyle;
+    segment: TimeGridEventSegment<Resource>;
+    elementProps: CalendarRendererElementProps;
 }
 
-export interface TimeGridColumnHeaderProps<Resource = unknown> {
-    column: TimeGridColumn<Resource>;
-    columnIndex: number;
+export interface TimeGridDayHeaderProps<Resource = unknown> {
     day: Date;
-    dayIndex: number;
-    resource: Resource | null;
-    resourceIndex: number | null;
+    columns: TimeGridColumn<Resource>[];
     title: string;
-    resourceTitle: ReactNode;
+}
+
+export interface TimeGridResourceHeaderProps<Resource = unknown> {
+    resource: Resource;
+    resourceId: CalendarResourceId;
+    columns: TimeGridColumn<Resource>[];
+    title: ReactNode;
+}
+
+/** Replaceable render boundaries owned by time-grid views and presets. */
+export interface TimeGridComponents<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> extends CalendarComponents {
+    event?: ComponentType<TimeGridEventProps<Event, Resource>>;
+    slot?: ComponentType<TimeGridSlotProps<Resource>>;
+    backgroundEvent?: ComponentType<TimeGridBackgroundEventProps<Event, Resource>>;
+    dayHeader?: ComponentType<TimeGridDayHeaderProps<Resource>>;
+    resourceHeader?: ComponentType<TimeGridResourceHeaderProps<Resource>>;
 }
 
 export interface TimeGridViewProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > extends SharedViewProps<Event> {
-    resources?: Resource[];
+    resources?: CalendarResourceConfig<Event, Resource>;
+    groupBy?: TimeGridGroupBy;
     range?: CalendarRangeDefinition;
-    navigationStep?: number;
-    navigateDate?: (
-        anchorDate: Date,
-        direction: -1 | 1,
-        range: CalendarRange
-    ) => CalendarDateInput;
     weekStart?: CalendarWeekStart;
     minTime?: TimeOfDay;
     maxTime?: TimeOfDay | "24:00";
     slotDuration?: number;
     labelInterval?: number;
-    headerHeight?: number;
-    timeLabelWidth?: number;
-    cellWidth?: number;
-    cellHeight?: number;
-    showGridLines?: boolean;
-    selectedRange?: { start: Date; end: Date };
+    /** Per-slot fixed or fluid-minimum dimensions. */
+    slotSizing?: TimeGridSlotSizing;
+    selectedRange?: CalendarSelectionRange;
     canDragEvent?: (
         event: NormalizedCalendarEvent<Event>,
-        segment: TimeGridEventLayout<Event, Resource>
+        segment: TimeGridEventSegment<Resource>
     ) => boolean;
     onEventDrop?: (change: TimeGridEventDrop<Event, Resource>) => void;
     onSlotSelect?: (
         slot: TimeGridSlot<Resource>,
         interaction: SyntheticEvent
     ) => void;
-    getResourceId?: (resource: Resource) => unknown;
-    getResourceTitle?: (resource: Resource) => ReactNode;
-    getEventResourceIds?: (event: NormalizedCalendarEvent<Event>) => unknown[];
-    slotComponent?: ComponentType<TimeGridSlotProps<Resource>>;
-    eventComponent?: ComponentType<TimeGridEventProps<Event, Resource>>;
-    backgroundEventComponent?: ComponentType<TimeGridBackgroundEventProps<Event, Resource>>;
-    columnHeaderComponent?: ComponentType<TimeGridColumnHeaderProps<Resource>>;
+    components?: TimeGridComponents<Event, Resource>;
 }

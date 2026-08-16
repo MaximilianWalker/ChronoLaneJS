@@ -1,9 +1,25 @@
-.time-grid-view {
+:where(.time-grid-view) {
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
     min-height: 0;
+    color: #273346;
+    font-size: 0.78rem;
+}
+
+:where(.time-grid-view.has-fixed-slot-width) {
+    width: fit-content;
+    max-width: 100%;
+}
+
+:where(.time-grid-view.has-fixed-slot-height) {
+    height: max-content;
+    max-height: 100%;
+}
+
+:where(.time-grid-view.has-fixed-slot-width) .time-grid-view_navigation {
+    contain: inline-size;
 }
 
 .time-grid-view_grid-wrapper {
@@ -11,7 +27,43 @@
     flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
+    border: var(--calendar-time-grid-frame-width, 1px) solid #e1e7ef;
+    border-radius: 14px;
+    background: #fff;
     overflow: auto;
+}
+
+.time-grid-view_header {
+    --header-border-color: #d8e1ec;
+
+    display: grid;
+    grid-template-columns:
+        var(--calendar-time-grid-time-axis-width, 64px)
+        var(--_time-grid-slot-columns);
+    grid-template-rows: repeat(
+        var(--_time-grid-header-row-count),
+        var(--calendar-time-grid-header-row-height, 36px)
+    );
+    flex: 0 0 auto;
+    background: #fbfcfe;
+}
+
+.time-grid-view_header::before,
+.time-grid-view_header.has-resource-headers::after {
+    content: "";
+    grid-column: 1 / -1;
+    border-bottom: var(--calendar-time-grid-line-width, 1px)
+        solid var(--header-border-color);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.time-grid-view_header::before {
+    grid-row: 1 / -1;
+}
+
+.time-grid-view_header.has-resource-headers::after {
+    grid-row: 1;
 }
 
 .time-grid-view_body {
@@ -20,65 +72,84 @@
     overflow: visible;
 }
 
-.time-grid-view_column-header {
+.time-grid-view_header-cell {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
     min-width: 0;
     padding: 0 4px;
+    border-left: var(--calendar-time-grid-line-width, 1px)
+        solid var(--header-border-color);
+    background: #fbfcfe;
     text-align: center;
 }
 
-.time-grid-view_column-header time,
-.time-grid-view_resource-title {
+.time-grid-view_header-cell > * {
     overflow: hidden;
     max-width: 100%;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.time-grid-view_resource-title {
-    color: #545454;
+.time-grid-view_header-cell.is-primary {
+    font-weight: 600;
+}
+
+.time-grid-view_header-cell.is-secondary {
+    color: #667085;
     font-size: 0.75rem;
 }
 
 .time-grid-view_time-label {
     display: flex;
-    justify-content: flex-end;
-    padding-right: 5px;
+    box-sizing: border-box;
+    justify-content: center;
+    padding-inline: 6px;
+    color: #667085;
+    font-size: 0.65rem;
+    text-align: center;
+}
+
+.time-grid-view_time-labels {
+    display: grid;
+    grid-template-columns: var(--calendar-time-grid-time-axis-width, 64px);
 }
 
 .time-grid-view_time-label time {
     height: max-content;
+    white-space: nowrap;
 }
 
 .time-grid-view_slot {
-    --border-width: 1px;
-    --border-color: #e0e0e0;
-    --border: var(--border-width) solid var(--border-color);
-    --divider-border: 1px solid #c6c6c6;
+    --border-color: #edf0f4;
+    --border: var(--calendar-time-grid-line-width, 1px)
+        solid var(--border-color);
+    --divider-border: var(--calendar-time-grid-line-width, 1px)
+        solid #dfe5ec;
 
     position: relative;
     box-sizing: border-box;
     border: 0;
-    background-color: #f9f9f9;
+    background-color: #fff;
 }
 
-.time-grid-view_grid.has-grid-lines .time-grid-view_slot {
+.time-grid-view_grid {
+    display: grid;
+    grid-template-columns: var(--_time-grid-slot-columns);
+    flex-grow: 1;
+}
+
+.time-grid-view_grid .time-grid-view_slot {
     border-right: var(--border);
     border-bottom: var(--border);
 }
 
-.time-grid-view_grid.has-grid-lines .time-grid-view_slot.is-first-row {
-    border-top: var(--border);
-}
-
-.time-grid-view_grid.has-grid-lines .time-grid-view_slot.is-first-column {
+.time-grid-view_grid .time-grid-view_slot.is-first-column {
     border-left: var(--border);
 }
 
-.time-grid-view_grid.has-grid-lines .time-grid-view_slot.is-divider-boundary {
+.time-grid-view_grid .time-grid-view_slot.is-divider-boundary {
     border-bottom: var(--divider-border);
 }
 
@@ -123,17 +194,19 @@ button.time-grid-view_slot {
 .time-grid-view_event {
     --color: #1e293c;
     --background-color: color-mix(in srgb, var(--color) 10%, white);
-    --border-radius: 4px;
+    --border-radius: 7px;
 
     position: relative;
     display: flex;
     flex-direction: row;
     box-sizing: border-box;
     min-width: 0;
-    margin: 2px;
+    margin: 2px 3px;
+    border: 1px solid color-mix(in srgb, var(--color) 22%, white);
     border-radius: var(--border-radius);
     background-color: var(--background-color);
     font-size: 12px;
+    overflow: hidden;
     pointer-events: auto;
     z-index: 10;
 }
@@ -141,7 +214,6 @@ button.time-grid-view_slot {
 button.time-grid-view_event {
     appearance: none;
     padding: 0;
-    border: none;
     color: inherit;
     font: inherit;
     text-align: left;
@@ -176,18 +248,19 @@ button.time-grid-view_event {
     flex-direction: column;
     width: 100%;
     gap: 2px;
-    padding: 4px;
+    padding: 5px 6px;
     color: #1e293c;
-    font-size: 12px;
+    font-size: 0.68rem;
 }
 
 .time-grid-view_event-title {
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 0.71rem;
+    font-weight: 600;
 }
 
 .time-grid-view_event-description {
-    color: #545454;
+    color: #526075;
+    font-size: 0.62rem;
 }
 
 .time-grid-view_event.default {
@@ -211,25 +284,4 @@ button.time-grid-view_event {
     outline: 2px solid currentColor;
     outline-offset: -2px;
     z-index: 12;
-}
-
-@media (max-width: 768px) {
-    .time-grid-view {
-        --time-grid-day-min-width: 112px;
-    }
-
-    .time-grid-view_navigation {
-        gap: 8px;
-        padding: 8px 0;
-    }
-
-    .time-grid-view_navigation-text {
-        font-size: 1rem;
-    }
-
-    .time-grid-view_navigation-button {
-        flex-basis: 40px;
-        width: 40px;
-        height: 40px;
-    }
 }

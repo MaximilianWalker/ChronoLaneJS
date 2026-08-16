@@ -2,16 +2,13 @@ import type { TimeGridBackgroundEventProps } from "./types.js";
 
 /** Renders the default non-interactive background event region. */
 export default function Background({
-    className,
     event,
-    style
+    elementProps
 }: TimeGridBackgroundEventProps) {
     return (
         <div
-            aria-hidden="true"
-            className={className}
+            {...elementProps}
             data-background-event-id={event.id}
-            style={style}
         />
     );
 }

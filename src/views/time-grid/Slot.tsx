@@ -6,24 +6,17 @@ import type { TimeGridSlotProps } from "./types.js";
  * Renders the default time slot as an interactive button or passive grid cell.
  */
 export default function Slot({
-    className,
-    onClick,
-    onDragOver,
-    onDrop,
-    style,
-    "aria-label": ariaLabel
+    selected,
+    elementProps
 }: TimeGridSlotProps) {
-    const Component: ElementType = onClick ? "button" : "div";
+    const interactive = elementProps.onClick != null;
+    const Component: ElementType = interactive ? "button" : "div";
 
     return (
         <Component
-            type={onClick ? "button" : undefined}
-            aria-label={onClick ? ariaLabel : undefined}
-            className={className}
-            onClick={onClick}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            style={style}
+            {...elementProps}
+            type={interactive ? "button" : undefined}
+            className={`${elementProps.className}${selected ? " is-selected" : ""}`}
         />
     );
 }

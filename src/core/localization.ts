@@ -16,7 +16,6 @@ const navigationRangeName = ({
     if (view === "week") return "week";
     if (view === "month") return "month";
     if (view === "agenda") return "agenda range";
-    if (view === "resource") return "resource range";
     if (range.days.length === 1) return "day";
     if (range.days.length === 7) return "week";
     return "range";
@@ -36,7 +35,7 @@ export const defaultCalendarFormatters = Object.freeze<CalendarFormatters>({
     dayHeader: (date, { locale, view }) => {
         if (view === "month") return format(date, "d", { locale });
         if (view === "agenda") return format(date, "PPPP", { locale });
-        if (view === "day" || view === "resource") {
+        if (view === "day") {
             return format(date, "EEEE, MMMM do", { locale });
         }
         return format(date, "EEEE do", { locale });

@@ -5,7 +5,14 @@ const timeZones = ["America/New_York", "Asia/Tokyo"];
 for (const timeZone of timeZones) {
     const result = spawnSync(
         process.execPath,
-        ["--import", "tsx", "--no-warnings", "--test", "test/core/date.test.ts"],
+        [
+            "--import",
+            "tsx",
+            "--no-warnings",
+            "--test",
+            "test/core/date.test.ts",
+            "test/core/selection.test.ts"
+        ],
         {
             env: { ...process.env, TZ: timeZone },
             stdio: "inherit"

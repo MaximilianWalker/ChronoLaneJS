@@ -10,6 +10,8 @@ export default tseslint.config(
         ignores: [
             "coverage/**",
             "dist/**",
+            "examples/**/.next/**",
+            "examples/**/dist/**",
             "node_modules/**",
             "site-dist/**",
             "src/core/localeLoaders.generated.ts",
@@ -33,6 +35,8 @@ export default tseslint.config(
             parserOptions: {
                 project: [
                     "./tsconfig.json",
+                    "./examples/next/tsconfig.json",
+                    "./examples/vite/tsconfig.json",
                     "./tsconfig.site.json",
                     "./tsconfig.storybook.json"
                 ],

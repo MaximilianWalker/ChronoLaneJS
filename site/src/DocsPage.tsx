@@ -15,10 +15,11 @@ export default function DocsPage() {
                     </div>
                     <div className="docs-intro-copy">
                         <p>
-                            Installation, architecture, extension points, and
-                            project guidance—rendered directly from the repository.
+                            Every component, prop, callback, example, styling
+                            hook, and accessibility obligation—rendered from
+                            the same Markdown you see on GitHub.
                         </p>
-                        <a href={`${REPOSITORY_URL}/blob/main/README.md`} target="_blank" rel="noreferrer">
+                        <a href={`${REPOSITORY_URL}/blob/main/docs/README.md`} target="_blank" rel="noreferrer">
                             Browse the source on GitHub <span aria-hidden="true">↗</span>
                         </a>
                     </div>

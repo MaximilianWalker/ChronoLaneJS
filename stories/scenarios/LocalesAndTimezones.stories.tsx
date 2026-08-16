@@ -5,7 +5,8 @@ import {
     AgendaView,
     DayView,
     MonthView,
-    defaultCalendarMessages
+    defaultCalendarMessages,
+    preloadCalendarLocale
 } from "../../src/index.js";
 import type { CalendarMessages } from "../../src/index.js";
 import {
@@ -43,6 +44,10 @@ const portugueseMessages: CalendarMessages = {
     ].filter(Boolean).join(", "),
     agendaEmpty: () => "Não existem eventos neste período.",
     moreEvents: ({ count }) => `+${count} eventos`
+};
+
+const preloadPortugueseLocale = async () => {
+    await preloadCalendarLocale("pt-PT");
 };
 
 const meta = {
@@ -87,6 +92,7 @@ export const PortugueseInLisbon: Story = {
 };
 
 export const PortugueseMessages: Story = {
+    beforeEach: preloadPortugueseLocale,
     render: () => (
         <DayView
             date={ANCHOR_DATE}
@@ -115,6 +121,7 @@ export const PortugueseMessages: Story = {
 };
 
 export const PortugueseEmptyAndOverflowText: Story = {
+    beforeEach: preloadPortugueseLocale,
     render: () => (
         <div className="story-grid">
             <section className="story-panel">

@@ -1,10 +1,7 @@
 import { isSameDay } from "date-fns/isSameDay";
 import type { ElementType } from "react";
 
-import type {
-    CalendarEvent,
-    CalendarStyle
-} from "../../types.js";
+import type { CalendarEvent } from "../../types.js";
 import type { MonthEventProps } from "./types.js";
 
 /**
@@ -17,30 +14,19 @@ export default function Event<EventType extends CalendarEvent = CalendarEvent>({
     event,
     day,
     timeLabel,
-    className,
     selected,
-    onClick,
-    onDoubleClick,
-    onKeyDown,
-    "aria-label": ariaLabel,
-    "aria-keyshortcuts": ariaKeyShortcuts
+    elementProps
 }: MonthEventProps<EventType>) {
-    const isInteractive = Boolean(onClick || onDoubleClick);
+    const isInteractive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
     const Component: ElementType = isInteractive ? "button" : "div";
     const startsToday = isSameDay(event.start, day);
-    const style: CalendarStyle = { "--color": event.color };
 
     return (
         <Component
+            {...elementProps}
             type={isInteractive ? "button" : undefined}
-            className={`${className}${selected ? " is-selected" : ""}`}
+            className={`${elementProps.className}${selected ? " is-selected" : ""}`}
             data-event-id={event.id}
-            aria-label={isInteractive ? ariaLabel : undefined}
-            onClick={onClick}
-            onDoubleClick={onDoubleClick}
-            onKeyDown={onKeyDown}
-            aria-keyshortcuts={ariaKeyShortcuts}
-            style={style}
         >
             {startsToday && (
                 <time className="month-view_event-time">

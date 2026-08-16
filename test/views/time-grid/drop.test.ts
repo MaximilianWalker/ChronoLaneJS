@@ -37,7 +37,7 @@ test("describes a drop across days and resources", () => {
         days: [date(1), date(2)],
         events: [event],
         backgroundEvents: [],
-        resources: [roomA, roomB],
+        resources: { items: [roomA, roomB] },
         minTime: "08:00",
         maxTime: "18:00",
         slotDuration: 30,
@@ -57,6 +57,8 @@ test("describes a drop across days and resources", () => {
     assert.equal(format(drop.end, "yyyy-MM-dd HH:mm"), "2026-09-02 11:30");
     assert.strictEqual(drop.source.resource, roomA);
     assert.strictEqual(drop.destination.resource, roomB);
+    assert.equal(drop.source.resourceId, "room-a");
+    assert.equal(drop.destination.resourceId, "room-b");
     assert.equal(format(drop.source.day, "yyyy-MM-dd"), "2026-09-01");
     assert.equal(format(drop.destination.day, "yyyy-MM-dd"), "2026-09-02");
 });

@@ -28,6 +28,7 @@ export default defineConfig({
         ]
     },
     build: {
+        target: ["chrome111", "edge111", "firefox114", "safari16.4", "ios16.4"],
         lib: {
             entry: resolve(import.meta.dirname, "src/packageEntry.ts"),
             formats: ["es"],
@@ -51,10 +52,17 @@ export default defineConfig({
             test: {
                 name: "storybook",
                 browser: {
+                    api: {
+                        port: 62102,
+                        strictPort: false
+                    },
                     enabled: true,
                     headless: true,
                     provider: playwright({}),
-                    instances: [{ browser: "chromium" }]
+                    instances: [
+                        { browser: "chromium" },
+                        { browser: "firefox" }
+                    ]
                 }
             }
         }]

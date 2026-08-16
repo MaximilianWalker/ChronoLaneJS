@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import type {
-    CSSProperties,
+    ComponentProps,
     ElementType,
     ReactElement,
     ReactNode
@@ -21,58 +21,151 @@ import type {
     CalendarFormatters,
     CalendarLocale,
     CalendarMessages,
-    CalendarRangeDefinition,
+    CalendarStyle,
     CalendarViewDefinition,
     SharedViewProps
 } from "./types.js";
+import type { AgendaViewProps } from "./views/agenda/types.js";
+import type { MonthViewProps } from "./views/month/types.js";
 import type { TimeGridViewProps } from "./views/time-grid/types.js";
 
 const EMPTY_EVENTS: never[] = [];
 const EMPTY_PROPS = Object.freeze({});
-const EMPTY_VIEWS = Object.freeze({});
+const EMPTY_VIEWS: CalendarViewRegistry = Object.freeze({});
 
-/** Props accepted by the root {@link Calendar} component. */
-export interface CalendarProps<
+/** A component or component definition registered under an application view name. */
+export type CalendarViewRegistration = ElementType | CalendarViewDefinition;
+
+/** Application-defined views accepted by the root `Calendar` component. */
+export type CalendarViewRegistry = Record<string, CalendarViewRegistration>;
+
+interface CalendarRootProps {
+    className?: string;
+    style?: CalendarStyle;
+    localeFallback?: ReactNode;
+}
+
+interface CalendarBuiltInViewProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
-> extends SharedViewProps<Event> {
-    className?: string;
-    style?: CSSProperties;
-    view?: string;
-    views?: Record<string, ElementType | CalendarViewDefinition>;
-    viewProps?: Record<string, unknown>;
-    locale?: CalendarLocale;
-    localeFallback?: ReactNode;
-    resources?: Resource[];
-    range?: CalendarRangeDefinition;
-    minTime?: TimeGridViewProps<Event, Resource>["minTime"];
-    maxTime?: TimeGridViewProps<Event, Resource>["maxTime"];
-    slotDuration?: number;
-    labelInterval?: number;
-    headerHeight?: number;
-    timeLabelWidth?: number;
-    cellWidth?: number;
-    cellHeight?: number;
-    showGridLines?: boolean;
-    weekStart?: TimeGridViewProps<Event, Resource>["weekStart"];
-    selectedRange?: { start: Date; end: Date };
-    canDragEvent?: TimeGridViewProps<Event, Resource>["canDragEvent"];
-    onEventDrop?: TimeGridViewProps<Event, Resource>["onEventDrop"];
-    onSlotSelect?: TimeGridViewProps<Event, Resource>["onSlotSelect"];
-    getResourceId?: TimeGridViewProps<Event, Resource>["getResourceId"];
-    getResourceTitle?: TimeGridViewProps<Event, Resource>["getResourceTitle"];
-    getEventResourceIds?: TimeGridViewProps<Event, Resource>["getEventResourceIds"];
-    [key: string]: unknown;
+> {
+    agenda: AgendaViewProps<Event>;
+    day: TimeGridViewProps<Event, Resource>;
+    month: MonthViewProps<Event>;
+    "time-grid": TimeGridViewProps<Event, Resource>;
+    week: TimeGridViewProps<Event, Resource>;
 }
+
+export type CalendarBuiltInView = keyof CalendarBuiltInViewProps;
+type CalendarSharedProps<Event extends CalendarEvent> = Omit<
+    SharedViewProps<Event>,
+    "className" | "style" | "viewName"
+>;
+type ForwardedCalendarSharedProps<Event extends CalendarEvent> = Omit<
+    CalendarSharedProps<Event>,
+    "events" | "backgroundEvents" | "locale" | "formatters" | "messages"
+>;
+type DisallowedViewProps = keyof SharedViewProps | keyof CalendarRootProps | "viewName";
+type ViewProps<Props> = Omit<
+    Props,
+    DisallowedViewProps
+> & Partial<Record<DisallowedViewProps, never>>;
+
+/** Configuration accepted by one selected built-in calendar view. */
+export type CalendarViewProps<
+    View extends CalendarBuiltInView,
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> = ViewProps<CalendarBuiltInViewProps<Event, Resource>[View]>;
+
+type CalendarBuiltInBranch<
+    View extends CalendarBuiltInView,
+    Event extends CalendarEvent,
+    Resource
+> = CalendarRootProps
+    & CalendarSharedProps<Event>
+    & {
+        viewProps?: Partial<CalendarViewProps<View, Event, Resource>>;
+        views?: CalendarViewRegistry;
+    }
+    & (View extends "week" ? { view?: View } : { view: View });
+
+type CalendarBuiltInProps<
+    Event extends CalendarEvent,
+    Resource
+> = {
+    [View in CalendarBuiltInView]: CalendarBuiltInBranch<View, Event, Resource>
+}[CalendarBuiltInView];
+
+type RegisteredViewProps<Registration> = Registration extends {
+    component: infer Component extends ElementType;
+}
+    ? ComponentProps<Component>
+    : Registration extends ElementType
+        ? ComponentProps<Registration>
+        : never;
+
+type ValidatedViewRegistration<Registration> = Registration extends {
+    component: infer Component extends ElementType;
+}
+    ? Registration & {
+        component: Component;
+        defaultProps?: Partial<ComponentProps<Component>>;
+    }
+    : Registration extends ElementType
+        ? Registration
+        : never;
+
+type ValidatedViewRegistry<Views extends CalendarViewRegistry> = {
+    [View in keyof Views]: ValidatedViewRegistration<Views[View]>;
+};
+
+type CustomViewProps<Registration> = ViewProps<RegisteredViewProps<Registration>>;
+
+type CalendarCustomProps<
+    Event extends CalendarEvent,
+    Views extends CalendarViewRegistry
+> = {
+    [View in keyof Views & string]: CalendarRootProps
+        & CalendarSharedProps<Event>
+        & {
+            view: View;
+            views: Views & ValidatedViewRegistry<Views>;
+            viewProps?: Partial<CustomViewProps<Views[View]>>;
+        }
+}[keyof Views & string];
+
+type UnionKeys<Union> = Union extends Union ? keyof Union : never;
+type StrictUnion<Union, All = Union> = Union extends Union
+    ? Union & Partial<Record<Exclude<UnionKeys<All>, keyof Union>, never>>
+    : never;
+
+/**
+ * Props accepted by the root `Calendar` component.
+ *
+ * @remarks
+ * Built-in views form a discriminated union keyed by `view`; omitting `view`
+ * selects the `week` contract. Supplying an application registry as the third
+ * generic argument adds branches whose names and `viewProps` are inferred from
+ * the registered components.
+ */
+export type CalendarProps<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown,
+    Views extends CalendarViewRegistry | undefined = undefined
+> = StrictUnion<CalendarBuiltInProps<Event, Resource>>
+    | (Views extends CalendarViewRegistry
+        ? StrictUnion<CalendarCustomProps<Event, Views>>
+        : never);
 
 interface ResolvedCalendarViewProps<Event extends CalendarEvent> {
     ViewComponent: ElementType;
     locale: CalendarLocale;
     formatters: CalendarFormatters;
     messages: CalendarMessages;
-    sharedProps: Record<string, unknown>;
-    defaultViewProps: Record<string, unknown>;
-    viewProps: Record<string, unknown>;
+    sharedProps: ForwardedCalendarSharedProps<Event>;
+    defaultViewProps: object;
+    viewProps: object;
     events: Event[];
     backgroundEvents: Event[];
     view: string;
@@ -109,7 +202,7 @@ const ResolvedCalendarView = <Event extends CalendarEvent>({
 
 /** Distinguishes a view registration with defaults from a bare component. */
 const isViewDefinition = (
-    value: ElementType | CalendarViewDefinition
+    value: CalendarViewRegistration
 ): value is CalendarViewDefinition => (
     typeof value === "object" && value !== null && "component" in value
 );
@@ -129,7 +222,8 @@ const isViewDefinition = (
  */
 export default function Calendar<
     Event extends CalendarEvent = CalendarEvent,
-    Resource = unknown
+    Resource = unknown,
+    Views extends CalendarViewRegistry | undefined = undefined
 >({
     className,
     style,
@@ -142,9 +236,38 @@ export default function Calendar<
     formatters = defaultCalendarFormatters,
     messages = defaultCalendarMessages,
     localeFallback = null,
-    ...sharedProps
-}: CalendarProps<Event, Resource>): ReactElement {
-    const viewDefinition = views[view] ?? defaultCalendarViews[view];
+    date,
+    defaultDate,
+    timeZone,
+    minDate,
+    maxDate,
+    showControls,
+    selectedEventIds,
+    canEditEvent,
+    onDateChange,
+    onRangeChange,
+    onEventSelect,
+    onEventEdit
+}: CalendarProps<Event, Resource, Views>): ReactElement {
+    const sharedProps: ForwardedCalendarSharedProps<Event> = {
+        date,
+        defaultDate,
+        timeZone,
+        minDate,
+        maxDate,
+        showControls,
+        selectedEventIds,
+        canEditEvent,
+        onDateChange,
+        onRangeChange,
+        onEventSelect,
+        onEventEdit
+    };
+    const registeredViews: CalendarViewRegistry = views ?? EMPTY_VIEWS;
+    const builtInView = view in defaultCalendarViews
+        ? defaultCalendarViews[view]
+        : undefined;
+    const viewDefinition = registeredViews[view] ?? builtInView;
     if (!viewDefinition) {
         throw new Error(`Calendar view "${view}" is not registered.`);
     }

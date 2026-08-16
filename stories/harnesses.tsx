@@ -10,21 +10,28 @@ import Calendar, {
     calendarDateFromTimestamp
 } from "../src/index.js";
 import type {
+    AgendaComponents,
     AgendaDayHeaderProps,
     AgendaEmptyProps,
     AgendaEventProps,
+    AgendaViewProps,
     CalendarDateInput,
     CalendarLocale,
     CalendarNavigationButtonProps,
     CalendarProps,
-    CalendarStyle,
+    CalendarSelectionRange,
+    MonthComponents,
     MonthDayHeaderProps,
     MonthEventProps,
+    MonthViewProps,
     SharedViewProps,
-    TimeGridColumnHeaderProps,
     TimeGridBackgroundEventProps,
+    TimeGridComponents,
+    TimeGridDayHeaderProps,
     TimeGridEventProps,
-    TimeGridSlotProps
+    TimeGridResourceHeaderProps,
+    TimeGridSlotProps,
+    TimeGridViewProps
 } from "../src/index.js";
 import {
     ANCHOR_DATE,
@@ -80,44 +87,76 @@ export function ControlledNavigation({
 
 /** Provides visible state for selection, editing, and event-drop examples. */
 export function InteractionHarness({
-    onEventDrop,
     onEventEdit,
     onEventSelect,
-    onSlotSelect,
     ...props
 }: StoryCalendarProps) {
     const [selectedEventIds, setSelectedEventIds] = useState<Array<string | number>>([]);
-    const [selectedRange, setSelectedRange] = useState<{ start: Date; end: Date }>();
+    const [selectedRange, setSelectedRange] = useState<CalendarSelectionRange>();
     const [lastAction, setLastAction] = useState("Choose an event or time slot.");
+
+    const handleEventSelect: NonNullable<SharedViewProps<StoryEvent>["onEventSelect"]> = (
+        event,
+        interaction
+    ) => {
+        if (event.id != null) setSelectedEventIds([event.id]);
+        setLastAction(`Selected ${event.title ?? "event"}`);
+        onEventSelect?.(event, interaction);
+    };
+    const handleEventEdit: NonNullable<SharedViewProps<StoryEvent>["onEventEdit"]> = (
+        event,
+        interaction
+    ) => {
+        setLastAction(`Editing ${event.title ?? "event"}`);
+        onEventEdit?.(event, interaction);
+    };
+    const calendar = props.view === "agenda" || props.view === "month"
+        ? (
+            <Calendar
+                {...props}
+                selectedEventIds={selectedEventIds}
+                onEventSelect={handleEventSelect}
+                onEventEdit={handleEventEdit}
+            />
+        )
+        : (() => {
+            const { onEventDrop, onSlotSelect } = props.viewProps ?? {};
+            const handleSlotSelect: NonNullable<
+                TimeGridViewProps<StoryEvent, StoryResource>["onSlotSelect"]
+            > = (slot, interaction) => {
+                setSelectedRange({ start: slot.start, end: slot.end });
+                setLastAction(`Selected slot at ${format(slot.start, "HH:mm")}`);
+                onSlotSelect?.(slot, interaction);
+            };
+            const handleEventDrop: NonNullable<
+                TimeGridViewProps<StoryEvent, StoryResource>["onEventDrop"]
+            > = (change) => {
+                setLastAction(`Dropped ${change.event.title ?? "event"} at ${format(change.start, "HH:mm")}`);
+                onEventDrop?.(change);
+            };
+
+            return (
+                <Calendar
+                    {...props}
+                    selectedEventIds={selectedEventIds}
+                    onEventSelect={handleEventSelect}
+                    onEventEdit={handleEventEdit}
+                    viewProps={{
+                        ...props.viewProps,
+                        selectedRange,
+                        onSlotSelect: handleSlotSelect,
+                        onEventDrop: handleEventDrop
+                    }}
+                />
+            );
+        })();
 
     return (
         <>
             <p className="story-log" data-testid="interaction-log" aria-live="polite">
                 {lastAction}
             </p>
-            <Calendar
-                {...props}
-                selectedEventIds={selectedEventIds}
-                selectedRange={selectedRange}
-                onEventSelect={(event, interaction) => {
-                    if (event.id != null) setSelectedEventIds([event.id]);
-                    setLastAction(`Selected ${event.title ?? "event"}`);
-                    onEventSelect?.(event, interaction);
-                }}
-                onSlotSelect={(slot, interaction) => {
-                    setSelectedRange({ start: slot.start, end: slot.end });
-                    setLastAction(`Selected slot at ${format(slot.start, "HH:mm")}`);
-                    onSlotSelect?.(slot, interaction);
-                }}
-                onEventEdit={(event, interaction) => {
-                    setLastAction(`Editing ${event.title ?? "event"}`);
-                    onEventEdit?.(event, interaction);
-                }}
-                onEventDrop={(change) => {
-                    setLastAction(`Dropped ${change.event.title ?? "event"} at ${format(change.start, "HH:mm")}`);
-                    onEventDrop?.(change);
-                }}
-            />
+            {calendar}
         </>
     );
 }
@@ -198,34 +237,20 @@ export function DstTransition({
 
 /** Default-renderer replacement used by the time-grid customization story. */
 export function CustomTimeGridEvent({
-    className,
     event,
-    onClick,
-    onDoubleClick,
-    onKeyDown,
-    onDragStart,
-    onDragEnd,
-    draggable,
-    style,
-    "aria-label": ariaLabel,
-    "aria-keyshortcuts": ariaKeyShortcuts
+    segment,
+    selected,
+    elementProps
 }: TimeGridEventProps<StoryEvent, StoryResource>) {
-    const interactive = Boolean(onClick || onDoubleClick);
+    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
     const Component: ElementType = interactive ? "button" : "div";
 
     return (
         <Component
+            {...elementProps}
             type={interactive ? "button" : undefined}
-            className={`${className} story-event`}
-            aria-label={interactive ? ariaLabel : undefined}
-            aria-keyshortcuts={ariaKeyShortcuts}
-            draggable={draggable}
-            onClick={onClick}
-            onDoubleClick={onDoubleClick}
-            onKeyDown={onKeyDown}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
-            style={style}
+            className={`${elementProps.className} story-event${selected ? " is-selected" : ""}`}
+            data-story-day={format(segment.day, "yyyy-MM-dd")}
         >
             <strong>{event.title}</strong>
             <span>{format(event.start, "HH:mm")}–{format(event.end, "HH:mm")}</span>
@@ -235,57 +260,64 @@ export function CustomTimeGridEvent({
 
 /** Interactive renderer replacement used by the slot customization story. */
 export function CustomSlot({
-    className,
-    onClick,
-    onDragOver,
-    onDrop,
-    style,
-    "aria-label": ariaLabel
+    slot,
+    selected,
+    elementProps
 }: TimeGridSlotProps<StoryResource>) {
-    const Component: ElementType = onClick ? "button" : "div";
+    const interactive = elementProps.onClick != null;
+    const Component: ElementType = interactive ? "button" : "div";
 
     return (
         <Component
-            type={onClick ? "button" : undefined}
-            className={`${className} story-slot`}
-            aria-label={onClick ? ariaLabel : undefined}
-            onClick={onClick}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            style={style}
+            {...elementProps}
+            type={interactive ? "button" : undefined}
+            className={`${elementProps.className} story-slot${selected ? " is-selected" : ""}`}
+            data-story-day={format(slot.day, "yyyy-MM-dd")}
         />
     );
 }
 
 /** Patterned background renderer demonstrating the background-event contract. */
 export function CustomBackground({
-    className,
     event,
-    style
+    segment,
+    elementProps
 }: TimeGridBackgroundEventProps<StoryEvent, StoryResource>) {
     return (
         <div
-            aria-hidden="true"
-            className={className}
+            {...elementProps}
             data-background-event-id={event.id}
+            data-story-day={format(segment.day, "yyyy-MM-dd")}
             style={{
-                ...style,
+                ...elementProps.style,
                 backgroundImage: "repeating-linear-gradient(135deg, transparent 0 8px, rgba(15, 23, 42, 0.08) 8px 16px)"
             }}
         />
     );
 }
 
-/** Renderer replacement showing both the calendar day and resource grouping. */
-export function CustomColumnHeader({
-    title,
-    resource,
-    resourceTitle
-}: TimeGridColumnHeaderProps<StoryResource>) {
+/** Renderer replacement for one grouped time-grid day heading. */
+export function CustomTimeGridDayHeader({
+    columns,
+    title
+}: TimeGridDayHeaderProps<StoryResource>) {
     return (
         <span className="story-header">
             <strong>{title}</strong>
-            {resourceTitle != null && <span>{resource?.group}: {resourceTitle}</span>}
+            <span>{columns.length} column{columns.length === 1 ? "" : "s"}</span>
+        </span>
+    );
+}
+
+/** Renderer replacement for one grouped time-grid resource heading. */
+export function CustomTimeGridResourceHeader({
+    resource,
+    title
+}: TimeGridResourceHeaderProps<StoryResource>) {
+    return (
+        <span className="story-header">
+            <strong>{title}</strong>
+            <span>{resource.group}</span>
         </span>
     );
 }
@@ -305,29 +337,19 @@ export function CustomNavigationButton({
 
 /** Compact agenda renderer demonstrating the public renderer contract. */
 export function CustomAgendaEvent({
-    className,
     event,
     timeLabel,
-    onClick,
-    onDoubleClick,
-    onKeyDown,
-    "aria-label": ariaLabel,
-    "aria-keyshortcuts": ariaKeyShortcuts,
-    selected
+    selected,
+    elementProps
 }: AgendaEventProps<StoryEvent>) {
-    const interactive = Boolean(onClick || onDoubleClick);
+    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
     const Component: ElementType = interactive ? "button" : "div";
 
     return (
         <Component
+            {...elementProps}
             type={interactive ? "button" : undefined}
-            className={`${className} story-event${selected ? " is-selected" : ""}`}
-            onClick={onClick}
-            onDoubleClick={onDoubleClick}
-            onKeyDown={onKeyDown}
-            aria-label={interactive ? ariaLabel : undefined}
-            aria-keyshortcuts={ariaKeyShortcuts}
-            style={{ "--color": event.color } as CalendarStyle}
+            className={`${elementProps.className} story-event${selected ? " is-selected" : ""}`}
         >
             <strong>{event.title}</strong>
             <span>{timeLabel}</span>
@@ -348,35 +370,47 @@ export function CustomAgendaDayHeader({
 
 /** Compact month renderer demonstrating day-aware event customization. */
 export function CustomMonthEvent({
-    className,
     event,
     timeLabel,
-    onClick,
-    onDoubleClick,
-    onKeyDown,
-    "aria-label": ariaLabel,
-    "aria-keyshortcuts": ariaKeyShortcuts,
-    selected
+    selected,
+    elementProps
 }: MonthEventProps<StoryEvent>) {
-    const interactive = Boolean(onClick || onDoubleClick);
+    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
     const Component: ElementType = interactive ? "button" : "div";
 
     return (
         <Component
+            {...elementProps}
             type={interactive ? "button" : undefined}
-            className={`${className} story-event${selected ? " is-selected" : ""}`}
-            onClick={onClick}
-            onDoubleClick={onDoubleClick}
-            onKeyDown={onKeyDown}
-            aria-label={interactive ? ariaLabel : undefined}
-            aria-keyshortcuts={ariaKeyShortcuts}
-            style={{ "--color": event.color } as CalendarStyle}
+            className={`${elementProps.className} story-event${selected ? " is-selected" : ""}`}
         >
             <strong>{event.title}</strong>
             <span>{timeLabel}</span>
         </Component>
     );
 }
+
+const customTimeGridComponents: TimeGridComponents<StoryEvent, StoryResource> = {
+    event: CustomTimeGridEvent,
+    slot: CustomSlot,
+    backgroundEvent: CustomBackground,
+    dayHeader: CustomTimeGridDayHeader,
+    resourceHeader: CustomTimeGridResourceHeader,
+    navigation: CustomNavigationButton
+};
+
+const customAgendaComponents: AgendaComponents<StoryEvent> = {
+    event: CustomAgendaEvent,
+    dayHeader: CustomAgendaDayHeader,
+    empty: CustomEmptyState,
+    navigation: CustomNavigationButton
+};
+
+const customMonthComponents: MonthComponents<StoryEvent> = {
+    event: CustomMonthEvent,
+    dayHeader: CustomMonthDayHeader,
+    navigation: CustomNavigationButton
+};
 
 /** Month heading renderer that visually distinguishes outside days. */
 export function CustomMonthDayHeader({
@@ -421,7 +455,9 @@ export function CustomView({
 }
 
 /** Fixed week used to demonstrate customized renderers without inline components. */
-export function FullyCustomizedWeek(props: StoryCalendarProps) {
+export function FullyCustomizedWeek(
+    props: TimeGridViewProps<StoryEvent, StoryResource>
+) {
     return (
         <WeekView<StoryEvent, StoryResource>
             {...props}
@@ -429,52 +465,46 @@ export function FullyCustomizedWeek(props: StoryCalendarProps) {
             events={basicEvents}
             minTime={MIN_TIME}
             maxTime={MAX_TIME}
-            eventComponent={CustomTimeGridEvent}
-            slotComponent={CustomSlot}
-            backgroundEventComponent={CustomBackground}
-            columnHeaderComponent={CustomColumnHeader}
-            navigationButton={CustomNavigationButton}
+            components={customTimeGridComponents}
         />
     );
 }
 
 /** Fixed agenda demonstrating all agenda renderer extension points. */
-export function FullyCustomizedAgenda(props: StoryCalendarProps) {
+export function FullyCustomizedAgenda(props: AgendaViewProps<StoryEvent>) {
     return (
         <AgendaView<StoryEvent>
             {...props}
             date={ANCHOR_DATE}
             events={props.events ?? basicEvents}
             range={14}
-            eventComponent={CustomAgendaEvent}
-            dayHeaderComponent={CustomAgendaDayHeader}
-            emptyComponent={CustomEmptyState}
-            navigationButton={CustomNavigationButton}
+            components={customAgendaComponents}
         />
     );
 }
 
 /** Fixed month demonstrating month event and day-header extension points. */
-export function FullyCustomizedMonth(props: StoryCalendarProps) {
+export function FullyCustomizedMonth(props: MonthViewProps<StoryEvent>) {
     return (
         <MonthView<StoryEvent>
             {...props}
             date={ANCHOR_DATE}
             events={props.events ?? monthEvents}
-            eventComponent={CustomMonthEvent}
-            dayHeaderComponent={CustomMonthDayHeader}
-            navigationButton={CustomNavigationButton}
+            components={customMonthComponents}
         />
     );
 }
 
 /** Root calendar configured with an application-defined registry entry. */
-export function CustomViewExample(props: StoryCalendarProps) {
+export function CustomViewExample({
+    events = basicEvents,
+    ...props
+}: Omit<SharedViewProps<StoryEvent>, "viewName">) {
     return (
         <Calendar
             {...props}
             view="quarter"
-            events={basicEvents}
+            events={events}
             views={{
                 quarter: {
                     component: CustomView,

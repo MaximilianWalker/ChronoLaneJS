@@ -12,7 +12,7 @@ import {
     backgroundEvents,
     basicEvents,
     monthEvents,
-    resources,
+    resourceConfig,
     resourceEvents
 } from "../fixtures.js";
 
@@ -40,12 +40,14 @@ export const TimeGridRenderers: Story = {};
 export const ResourceHeaders: Story = {
     args: {
         events: resourceEvents,
-        resources
+        resources: resourceConfig
     }
 };
 
 export const AgendaRenderers: Story = {
-    render: (args) => <FullyCustomizedAgenda {...args} />,
+    render: ({ date, events }) => (
+        <FullyCustomizedAgenda date={date} events={events} />
+    ),
     parameters: {
         calendar: {
             width: "content"
@@ -57,7 +59,9 @@ export const AgendaEmptyState: Story = {
     args: {
         events: []
     },
-    render: (args) => <FullyCustomizedAgenda {...args} />,
+    render: ({ date, events }) => (
+        <FullyCustomizedAgenda date={date} events={events} />
+    ),
     parameters: {
         calendar: {
             width: "content"
@@ -69,5 +73,7 @@ export const MonthRenderers: Story = {
     args: {
         events: monthEvents
     },
-    render: (args) => <FullyCustomizedMonth {...args} />
+    render: ({ date, events }) => (
+        <FullyCustomizedMonth date={date} events={events} />
+    )
 };

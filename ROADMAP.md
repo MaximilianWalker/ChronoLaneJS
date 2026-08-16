@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-12
+Last reviewed: 2026-08-15
 
 ## Tracking rules
 
@@ -22,24 +22,40 @@ Last reviewed: 2026-08-12
 
 ## Release gates
 
-- [ ] **[P0][REL-01] Complete every P0 correctness and API item.**
+- [x] **[P0][REL-01] Complete every P0 correctness and API item.**
   - The first package must not publish contracts already known to be incorrect
     or redundant.
-- [ ] **[P0][REL-02] Reserve and configure the `@chronolanejs` npm scope.**
-  - Configure `@chronolanejs/react` as a public package.
-  - Configure this GitHub repository as its trusted publisher.
-  - Confirm the publishing identity has permission to use the scope.
+- [x] **[P0][REL-02] Reserve and configure the `@chronolanejs` npm scope.**
+  - The free `@chronolanejs` npm organization owns the scope.
+  - `@chronolanejs/react` declares public access and the npm registry in its
+    package metadata.
+  - The `maximilianwalker` publishing identity owns the organization and has
+    package write access through its Developers team.
 - [ ] **[P0][REL-03] Verify the release workflow end to end.**
-  - Create a release candidate, publish it with provenance, install the exact
-    tarball in a clean consumer project, and verify package metadata.
+  - After every remaining release gate passes, bootstrap the package with a
+    `0.1.0-rc.0` release candidate under the npm `next` tag from an account
+    protected by two-factor authentication.
+  - Create the matching GitHub prerelease, configure
+    `MaximilianWalker/ChronoLaneJS` and `publish.yml` as the package's trusted
+    publisher, then enable the gated automatic release workflow.
+  - Merge a release-bearing `dev` to `main` promotion and verify that
+    semantic-release publishes stable `0.1.0` with provenance.
+  - Install the exact tarball in a clean consumer project and verify package
+    metadata.
   - Confirm that a failed validation prevents publication.
-- [ ] **[P0][REL-04] Define the supported runtime matrix.**
-  - Test every supported Node.js, React, and React DOM major version rather
-    than validating only Node 24 and React 19.
-  - Document supported evergreen browsers and any required polyfills.
-- [ ] **[P1][REL-05] Establish versioning and release notes.**
-  - Add a changelog and document the SemVer policy.
-  - Define how prereleases, stable releases, and breaking changes are named.
+- [x] **[P0][REL-04] Define the supported runtime matrix.**
+  - CI tests matching React and React DOM 18.2 and 19.0 releases against the
+    supported Node 22, 24, and 26 lines, including a production package build
+    and server-render verification for every combination.
+  - Chrome and Edge 111+, Firefox 114+, and Safari and iOS Safari 16.4+ are
+    supported without polyfills; older and incomplete-Intl runtimes are not.
+- [x] **[P1][REL-05] Establish versioning and release notes.**
+  - Semantic-release derives versions, tags, and GitHub release notes from
+    Conventional Commit messages promoted from `dev` to `main`.
+  - Fixes and performance changes publish patches, features publish minors,
+    and breaking changes publish majors.
+  - The bootstrap release candidate uses npm's `next` tag; automatic stable
+    releases from `main` use npm's `latest` tag.
 
 ## Correctness
 
@@ -63,21 +79,30 @@ Last reviewed: 2026-08-12
     `24:00` reserved for the exclusive end of a complete day.
   - Layout uses minute offsets instead of artificial reference dates and keeps
     wall-clock rows stable across DST changes.
-- [ ] **[P1][DATE-02] Normalize every externally supplied selection value.**
-  - Apply the configured time zone consistently to selected ranges as well as
-    events and view dates.
-  - Reject invalid or reversed ranges with useful errors.
-- [ ] **[P1][DATE-03] Define navigation boundary behavior.**
-  - Test ranges that partially overlap `minDate` or `maxDate`.
-  - Decide whether navigation is disabled, clamped, or allowed when a
-    controlled date is outside the boundaries.
-- [ ] **[P1][RANGE-01] Make range resolution and navigation one coherent
+- [x] **[P1][DATE-02] Normalize every externally supplied selection value.**
+  - Selected days and half-open range boundaries accept `CalendarDateInput`,
+    are cloned and normalized with the configured time zone, and never mutate
+    controlled application state.
+  - Invalid boundaries throw contextual `TypeError` messages; empty or
+    reversed selection ranges throw `RangeError`.
+- [x] **[P1][DATE-03] Define navigation boundary behavior.**
+  - `minDate` and `maxDate` are validated inclusive navigation days; partially
+    overlapping ranges remain visible while outward navigation is disabled.
+  - Controlled anchors outside the interval remain rendered. Movement farther
+    outside is disabled, and the first inward request clamps directly to the
+    nearest boundary through `onDateChange`.
+  - Built-in and range-owned navigation proposals share the same normalization
+    and clamping contract across agenda, month, and time-grid views.
+- [x] **[P1][RANGE-01] Make range resolution and navigation one coherent
   contract.**
-  - Remove the duplicate `navigationStep` locations.
-  - Ensure callback-produced and non-contiguous ranges carry their navigation
-    behavior after resolution.
-  - Replace or remove `navigateDate` once the range strategy owns navigation.
-- [ ] **[P1][RESOURCE-01] Use stable resource identifier types.**
+  - `resolveCalendarRange` returns normalized bounds, days, and one
+    `navigate(direction)` function instead of discarding navigation metadata.
+  - Range definitions use `dayCount` for generated spans, `dates` for explicit
+    days, and one nested `navigation` strategy with `stepDays` or
+    `resolveAnchor`.
+  - Redundant view-level `navigationStep` and `navigateDate` props are removed;
+    callback-produced and non-contiguous definitions retain their strategy.
+- [x] **[P1][RESOURCE-01] Use stable resource identifier types.**
   - Replace `unknown` resource identifiers with `CalendarResourceId` or a
     constrained generic identifier.
   - Detect missing or duplicate resource identifiers.
@@ -88,14 +113,16 @@ Last reviewed: 2026-08-12
 
 ## Public API simplification
 
-- [ ] **[P0][API-01] Make `CalendarProps` type-safe for built-in views.**
+- [x] **[P0][API-01] Make `CalendarProps` type-safe for built-in views.**
   - Replace `[key: string]: unknown` with a discriminated union keyed by
     `view`.
   - Reject misspelled and unsupported props at compile time.
   - Preserve a typed path for application-defined view registries.
 - [x] **[P0][API-02] Use one controlled and uncontrolled configuration path.**
   - Navigation uses `date` and `defaultDate` consistently.
-  - View-specific configuration uses `viewProps` consistently.
+  - `Calendar` keeps shared behavior at its root and selected-view
+    configuration under `viewProps`; direct views receive their own props
+    directly.
   - Uncontrolled view state is never updated during render.
 - [x] **[P0][API-03] Keep one callback for each user action.**
   - Event selection uses `onEventSelect(event, interaction)`.
@@ -105,29 +132,36 @@ Last reviewed: 2026-08-12
   - `onEventEdit` enables editing and `onEventDrop` enables dragging.
   - Optional `canEditEvent` and `canDragEvent` predicates restrict individual
     source events or visible drag segments.
-- [ ] **[P1][API-05] Replace flat renderer props with a `components` contract.**
-  - Group event, slot, background, column-header, day-header, empty-state, and
-    navigation renderers by view.
+- [x] **[P1][API-05] Replace flat renderer props with a `components` contract.**
+  - Group event, slot, background, day-header, resource-header, empty-state,
+    and navigation renderers by view.
   - Keep only renderer extension points that own meaningful markup.
-- [ ] **[P1][API-06] Simplify renderer payloads.**
+- [x] **[P1][API-06] Simplify renderer payloads.**
   - Slot renderers should receive a `slot`, selection state, and element props
     instead of fourteen duplicated fields.
   - Event renderers should receive the original event, visible segment,
     selection state, and element props instead of layout fields repeated both
     inside and outside `event`.
-  - Column-header renderers should receive a column and its prepared title
-    rather than duplicate day/resource/index fields.
-- [ ] **[P1][API-07] Move visual dimensions to typed CSS variables.**
-  - Remove `headerHeight`, `timeLabelWidth`, `cellWidth`, and `cellHeight`.
-  - Replace `showGridLines` with styling or one semantic appearance variant.
-  - Allow both `Calendar` and direct view components to receive typed
-    `className` and `CalendarStyle`.
+  - Time-grid day and resource headers receive their concrete grouping value,
+    covered columns, and prepared title without conflating both levels.
+- [x] **[P1][API-07] Consolidate remaining visual dimensions.**
+  - Slot width and height use one flat `slotSizing` contract with mutually
+    exclusive fixed and minimum properties; obsolete cell dimensions and
+    nested mode values are removed.
+  - Header row height and time-axis width use typed CSS variables; headers and
+    slots consume one shared column-track definition so their widths cannot
+    conflict.
+  - Layout-sensitive variables use deterministic pixel lengths, and one frame
+    token owns both the outer border and fixed-width geometry.
+  - A typed grid-line width token replaces `showGridLines`.
+  - Both `Calendar` and direct view components receive typed `className` and
+    `CalendarStyle` props.
 - [x] **[P1][API-08] Keep time-grid scale configuration independently overridable.**
   - Flat primitive props avoid configuration-object merge rules and unstable
     object identities when callers override one value.
   - `slotDuration` and `labelInterval` replace the ambiguous `step` and
     presentation-oriented `dividerInterval` names.
-- [ ] **[P1][API-09] Group resource configuration.**
+- [x] **[P1][API-09] Group resource configuration.**
   - Keep resource items and their ID, title, and event-assignment accessors in
     one typed resource contract.
   - Preserve generic inference from the resource items.
@@ -136,18 +170,24 @@ Last reviewed: 2026-08-12
     strings, header callbacks, labels, and hardcoded text.
   - Exported immutable English defaults support explicit consumer-side
     extension without hidden partial-object merging.
-- [ ] **[P1][API-11] Remove the redundant resource preset.**
+- [x] **[P1][API-11] Remove the redundant resource preset.**
   - Resource columns are already a capability of every time-grid range.
   - Remove `ResourceView` and the `resource` view name; document resources on
     day, week, and custom time-grid ranges.
-- [ ] **[P1][API-12] Audit the package export surface.**
-  - Export only stable consumer contracts.
-  - Keep layout-only fields such as rows, lanes, and column indexes private
-    unless a renderer explicitly needs them.
-  - Add an API report so accidental exports become reviewable changes.
+- [x] **[P1][API-12] Audit the package export surface.**
+  - The root entry exports stable normalization, locale, view, and renderer
+    contracts; low-level date/range construction helpers stay internal.
+  - Renderer payloads expose semantic dates, intervals, and resource identity;
+    generated keys, rows, lanes, and indexes stay inside time-grid layout code.
+  - A committed API Extractor report, exact runtime export allowlist, and
+    bidirectional docs verification make accidental surface drift fail checks.
 - [ ] **[P2][API-13] Accept readonly consumer collections.**
   - Events, background events, resources, selected IDs, and explicit range
     days should accept readonly arrays without requiring copies.
+- [x] **[P1][API-14] Make time-grid grouping hierarchy explicit.**
+  - Render separate day and resource header levels when resources are present.
+  - Allow callers to choose day-first or resource-first column grouping.
+  - Omit the resource-header level when no resources are configured.
 
 ## Time-grid implementation
 
@@ -208,21 +248,26 @@ Last reviewed: 2026-08-12
 - [x] **[P0][TEST-02] Test drag and drop across days and resources.**
   - Unit tests cover duration preservation and cross-resource destinations.
   - Browser stories cover successful, cancelled, and invalid-target drops.
-- [ ] **[P0][TEST-03] Add compile-time public API tests.**
+- [x] **[P0][TEST-03] Add compile-time public API tests.**
   - Assert accepted prop combinations for every built-in view.
   - Assert that typos, wrong callback payloads, and view-incompatible props
     fail compilation.
-- [ ] **[P1][TEST-04] Cover view state and navigation contracts.**
-  - Controlled and uncontrolled dates.
-  - Date and range change callbacks.
-  - Min/max boundaries, non-contiguous ranges, and custom navigation.
-- [ ] **[P1][TEST-05] Cover interaction enablement and renderer contracts.**
+- [x] **[P1][TEST-04] Cover view state and navigation contracts.**
+  - Controlled and uncontrolled anchor movement is exercised across every
+    built-in view.
+  - Date and visible-range callbacks assert exact normalized payloads,
+    including the month view's month boundaries.
+  - Browser coverage verifies min/max disabling and recovery, non-contiguous
+    ranges, and custom range-owned navigation.
+- [x] **[P1][TEST-05] Cover interaction enablement and renderer contracts.**
   - Callback-presence defaults and event-specific predicates.
   - Selection, editing, and slot interaction with customized renderers.
   - Interaction remains available when grid lines are visually hidden.
-- [ ] **[P1][TEST-06] Test supported dependency combinations.**
-  - Run CI against React 18 and 19 and every supported Node release.
-  - Test production builds rather than only type compatibility.
+- [x] **[P1][TEST-06] Test supported dependency combinations.**
+  - The CI compatibility matrix installs matching React and React DOM 18.2
+    and 19.0 releases on every supported Node line.
+  - Every combination runs unit tests, a production package build, and the
+    built package's server-render verification.
 - [ ] **[P1][TEST-07] Add clean consumer fixtures.**
   - Install the packed artifact into representative Vite and Next.js apps.
   - Verify ESM exports, declarations, CSS, the client directive, lazy locales,
@@ -239,23 +284,28 @@ Last reviewed: 2026-08-12
 
 ## Documentation and examples
 
-- [ ] **[P0][DOC-01] Update documentation with the final pre-release API.**
-  - Remove every legacy name and example in the same change as the refactor.
-  - Document event identity, controlled state, time zones, ranges, resources,
-    renderer contracts, and drop payloads.
-- [ ] **[P1][DOC-02] Publish a complete API reference.**
-  - Every public component, prop, callback payload, type, default, and thrown
-    error should be discoverable from generated declarations or Storybook.
-- [ ] **[P1][DOC-03] Document styling and theming.**
-  - List supported CSS variables, stable class hooks, responsive behavior, and
-    the boundary between library layout and consumer presentation.
-- [ ] **[P1][DOC-04] Add runnable consumer examples.**
-  - Include minimal Vite and Next.js examples.
-  - Include controlled navigation, resources, localization, custom renderers,
-    and interaction state updates.
-- [ ] **[P1][DOC-05] Document accessibility behavior.**
-  - Cover keyboard commands, focus behavior, messages, drag alternatives, and
-    custom-renderer responsibilities.
+- [x] **[P0][DOC-01] Update documentation with the final pre-release API.**
+  - [Getting started](./docs/getting-started.md) and the
+    [API reference](./docs/api.md) use the current names and document event
+    identity, controlled state, time zones, ranges, resources, renderer
+    contracts, and drop payloads with concrete data.
+- [x] **[P1][DOC-02] Publish a complete API reference.**
+  - The [API reference](./docs/api.md) covers every public export and interface
+    property, including callback payloads, defaults, examples, and thrown
+    errors. `npm run docs:check` enforces source and GitHub Pages coverage.
+- [x] **[P1][DOC-03] Document styling and theming.**
+  - [Styling and theming](./docs/styling.md) defines every supported CSS
+    variable, stable class hook, responsive behavior, and the ownership
+    boundary between library layout and consumer presentation.
+- [x] **[P1][DOC-04] Add runnable consumer examples.**
+  - The [consumer examples](./examples/) provide independently locked Vite and
+    Next.js applications. They cover controlled navigation, resources,
+    localization, custom renderers, and interaction state updates and are
+    production-built by `npm run examples:check` in CI.
+- [x] **[P1][DOC-05] Document accessibility behavior.**
+  - [Accessibility](./docs/accessibility.md) documents current keyboard and
+    focus behavior, messages, drag alternatives and limitations, and
+    custom-renderer responsibilities without claiming open A11Y work is done.
 - [ ] **[P2][DOC-06] Document deliberate non-goals.**
   - Decide and document ownership of recurrence expansion, persistence,
     fetching, application state, and design-system styling.

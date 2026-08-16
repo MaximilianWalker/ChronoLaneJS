@@ -8,23 +8,28 @@ import {
 } from "date-fns";
 
 import { createLayout as buildTimeGridLayout } from "../../../../src/views/time-grid/layout/createLayout.js";
+import { createTimeGridHeaderRows } from "../../../../src/views/time-grid/layout/headers.js";
 import type {
     CalendarEvent,
-    NormalizedCalendarEvent
+    CalendarResourceConfig,
+    CalendarResourceId
 } from "../../../../src/types.js";
-import type { TimeOfDay } from "../../../../src/views/time-grid/types.js";
+import type {
+    TimeGridGroupBy,
+    TimeOfDay
+} from "../../../../src/views/time-grid/types.js";
 
 interface TestEvent extends CalendarEvent {
     id: string;
     title: string;
     start: Date;
     end: Date;
-    resourceId?: string;
-    resourceIds?: string[];
+    resourceId?: CalendarResourceId;
+    resourceIds?: CalendarResourceId[];
 }
 
 interface TestResource {
-    id: string;
+    id?: CalendarResourceId;
     name: string;
 }
 
@@ -32,13 +37,12 @@ interface CreateLayoutOptions {
     events?: TestEvent[];
     backgroundEvents?: TestEvent[];
     days?: Date[];
-    resources?: TestResource[];
+    resources?: CalendarResourceConfig<TestEvent, TestResource>;
+    groupBy?: TimeGridGroupBy;
     minTime?: TimeOfDay;
     maxTime?: TimeOfDay | "24:00";
     slotDuration?: number;
     labelInterval?: number;
-    getResourceId?: (resource: TestResource) => unknown;
-    getEventResourceIds?: (event: NormalizedCalendarEvent<TestEvent>) => unknown[];
 }
 
 const date = (day: number, hour = 0, minute = 0): Date => (
@@ -49,7 +53,7 @@ const createLayout = ({
     events = [],
     backgroundEvents = [],
     days = [date(1)],
-    resources = [],
+    resources,
     minTime = "08:00",
     maxTime = "18:00",
     slotDuration = 60,
@@ -74,7 +78,7 @@ test("creates one column per visible day and resource", () => {
     ];
     const layout = createLayout({
         days: [date(1), date(2)],
-        resources
+        resources: { items: resources }
     });
 
     assert.equal(layout.columns.length, 4);
@@ -90,6 +94,120 @@ test("creates one column per visible day and resource", () => {
             { dayIndex: 1, resourceId: "room-b" }
         ]
     );
+});
+
+test("orders resource groups before their visible days when requested", () => {
+    const layout = createLayout({
+        days: [date(1), date(2)],
+        resources: {
+            items: [
+                { id: "room-a", name: "Room A" },
+                { id: "room-b", name: "Room B" }
+            ]
+        },
+        groupBy: "resource",
+        events: [{
+            id: "room-b-day-two",
+            title: "Room B on day two",
+            resourceId: "room-b",
+            start: date(2, 9),
+            end: date(2, 10)
+        }]
+    });
+
+    assert.deepEqual(
+        layout.columns.map(({ dayIndex, resourceId, resourceIndex }) => ({
+            dayIndex,
+            resourceId,
+            resourceIndex
+        })),
+        [
+            { dayIndex: 0, resourceId: "room-a", resourceIndex: 0 },
+            { dayIndex: 1, resourceId: "room-a", resourceIndex: 0 },
+            { dayIndex: 0, resourceId: "room-b", resourceIndex: 1 },
+            { dayIndex: 1, resourceId: "room-b", resourceIndex: 1 }
+        ]
+    );
+    assert.equal(layout.events[0]?.columnIndex, 3);
+    assert.equal(layout.slots.find(
+        ({ columnIndex }) => columnIndex === 3
+    )?.resourceId, "room-b");
+});
+
+test("builds aligned day-first and resource-first header rows", () => {
+    const dayFirst = createLayout({
+        days: [date(1), date(2)],
+        resources: {
+            items: [
+                { id: "room-a", name: "Room A" },
+                { id: "room-b", name: "Room B" }
+            ]
+        }
+    });
+    const dayHeaders = createTimeGridHeaderRows(dayFirst.columns, "day");
+
+    assert.deepEqual(
+        dayHeaders.primary.map(({ kind, columnIndex, columns }) => ({
+            kind,
+            columnIndex,
+            columnSpan: columns.length
+        })),
+        [
+            { kind: "day", columnIndex: 0, columnSpan: 2 },
+            { kind: "day", columnIndex: 2, columnSpan: 2 }
+        ]
+    );
+    assert.deepEqual(
+        dayHeaders.secondary.map(({ kind, columnIndex, columns }) => ({
+            kind,
+            columnIndex,
+            columnSpan: columns.length
+        })),
+        [
+            { kind: "resource", columnIndex: 0, columnSpan: 1 },
+            { kind: "resource", columnIndex: 1, columnSpan: 1 },
+            { kind: "resource", columnIndex: 2, columnSpan: 1 },
+            { kind: "resource", columnIndex: 3, columnSpan: 1 }
+        ]
+    );
+
+    const resourceFirst = createLayout({
+        days: [date(1), date(2)],
+        resources: {
+            items: [
+                { id: "room-a", name: "Room A" },
+                { id: "room-b", name: "Room B" }
+            ]
+        },
+        groupBy: "resource"
+    });
+    const resourceHeaders = createTimeGridHeaderRows(
+        resourceFirst.columns,
+        "resource"
+    );
+
+    assert.deepEqual(
+        resourceHeaders.primary.map(({ kind, columnIndex, columns }) => ({
+            kind,
+            columnIndex,
+            columnSpan: columns.length
+        })),
+        [
+            { kind: "resource", columnIndex: 0, columnSpan: 2 },
+            { kind: "resource", columnIndex: 2, columnSpan: 2 }
+        ]
+    );
+    assert.equal(resourceHeaders.secondary.length, 4);
+    assert.ok(resourceHeaders.secondary.every(({ kind }) => kind === "day"));
+});
+
+test("omits resource headers when resources are not configured", () => {
+    const layout = createLayout({ days: [date(1), date(2)] });
+    const headers = createTimeGridHeaderRows(layout.columns, "resource");
+
+    assert.equal(headers.primary.length, 2);
+    assert.ok(headers.primary.every(({ kind }) => kind === "day"));
+    assert.deepEqual(headers.secondary, []);
 });
 
 test("creates slots and dividers from one validated time scale", () => {
@@ -186,7 +304,7 @@ test("duplicates multi-resource events only into assigned columns", () => {
         { id: "room-b", name: "Room B" }
     ];
     const layout = createLayout({
-        resources,
+        resources: { items: resources },
         events: [
             {
                 id: "both",
@@ -216,6 +334,51 @@ test("duplicates multi-resource events only into assigned columns", () => {
             { id: "both", columnIndex: 1, resourceId: "room-b" },
             { id: "room-a-only", columnIndex: 0, resourceId: "room-a" }
         ]
+    );
+});
+
+test("rejects missing and duplicate resource identifiers", () => {
+    assert.throws(
+        () => createLayout({
+            resources: {
+                items: [{ name: "Missing ID" }]
+            }
+        }),
+        /resource at index 0 ID must be a non-empty string or finite number/
+    );
+    assert.throws(
+        () => createLayout({
+            resources: {
+                items: [
+                    { id: "room-a", name: "First" },
+                    { id: "room-a", name: "Duplicate" }
+                ]
+            }
+        }),
+        /resource ID string "room-a" is duplicated at indexes 0 and 1/
+    );
+});
+
+test("matches typed IDs by value and deduplicates event assignments", () => {
+    const layout = createLayout({
+        resources: {
+            items: [
+                { id: "1", name: "String" },
+                { id: 1, name: "Number" }
+            ],
+            getEventIds: () => [1, 1]
+        },
+        events: [{
+            id: "typed",
+            title: "Typed identity",
+            start: date(1, 9),
+            end: date(1, 10)
+        }]
+    });
+
+    assert.deepEqual(
+        layout.events.map(({ resourceId }) => resourceId),
+        [1]
     );
 });
 
@@ -342,5 +505,9 @@ test("rejects invalid time scales", () => {
     assert.throws(
         () => createLayout({ slotDuration: 30, labelInterval: 45 }),
         /integer multiple of slotDuration/
+    );
+    assert.throws(
+        () => createLayout({ groupBy: "team" as TimeGridGroupBy }),
+        /groupBy must be either "day" or "resource"/
     );
 });

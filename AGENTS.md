@@ -5,7 +5,7 @@ project-specific constraints are defined here.
 
 ## React component boundaries
 
-- Follow the component-boundary rules in `CONTRIBUTING.md`.
+- Follow the component-boundary rules in `DEVELOPMENT.md`.
 - Never introduce a same-file pass-through component solely to shorten a
   parent component or move its JSX.
 - Treat a long list of parent-owned props as evidence that the proposed child
@@ -20,6 +20,6 @@ project-specific constraints are defined here.
 
 ## Comment discipline
 
-- Follow the documentation and comment rules in `CONTRIBUTING.md`.
+- Follow the documentation and comment rules in `DEVELOPMENT.md`.
 - Do not introduce isolated explanatory comments where naming and structure
   already make the code clear.
