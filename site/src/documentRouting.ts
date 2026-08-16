@@ -18,6 +18,6 @@ export const parseDocumentLocation = (
         id: documentId && isDocumentId(documentId)
             ? documentId
             : "documentation",
-        anchor
+        anchor: anchor || undefined
     };
 };

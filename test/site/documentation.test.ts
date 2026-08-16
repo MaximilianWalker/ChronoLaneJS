@@ -23,6 +23,10 @@ test("parses document routes without treating heading anchors as document change
         id: "documentation",
         anchor: undefined
     });
+    assert.deepEqual(parseDocumentLocation("#doc-api/", isDocumentId), {
+        id: "api",
+        anchor: undefined
+    });
     assert.equal(parseDocumentLocation("#quick-start", isDocumentId), undefined);
 });
 
