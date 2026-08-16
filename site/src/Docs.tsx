@@ -1,35 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import Markdown, { type Components } from "react-markdown";
-import rehypeRaw from "rehype-raw";
-import rehypeSlug from "rehype-slug";
-import remarkGfm from "remark-gfm";
 
 import {
     documents,
     isDocumentId,
     type DocumentId
 } from "./content.js";
+import { REPOSITORY_URL } from "./Chrome.js";
+import { parseDocumentLocation } from "./documentRouting.js";
+import { markdownRehypePlugins, markdownRemarkPlugins } from "./markdown.js";
 
-const REPOSITORY_URL = "https://github.com/MaximilianWalker/ChronoLaneJS";
-const remarkPlugins = [remarkGfm];
-const rehypePlugins = [rehypeRaw, rehypeSlug];
-
-interface DocumentLocation {
-    id: DocumentId;
-    anchor?: string;
-}
-
-const getDocumentLocation = (): DocumentLocation => {
-    const [documentId, anchor] = window.location.hash
-        .replace(/^#doc-/, "")
-        .split("/", 2);
-    return {
-        id: documentId && isDocumentId(documentId)
-            ? documentId
-            : "documentation",
-        anchor
-    };
-};
+const getDocumentLocation = () => parseDocumentLocation(window.location.hash, isDocumentId);
 
 const resolveRepositoryPath = (currentPath: string, href: string): string => {
     const currentDirectory = currentPath.includes("/")
@@ -41,7 +22,9 @@ const resolveRepositoryPath = (currentPath: string, href: string): string => {
 };
 
 export default function Docs() {
-    const [activeId, setActiveId] = useState<DocumentId>(() => getDocumentLocation().id);
+    const [activeId, setActiveId] = useState<DocumentId>(() => (
+        getDocumentLocation()?.id ?? "documentation"
+    ));
     const activeDocument = documents.find(({ id }) => id === activeId) ?? documents[0]!;
     const markdownComponents = useMemo<Components>(() => ({
         a: ({ href, children, ...props }) => {
@@ -96,12 +79,12 @@ export default function Docs() {
     useEffect(() => {
         const syncFromHash = () => {
             const location = getDocumentLocation();
+            if (!location) return;
+
             setActiveId(location.id);
-            if (window.location.hash.startsWith("#doc-")) {
-                requestAnimationFrame(() => requestAnimationFrame(() => {
-                    document.getElementById(location.anchor ?? "document")?.scrollIntoView();
-                }));
-            }
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                document.getElementById(location.anchor ?? "document")?.scrollIntoView();
+            }));
         };
         window.addEventListener("hashchange", syncFromHash);
         syncFromHash();
@@ -145,8 +128,8 @@ export default function Docs() {
                         </a>
                     </div>
                     <Markdown
-                        remarkPlugins={remarkPlugins}
-                        rehypePlugins={rehypePlugins}
+                        remarkPlugins={markdownRemarkPlugins}
+                        rehypePlugins={markdownRehypePlugins}
                         components={markdownComponents}
                     >
                         {activeDocument.source}
