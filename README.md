@@ -520,6 +520,7 @@ Requires a supported Node.js version from the matrix above.
 ```bash
 npm ci
 npm run check
+npm run examples:check
 npm run check:storybook
 npm pack --dry-run
 ```
@@ -533,11 +534,13 @@ Useful focused commands:
 | `npm run storybook` | Run the exhaustive component catalog |
 | `npm run storybook:test` | Execute every story in Chromium and Firefox |
 | `npm run storybook:build` | Build the deployable static catalog |
+| `npm run examples:check` | Install, lint, and build the independent Vite and Next.js consumers |
 | `npm run locales:generate` | Regenerate date-fns locale loaders |
 | `npm run locales:check` | Verify the generated locale registry |
 
-GitHub Actions validates the package and Storybook independently. Published
-GitHub releases are prepared for npm trusted publishing with provenance.
+GitHub Actions validates the package, consumer examples, and Storybook as
+independent boundaries. Published GitHub releases are prepared for npm trusted
+publishing with provenance.
 
 ## Author
 

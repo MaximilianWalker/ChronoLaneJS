@@ -10,6 +10,7 @@ The requirements below apply to every repository change.
 ```bash
 npm install
 npm run check
+npm run examples:check
 npm run check:storybook
 ```
 
@@ -45,9 +46,12 @@ Markdown instead of adding site-only documentation. Public exports and props
 must be present in `docs/api.md`; `npm run docs:check` rejects both missing and
 stale export or prop entries. The built package runtime is also checked against
 an exact export allowlist so implementation helpers cannot appear silently.
-Runnable Vite and Next.js integrations live under `examples/` and are validated
-with `npm run examples:check`. Run `npm run site` to preview the website and
-compact playground, or `npm run site:build` to verify its production output.
+Runnable Vite and Next.js integrations live under `examples/` as independent
+consumer packages. `npm run check` validates the publishable root package;
+`npm run examples:check` installs each consumer's locked dependencies, lints
+both applications, and production-builds them against the package. Run
+`npm run site` to preview the website and compact playground, or
+`npm run site:build` to verify its production output.
 
 The generated declaration contract is committed as
 `etc/chronolanejs.api.md`. After an intentional public type or signature
