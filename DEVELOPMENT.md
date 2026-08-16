@@ -104,6 +104,14 @@ accepts direct updates. `main` is the protected release branch. Promote a
 tested development state with a pull request from `dev` to `main` and merge it
 with a merge commit so both branches retain shared ancestry.
 
+Every pull request is validated by the complete CI matrix, and `main` requires
+every CI job to pass on the current branch tip before it can be merged. Each
+merge to `main` triggers a second validation of the exact merge commit and a
+GitHub Pages deployment. When pushes overlap, Pages cancels the superseded run
+so the published site converges on the latest `main` commit. The gated Release
+workflow runs from the same push, but publishes to npm only when releases are
+enabled and semantic-release finds a release-bearing Conventional Commit.
+
 Semantic-release derives the next version and GitHub release notes from every
 commit since the previous `v<version>` tag. The promotion pull request title is
 used as its merge commit title and must use Conventional Commit syntax:
