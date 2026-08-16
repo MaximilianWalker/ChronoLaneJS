@@ -390,7 +390,7 @@ variables. The same typed `className` and `style` props are available on
 />
 ```
 
-Header height applies to each header row. Resource grouping therefore adds a
+Header height applies to each header row. Resource columns therefore add a
 second full-height row. The time-axis token sizes both the label column and its
 empty header corner. Set the line width to `0px` to remove header and slot grid
 lines consistently. Layout-sensitive time-grid tokens accept deterministic

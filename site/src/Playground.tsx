@@ -10,7 +10,7 @@ import type {
 } from "../../src/types.js";
 import type { TimeGridGroupBy } from "../../src/views/time-grid/types.js";
 
-type PlaygroundView = "day" | "week" | "month" | "agenda" | "resource-grouping" | "time-grid";
+type PlaygroundView = "day" | "week" | "month" | "agenda" | "resources" | "time-grid";
 
 interface PlaygroundResource {
     id: string;
@@ -29,8 +29,8 @@ const views: readonly { id: PlaygroundView; label: string; detail: string }[] = 
     { id: "month", label: "Month", detail: "Compact calendar overview" },
     { id: "agenda", label: "Agenda", detail: "Readable event chronology" },
     {
-        id: "resource-grouping",
-        label: "Resource grouping",
+        id: "resources",
+        label: "Resources",
         detail: "Week grouped by day or resource"
     },
     { id: "time-grid", label: "Custom", detail: "Flexible work-week range" }
@@ -186,10 +186,10 @@ export default function Playground() {
     const [resourceGroupBy, setResourceGroupBy] = useState<TimeGridGroupBy>("day");
     const [selectedEventIds, setSelectedEventIds] = useState<CalendarEventId[]>([]);
     const activeView = views.find(({ id }) => id === view) ?? views[0]!;
-    const activeViewDetail = view === "resource-grouping"
+    const activeViewDetail = view === "resources"
         ? `Week grouped by ${resourceGroupBy}`
         : activeView.detail;
-    const visibleEvents = view === "resource-grouping"
+    const visibleEvents = view === "resources"
         ? resourceEvents
         : view === "month"
             ? monthEvents
@@ -243,7 +243,7 @@ export default function Playground() {
                         viewProps={{ maxEventsPerDay: 2 }}
                     />
                 );
-            case "resource-grouping":
+            case "resources":
                 return (
                     <Calendar<PlaygroundEvent, PlaygroundResource>
                         {...calendarProps}
@@ -312,15 +312,15 @@ export default function Playground() {
                         ))}
                     </div>
                     <div className="playground-toolbar-controls">
-                        {view === "resource-grouping"
+                        {view === "resources"
                             ? (
                                 <div
-                                    className="resource-grouping-control"
+                                    className="resources-control"
                                     role="group"
                                     aria-label="Group resource schedule by"
                                 >
                                     <span aria-hidden="true">Group by</span>
-                                    <div className="resource-grouping-options">
+                                    <div className="resources-options">
                                         {RESOURCE_GROUPING_OPTIONS.map((groupBy) => (
                                             <button
                                                 key={groupBy}
