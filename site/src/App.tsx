@@ -197,7 +197,7 @@ export default function App() {
                             stays precise, flexible, and pleasant to build with.
                         </p>
 
-                        <div className="author-links" aria-label="Diogo Crava links">
+                        <nav className="author-links" aria-label="Diogo Crava links">
                             <a href={PORTFOLIO_URL} target="_blank" rel="noreferrer">
                                 Portfolio <span aria-hidden="true">↗</span>
                             </a>
@@ -207,7 +207,7 @@ export default function App() {
                             <a href={LINKEDIN_URL} target="_blank" rel="noreferrer">
                                 LinkedIn <span aria-hidden="true">↗</span>
                             </a>
-                        </div>
+                        </nav>
 
                         <div className="author-support">
                             <span className="author-support-icon">
