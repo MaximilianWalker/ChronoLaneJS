@@ -665,20 +665,20 @@ a {
     margin-left: auto;
 }
 
-.resource-grouping-control {
+.resources-control {
     display: flex;
     flex: 0 0 auto;
     align-items: center;
     gap: 8px;
 }
 
-.resource-grouping-control > span {
+.resources-control > span {
     color: #7c8799;
     font-size: 0.67rem;
     font-weight: 650;
 }
 
-.resource-grouping-options {
+.resources-options {
     display: flex;
     gap: 3px;
     padding: 3px;
@@ -687,7 +687,7 @@ a {
     background: #f2f5f8;
 }
 
-.resource-grouping-options button {
+.resources-options button {
     padding: 6px 9px;
     border: 0;
     border-radius: 6px;
@@ -698,11 +698,11 @@ a {
     cursor: pointer;
 }
 
-.resource-grouping-options button:hover {
+.resources-options button:hover {
     color: var(--ink);
 }
 
-.resource-grouping-options button[aria-pressed="true"] {
+.resources-options button[aria-pressed="true"] {
     background: #fff;
     box-shadow: 0 1px 5px rgba(35, 52, 77, 0.1);
     color: var(--blue-dark);
@@ -1215,7 +1215,7 @@ a {
 .author-visual {
     position: relative;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     min-height: 680px;
     border-right: 1px solid rgba(172, 196, 235, 0.16);
@@ -1278,8 +1278,8 @@ a {
 
 .author-portrait-frame {
     position: relative;
-    width: min(91%, 520px);
-    margin-bottom: 38px;
+    width: min(88%, 480px);
+    transform: translateY(48px);
     filter: drop-shadow(0 34px 36px rgba(0, 0, 0, 0.38));
     z-index: 1;
 }
@@ -1634,6 +1634,11 @@ a {
 
     .view-tabs {
         width: 100%;
+        scrollbar-width: none;
+    }
+
+    .view-tabs::-webkit-scrollbar {
+        display: none;
     }
 
     .playground-canvas {
@@ -1747,6 +1752,7 @@ a {
 
     .author-portrait-frame {
         width: min(78%, 470px);
+        transform: translateY(34px);
     }
 
     .author-content {
@@ -1951,8 +1957,8 @@ a {
     }
 
     .author-portrait-frame {
-        width: min(94%, 390px);
-        margin-bottom: 54px;
+        width: min(84%, 350px);
+        transform: none;
     }
 
     .author-terminal {

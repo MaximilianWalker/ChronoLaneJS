@@ -58,7 +58,7 @@ const assignedResourceConfig: CalendarResourceConfig<AssignedEvent, Person> = {
 const StoryWeekView = WeekView<StoryEvent, StoryResource>;
 
 const meta = {
-    title: "Capabilities/Resource grouping",
+    title: "Capabilities/Resources",
     component: StoryWeekView,
     args: {
         date: ANCHOR_DATE,

@@ -53,7 +53,7 @@ export const WithBackgroundEvents: Story = {
     }
 };
 
-export const ResourceGrouping: Story = {
+export const Resources: Story = {
     args: {
         view: "week",
         events: resourceEvents,

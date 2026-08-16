@@ -312,7 +312,7 @@ void (
 // @ts-expect-error Flat resource accessors are removed.
 void <Calendar view="day" getResourceId={(resource: ProjectResource) => resource.id} />;
 
-// @ts-expect-error Resource grouping only accepts the two supported dimensions.
+// @ts-expect-error Time-grid grouping only accepts the two supported dimensions.
 void <Calendar view="week" viewProps={{ groupBy: "team" }} />;
 
 // @ts-expect-error The combined time-grid column header was removed.
