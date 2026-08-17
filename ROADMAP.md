@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-16
+Last reviewed: 2026-08-17
 
 ## Tracking rules
 
@@ -322,9 +322,13 @@ Last reviewed: 2026-08-16
 - [ ] **[P1][REPO-01] Add issue and pull-request templates.**
   - Include reproduction, browser/time-zone/locale information, accessibility
     impact, tests, stories, and the relevant roadmap identifier.
-- [ ] **[P1][REPO-02] Automate dependency maintenance.**
-  - Configure grouped dependency updates with CI validation and controlled
-    major-version review.
+- [x] **[P1][REPO-02] Automate dependency maintenance.**
+  - Weekly Dependabot updates cover the root package, locked Vite and Next.js
+    consumers, and pinned GitHub Actions; routine minor/patch updates are
+    grouped and every pull request runs the full CI matrix.
+  - Major updates, including major-version security fixes, stay in separate
+    reviewer-requested pull requests; security alerts and routine security
+    groups remain enabled independently.
 - [x] **[P1][REPO-03] Verify the security-reporting path.**
   - Private vulnerability reporting is enabled and `SECURITY.md` links
     directly to the repository's private advisory form.
