@@ -325,10 +325,12 @@ Last reviewed: 2026-08-16
 - [ ] **[P1][REPO-02] Automate dependency maintenance.**
   - Configure grouped dependency updates with CI validation and controlled
     major-version review.
-- [ ] **[P1][REPO-03] Verify the security-reporting path.**
-  - Confirm private vulnerability reporting is enabled and matches
-    `SECURITY.md`.
-  - Define how supported versions receive security fixes after releases exist.
+- [x] **[P1][REPO-03] Verify the security-reporting path.**
+  - Private vulnerability reporting is enabled and `SECURITY.md` links
+    directly to the repository's private advisory form.
+  - Only npm's `latest` stable release is supported. Confirmed issues use a
+    draft advisory and temporary private fork, publish a validated patch from
+    `main`, and merge the released fix back into `dev`.
 - [ ] **[P2][REPO-04] Track package size.**
   - Record an initial ESM and CSS budget and fail CI on unexplained material
     regressions.

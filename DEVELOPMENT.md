@@ -152,6 +152,18 @@ Do not add an npm access token to the repository or workflow. Semantic-release
 publishes through npm trusted publishing with the workflow's short-lived OIDC
 identity.
 
+### Security releases
+
+The normal `dev`-to-`main` promotion path must not expose a confirmed
+vulnerability before a patched package is ready. Follow `SECURITY.md`: develop
+the remediation in the draft advisory's temporary private fork, validate it
+locally because CI cannot access that fork, and use the advisory merge control
+to land a release-bearing `fix:` commit based on `main`. Coordinate the gated
+npm release with publication of the advisory, then merge `main` back into
+`dev` immediately. Do not copy confidential advisory details into public
+branches, pull requests, workflow logs, or issues before the coordinated
+disclosure.
+
 The npm trusted publisher must match these values exactly:
 
 - GitHub organization or user: `MaximilianWalker`
