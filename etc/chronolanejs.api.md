@@ -694,6 +694,8 @@ export interface TimeGridEventSegment<Resource = unknown> {
     // (undocumented)
     end: Date;
     // (undocumented)
+    layout: TimeGridMultiDayEventLayout;
+    // (undocumented)
     resource: Resource | null;
     // (undocumented)
     resourceId: CalendarResourceId | null;

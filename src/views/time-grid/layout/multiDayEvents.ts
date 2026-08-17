@@ -75,6 +75,36 @@ interface MultiDayEventResizeOptions<
     source: TimeGridEventPosition<Resource>;
 }
 
+/** Resolves a pointer coordinate to one visible dedicated-region column. */
+export const getMultiDayPointerColumnIndex = (
+    clientX: number,
+    gridLeft: number,
+    gridWidth: number,
+    columnCount: number
+): number | undefined => {
+    if (gridWidth <= 0 || columnCount <= 0) return undefined;
+
+    return Math.min(
+        columnCount - 1,
+        Math.max(0, Math.floor((clientX - gridLeft) / gridWidth * columnCount))
+    );
+};
+
+/** Resolves the event-origin column after a dedicated bar pointer movement. */
+export const getMultiDayMoveTargetIndex = (
+    originIndex: number,
+    grabIndex: number,
+    pointerIndex: number,
+    columnCount: number
+): number | undefined => {
+    if (columnCount <= 0) return undefined;
+
+    return Math.min(
+        columnCount - 1,
+        Math.max(0, originIndex + pointerIndex - grabIndex)
+    );
+};
+
 /** Tests whether an event crosses at least one local calendar-day boundary. */
 export const isMultiDayEvent = (
     event: NormalizedCalendarEvent

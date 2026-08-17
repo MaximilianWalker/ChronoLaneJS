@@ -196,6 +196,117 @@ export const DedicatedMultiDayInteractions: Story = {
     }
 };
 
+export const DedicatedMultiDayPointerMove: Story = {
+    args: {
+        view: "week",
+        events: multiDayEvents.filter(({ id }) => id === "conference"),
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            multiDayEventLayout: "dedicated"
+        }
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const handle = canvas.getByRole("button", {
+            name: "Move Design systems conference"
+        });
+        const grid = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_multi-day-grid"
+        );
+        if (!grid) throw new Error("Could not find the dedicated event grid.");
+
+        const gridBounds = grid.getBoundingClientRect();
+        const handleBounds = handle.getBoundingClientRect();
+        const columnWidth = gridBounds.width / 7;
+        const grabX = handleBounds.left + handleBounds.width / 2;
+        const destinationX = grabX + columnWidth;
+        const clientY = handleBounds.top + handleBounds.height / 2;
+        const onEventDrop = getTimeGridViewProps(args)?.onEventDrop;
+        const drag = async (
+            pointerId: number,
+            pointerType: "mouse" | "touch",
+            clientX: number
+        ) => {
+            const pointer = { pointerId, pointerType, isPrimary: true, clientY };
+            await fireEvent.pointerDown(handle, { ...pointer, clientX: grabX });
+            await fireEvent.pointerMove(handle, { ...pointer, clientX });
+            await fireEvent.pointerUp(handle, { ...pointer, clientX });
+        };
+
+        await drag(20, "mouse", grabX);
+        await expect(onEventDrop).not.toHaveBeenCalled();
+        await drag(21, "mouse", destinationX);
+        await expect(onEventDrop).toHaveBeenCalledTimes(1);
+        await expect(onEventDrop).toHaveBeenLastCalledWith(expect.objectContaining({
+            start: asCalendarDate("2026-09-15T14:00:00", "UTC"),
+            end: asCalendarDate("2026-09-17T11:00:00", "UTC")
+        }));
+
+        await drag(22, "touch", grabX);
+        await expect(onEventDrop).toHaveBeenCalledTimes(1);
+        await drag(23, "touch", destinationX);
+        await expect(onEventDrop).toHaveBeenCalledTimes(2);
+        await expect(onEventDrop).toHaveBeenLastCalledWith(expect.objectContaining({
+            start: asCalendarDate("2026-09-15T14:00:00", "UTC"),
+            end: asCalendarDate("2026-09-17T11:00:00", "UTC")
+        }));
+    }
+};
+
+export const DedicatedMultiDayPointerResize: Story = {
+    args: {
+        view: "week",
+        events: multiDayEvents.filter(({ id }) => id === "conference"),
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            multiDayEventLayout: "dedicated"
+        }
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const handle = canvas.getByRole("slider", {
+            name: /Resize end of Design systems conference/i
+        });
+        const grid = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_multi-day-grid"
+        );
+        if (!grid) throw new Error("Could not find the dedicated event grid.");
+
+        const gridBounds = grid.getBoundingClientRect();
+        const handleBounds = handle.getBoundingClientRect();
+        const columnWidth = gridBounds.width / 7;
+        const grabX = handleBounds.left + handleBounds.width / 2;
+        const destinationX = grabX + columnWidth;
+        const clientY = handleBounds.top + handleBounds.height / 2;
+        const onEventResize = getTimeGridViewProps(args)?.onEventResize;
+        const resize = async (
+            pointerId: number,
+            pointerType: "mouse" | "touch"
+        ) => {
+            const pointer = { pointerId, pointerType, isPrimary: true, clientY };
+            await fireEvent.pointerDown(handle, { ...pointer, clientX: grabX });
+            await fireEvent.pointerMove(handle, { ...pointer, clientX: destinationX });
+            await fireEvent.pointerUp(handle, { ...pointer, clientX: destinationX });
+        };
+
+        await resize(24, "mouse");
+        await expect(onEventResize).toHaveBeenCalledTimes(1);
+        await expect(onEventResize).toHaveBeenLastCalledWith(expect.objectContaining({
+            edge: "end",
+            start: asCalendarDate("2026-09-14T14:00:00", "UTC"),
+            end: asCalendarDate("2026-09-17T11:00:00", "UTC")
+        }));
+
+        await resize(25, "touch");
+        await expect(onEventResize).toHaveBeenCalledTimes(2);
+        await expect(onEventResize).toHaveBeenLastCalledWith(expect.objectContaining({
+            edge: "end",
+            start: asCalendarDate("2026-09-14T14:00:00", "UTC"),
+            end: asCalendarDate("2026-09-17T11:00:00", "UTC")
+        }));
+    }
+};
+
 export const SelectOvernightEvent: Story = {
     args: {
         date: "2026-09-15",

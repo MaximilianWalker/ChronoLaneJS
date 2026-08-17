@@ -81,8 +81,9 @@ export interface TimeGridSlot<Resource = unknown> {
     resourceId: CalendarResourceId | null;
 }
 
-/** Visible, clipped portion of an event in one day and resource column. */
+/** Semantic event portion rendered by the timed grid or dedicated region. */
 export interface TimeGridEventSegment<Resource = unknown> {
+    layout: TimeGridMultiDayEventLayout;
     start: Date;
     end: Date;
     day: Date;

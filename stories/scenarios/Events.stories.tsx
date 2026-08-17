@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
 
 import { WeekView } from "../../src/index.js";
+import type { TimeGridViewProps } from "../../src/index.js";
+import { CustomTimeGridEvent } from "../harnesses.js";
 import {
     ANCHOR_DATE,
     MAX_TIME,
@@ -14,10 +16,11 @@ import {
     overlappingEvents,
     styledEvents
 } from "../fixtures.js";
+import type { StoryEvent, StoryResource } from "../fixtures.js";
 
 const meta = {
     title: "Scenarios/Events",
-    component: WeekView,
+    component: WeekView<StoryEvent, StoryResource>,
     args: {
         date: ANCHOR_DATE,
         minTime: MIN_TIME,
@@ -28,7 +31,7 @@ const meta = {
         events: { control: false },
         backgroundEvents: { control: false }
     }
-} satisfies Meta<typeof WeekView>;
+} satisfies Meta<TimeGridViewProps<StoryEvent, StoryResource>>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -97,6 +100,24 @@ export const DedicatedMultiDay: Story = {
         await expect(canvasElement.querySelectorAll(
             '[data-background-event-id="conference"]'
         )).toHaveLength(3);
+    }
+};
+
+export const DedicatedMultiDayRenderer: Story = {
+    args: {
+        events: multiDayEvents.filter(({ id }) => id === "conference"),
+        range: 3,
+        multiDayEventLayout: "dedicated",
+        components: { event: CustomTimeGridEvent }
+    },
+    play: async ({ canvasElement }) => {
+        const event = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_multi-day-region .story-event"
+        );
+
+        await expect(event).toBeVisible();
+        await expect(event).toHaveAttribute("data-story-layout", "dedicated");
+        await expect(event).toHaveAttribute("data-story-day", "2026-09-14");
     }
 };
 

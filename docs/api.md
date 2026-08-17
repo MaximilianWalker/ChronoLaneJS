@@ -427,7 +427,7 @@ agenda range when the visible unit requires custom navigation.
 <!-- api:TimeGridColumn TimeGridSlot TimeGridEventSegment TimeGridEventPosition TimeGridEventDrop TimeGridEventResizeEdge TimeGridEventResize -->
 <!-- props:TimeGridColumn day resource resourceId -->
 <!-- props:TimeGridSlot start end duration day resource resourceId -->
-<!-- props:TimeGridEventSegment start end day resource resourceId -->
+<!-- props:TimeGridEventSegment layout start end day resource resourceId -->
 <!-- props:TimeGridEventPosition day resource resourceId -->
 <!-- props:TimeGridEventDrop event start end source destination -->
 <!-- props:TimeGridEventResize event edge start end source -->
@@ -454,8 +454,9 @@ agenda range when the visible unit requires custom navigation.
 
 | Field | Meaning | Example |
 | --- | --- | --- |
-| `start`, `end` | Visible half-open event interval after clipping to the day and time window. | `09:00` through `10:00` |
-| `day` | Normalized day owning this visible segment. | `new Date(2026, 8, 14)` |
+| `layout` | Region rendering the segment: `"timed"` for a single day/resource column or `"dedicated"` for an aligned multi-day bar. | `"dedicated"` |
+| `start`, `end` | Visible half-open interval. Timed segments are clipped to one day and the time window; dedicated segments are clipped to their contiguous visible day span. | `new Date(2026, 8, 14, 14)` through `new Date(2026, 8, 16, 11)` |
+| `day` | Normalized owning day for a timed segment or first visible day for a dedicated segment. | `new Date(2026, 8, 14)` |
 | `resource` | Concrete resource column item, or `null` without resources. | `{ id: "studio", name: "Studio" }` |
 | `resourceId` | Stable resource column identity, or `null` without resources. | `"studio"` |
 

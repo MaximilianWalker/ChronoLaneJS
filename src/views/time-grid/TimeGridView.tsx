@@ -54,6 +54,8 @@ import {
     createMultiDayEventLayout,
     createMultiDayEventPreview,
     createMultiDayEventResize,
+    getMultiDayMoveTargetIndex,
+    getMultiDayPointerColumnIndex,
     getMultiDayResizeOffset,
     isMultiDayEvent
 } from "./layout/multiDayEvents.js";
@@ -125,6 +127,7 @@ interface MultiDayEventMoveState<
     origin: LayoutColumn<Resource>;
     handleKey: string;
     pointerId?: number;
+    grabColumnIndex?: number;
     target?: LayoutColumn<Resource>;
 }
 
@@ -807,7 +810,8 @@ export default function TimeGridView<
     const beginMultiDayEventMove = useCallback((
         segment: LayoutMultiDayEvent<Event, Resource>,
         handleKey: string,
-        pointerId?: number
+        pointerId?: number,
+        grabColumnIndex?: number
     ): MultiDayEventMoveState<Event, Resource> | null => {
         const origin = columns[segment.columnIndex];
         if (!origin) return null;
@@ -816,7 +820,8 @@ export default function TimeGridView<
             segment,
             origin,
             handleKey,
-            pointerId
+            pointerId,
+            grabColumnIndex
         } satisfies MultiDayEventMoveState<Event, Resource>;
         setEventMove(null);
         setEventResize(null);
@@ -842,6 +847,7 @@ export default function TimeGridView<
         if (
             !current
             || current.pointerId !== interaction.pointerId
+            || current.grabColumnIndex == null
             || !grid
             || columns.length === 0
         ) return;
@@ -850,13 +856,20 @@ export default function TimeGridView<
         interaction.stopPropagation();
         const bounds = grid.getBoundingClientRect();
         if (bounds.width <= 0) return;
-        const columnIndex = Math.min(
-            columns.length - 1,
-            Math.max(0, Math.floor(
-                (interaction.clientX - bounds.left) / bounds.width * columns.length
-            ))
+        const columnIndex = getMultiDayPointerColumnIndex(
+            interaction.clientX,
+            bounds.left,
+            bounds.width,
+            columns.length
         );
-        const target = columns[columnIndex];
+        if (columnIndex == null) return;
+        const targetIndex = getMultiDayMoveTargetIndex(
+            current.segment.columnIndex,
+            current.grabColumnIndex,
+            columnIndex,
+            columns.length
+        );
+        const target = targetIndex == null ? undefined : columns[targetIndex];
         if (target) updateMultiDayEventMoveTarget(current, target);
     }, [columns, multiDayEventMove, updateMultiDayEventMoveTarget]);
 
@@ -944,12 +957,13 @@ export default function TimeGridView<
         interaction.stopPropagation();
         const bounds = grid.getBoundingClientRect();
         if (bounds.width <= 0) return;
-        const rawColumnIndex = Math.min(
-            columns.length - 1,
-            Math.max(0, Math.floor(
-                (interaction.clientX - bounds.left) / bounds.width * columns.length
-            ))
+        const rawColumnIndex = getMultiDayPointerColumnIndex(
+            interaction.clientX,
+            bounds.left,
+            bounds.width,
+            columns.length
         );
+        if (rawColumnIndex == null) return;
         const pointerColumn = columns[rawColumnIndex];
         if (!pointerColumn) return;
         const targetColumn = columns.find((column) => (
@@ -1145,7 +1159,8 @@ export default function TimeGridView<
                             {dedicatedLayout.events.map((segment) => {
                                 const { event } = segment;
                                 const rendererSegment = toTimeGridEventSegment<Resource>(
-                                    segment
+                                    segment,
+                                    "dedicated"
                                 );
                                 const interactionContext = {
                                     view: viewName,
@@ -1234,10 +1249,21 @@ export default function TimeGridView<
                                 ) => {
                                     interaction.preventDefault();
                                     interaction.stopPropagation();
+                                    const grid = multiDayGridRef.current;
+                                    if (!grid) return;
+                                    const bounds = grid.getBoundingClientRect();
+                                    const grabColumnIndex = getMultiDayPointerColumnIndex(
+                                        interaction.clientX,
+                                        bounds.left,
+                                        bounds.width,
+                                        columns.length
+                                    );
+                                    if (grabColumnIndex == null) return;
                                     const next = beginMultiDayEventMove(
                                         segment,
                                         moveHandleKey,
-                                        interaction.pointerId
+                                        interaction.pointerId,
+                                        grabColumnIndex
                                     );
                                     if (
                                         next

@@ -14,6 +14,8 @@ import {
     createMultiDayEventLayout,
     createMultiDayEventPreview,
     createMultiDayEventResize,
+    getMultiDayMoveTargetIndex,
+    getMultiDayPointerColumnIndex,
     getMultiDayResizeOffset,
     isMultiDayEvent
 } from "../../../../src/views/time-grid/layout/multiDayEvents.js";
@@ -47,6 +49,23 @@ const createColumns = (
     slotDuration: 60,
     labelInterval: 60
 }).columns;
+
+test("preserves the dedicated pointer grab offset while moving", () => {
+    assert.equal(getMultiDayMoveTargetIndex(0, 2, 2, 7), 0);
+    assert.equal(getMultiDayMoveTargetIndex(0, 2, 3, 7), 1);
+    assert.equal(getMultiDayMoveTargetIndex(3, 5, 4, 7), 2);
+    assert.equal(getMultiDayMoveTargetIndex(0, 2, 0, 7), 0);
+    assert.equal(getMultiDayMoveTargetIndex(5, 6, 8, 7), 6);
+    assert.equal(getMultiDayMoveTargetIndex(0, 0, 0, 0), undefined);
+});
+
+test("resolves dedicated pointer columns from the actual grid bounds", () => {
+    assert.equal(getMultiDayPointerColumnIndex(250, 0, 700, 7), 2);
+    assert.equal(getMultiDayPointerColumnIndex(-10, 0, 700, 7), 0);
+    assert.equal(getMultiDayPointerColumnIndex(800, 0, 700, 7), 6);
+    assert.equal(getMultiDayPointerColumnIndex(0, 0, 0, 7), undefined);
+    assert.equal(getMultiDayPointerColumnIndex(0, 0, 700, 0), undefined);
+});
 
 test("classifies every positive interval that crosses local midnight", () => {
     assert.equal(isMultiDayEvent({ start: date(14, 9), end: date(14, 10) }), false);

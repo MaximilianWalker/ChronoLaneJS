@@ -141,6 +141,7 @@ const ProjectEventRenderer = ({
     elementProps
 }: TimeGridEventProps<ProjectEvent, ProjectResource>) => {
     void event.category;
+    void segment.layout;
     void segment.day;
     void segment.resourceId;
     void segment.resource?.name;

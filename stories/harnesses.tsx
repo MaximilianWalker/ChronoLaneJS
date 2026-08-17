@@ -262,6 +262,7 @@ export function CustomTimeGridEvent({
             {...elementProps}
             className={`${elementProps.className} story-event${selected ? " is-selected" : ""}`}
             data-story-day={format(segment.day, "yyyy-MM-dd")}
+            data-story-layout={segment.layout}
         >
             <strong>{event.title}</strong>
             <span>{format(event.start, "HH:mm")}–{format(event.end, "HH:mm")}</span>
