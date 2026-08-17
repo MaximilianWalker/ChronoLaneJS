@@ -119,7 +119,7 @@
     text-align: left;
 }
 
-button.month-view_event,
+.month-view_event[data-interactive="true"],
 .month-view_more {
     cursor: pointer;
 }

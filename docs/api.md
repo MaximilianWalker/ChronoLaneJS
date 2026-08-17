@@ -83,12 +83,12 @@ and `viewName` so a custom view receives the same shared contract.
 
 ## Shared view props
 
-`SharedViewProps<Event>` is accepted by every direct view. `Calendar` accepts
-the same props except `viewName`, `className`, and `style`, which it owns at the
-root.
+`SharedViewProps<Event, Resource>` is accepted by every direct view. `Calendar`
+accepts the same props except `viewName`, `className`, and `style`, which it
+owns at the root.
 
 <!-- api:SharedViewProps -->
-<!-- props:SharedViewProps className style events backgroundEvents date defaultDate locale formatters messages viewName timeZone minDate maxDate showControls selectedEventIds canEditEvent onDateChange onRangeChange onEventSelect onEventEdit -->
+<!-- props:SharedViewProps className style events backgroundEvents date defaultDate locale formatters messages viewName timeZone minDate maxDate showControls selectedEventIds canSelectEvent canOpenEvent onDateChange onRangeChange onEventSelect onEventOpen eventInteractions -->
 
 | Prop | Type | Default | Meaning | Example |
 | --- | --- | --- | --- | --- |
@@ -107,11 +107,37 @@ root.
 | `maxDate` | `CalendarDateInput \| null` | `null` | Inclusive latest navigation day. Next navigation is disabled when the anchor or active period reaches/crosses it; visible days and events are not filtered. | `"2026-12-31"` |
 | `showControls` | `boolean` | `true` | Shows the built-in range header and navigation controls. | `false` |
 | `selectedEventIds` | `CalendarEventId[]` | `[]` | Marks matching event renderers selected. The library does not update the collection. | `["planning", 42]` |
-| `canEditEvent` | `(event) => boolean` | allow all | Restricts `onEventEdit` for individual normalized source events. | `(event) => event.owner.id === user.id` |
+| `canSelectEvent` | `(event, context) => boolean` | allow all | Restricts semantic selection for one normalized source event occurrence. | `(_, { occurrence }) => occurrence.resourceId !== "locked"` |
+| `canOpenEvent` | `(event, context) => boolean` | allow all | Restricts semantic opening for one normalized source event occurrence. | `(event) => event.owner.id === user.id` |
 | `onDateChange` | `(date: Date) => void` | none | Fires after navigation requests a normalized anchor, in controlled and uncontrolled modes. | `setDate` |
 | `onRangeChange` | `(range: CalendarRange) => void` | none | Fires after the visible range resolves. Month payloads also carry `monthStart` and `monthEnd`. | `({ days }) => fetchDays(days)` |
-| `onEventSelect` | `(event, interaction) => void` | none | Enables primary event selection and receives the complete normalized source event. | `(event) => setSelected([event.id!])` |
-| `onEventEdit` | `(event, interaction) => void` | none | Enables double-click and keyboard editing for allowed events. | `(event) => openEditor(event)` |
+| `onEventSelect` | `(event, interaction, context) => void` | none | Enables single-click and Space selection. A double-click selects once. | `(event) => setSelected([event.id!])` |
+| `onEventOpen` | `(event, interaction, context) => void` | none | Enables double-click, double-tap, and Enter opening. | `(event) => openEditor(event)` |
+| `eventInteractions` | `CalendarEventInteractions<Event, Resource>` | none | Adds raw event-root interactions after semantic behavior without replacing it. | `{ onContextMenu: openMenu }` |
+
+Selection and opening gestures are invariant: an absent callback disables only
+that semantic and never remaps its gesture. Event roots are focusable when a
+semantic keyboard action or raw `onKeyDown` exists, but are not represented as
+buttons.
+
+### Event interaction context
+
+<!-- api:CalendarEventOccurrence CalendarEventInteractionContext CalendarEventInteractions -->
+<!-- props:CalendarEventOccurrence day resource resourceId -->
+<!-- props:CalendarEventInteractionContext view occurrence -->
+<!-- props:CalendarEventInteractions onClick onDoubleClick onContextMenu onKeyDown ariaKeyShortcuts -->
+
+`CalendarEventInteractionContext<Resource>` identifies the view and the exact
+rendered occurrence. Its `occurrence` contains normalized `day`, concrete
+`resource` (or `null`), and stable `resourceId` (or `null`). This matters when
+one source event appears on several days or resources.
+
+Raw `onClick`, `onDoubleClick`, `onContextMenu`, and `onKeyDown` callbacks each
+receive `(event, interaction, context)`. They observe the browser's real event
+sequence: for example, a double-click produces two raw clicks and one raw
+double-click while semantic selection runs once and semantic opening runs once.
+`ariaKeyShortcuts` accepts a string or `(event, context) => string`; its tokens
+are deduplicated with the built-in Space/Enter shortcuts.
 
 Invalid date inputs throw `TypeError: Calendar dates must be valid.` Event
 normalization currently validates each boundary but does not reject reversed
@@ -193,7 +219,7 @@ days. Explicit `range` values carry their own navigation. `TimeGridView`
 defaults to the week preset and `viewName="time-grid"`.
 
 <!-- api:TimeGridViewProps TimeGridGroupBy TimeOfDay TimeGridSlotSizing -->
-<!-- props:TimeGridViewProps resources groupBy range weekStart minTime maxTime slotDuration labelInterval slotSizing selectedRange canDragEvent onEventDrop onSlotSelect components -->
+<!-- props:TimeGridViewProps resources groupBy range weekStart minTime maxTime slotDuration labelInterval slotSizing selectedRange canDragEvent onEventDrop canResizeEvent onEventResize onSlotSelect components -->
 
 | Prop | Type | Default | Meaning | Example |
 | --- | --- | --- | --- | --- |
@@ -209,6 +235,8 @@ defaults to the week preset and `viewName="time-grid"`.
 | `selectedRange` | `CalendarSelectionRange` | none | Validates and normalizes the controlled half-open range in `timeZone`, then marks every overlapping slot. The end must follow the start. | `{ start: "2026-09-14T09:00:00", end: "2026-09-14T10:00:00" }` |
 | `canDragEvent` | `(event, segment) => boolean` | allow all | Restricts native dragging by source event and visible segment. Evaluated only when `onEventDrop` exists. | `(_, segment) => segment.resourceId !== "locked"` |
 | `onEventDrop` | `(change: TimeGridEventDrop) => void` | none | Enables native dragging and reports the proposed complete move. It does not mutate events. | `({ event, start, end }) => update(event.id, { start, end })` |
+| `canResizeEvent` | `(event, segment, edge) => boolean` | allow all | Restricts a visible start or end resize handle. Evaluated only when `onEventResize` exists. | `(_, segment) => segment.resourceId !== "locked"` |
+| `onEventResize` | `(change: TimeGridEventResize) => void` | none | Enables slot-snapped pointer, touch, and keyboard resize handles and reports one committed proposal. | `({ event, start, end }) => update(event.id, { start, end })` |
 | `onSlotSelect` | `(slot, interaction) => void` | none | Enables slot buttons and reports the complete slot model. | `(slot) => setRange({ start: slot.start, end: slot.end })` |
 | `components` | `TimeGridComponents<Event, Resource>` | default renderers | Replaces event, slot, background, day header, resource header, or navigation renderers. | `{ event: ScheduleEvent }` |
 
@@ -216,6 +244,12 @@ defaults to the week preset and `viewName="time-grid"`.
 `TimeGridSlotSizing` supports `{ width }` or `{ minWidth }`, independently with
 `{ height }` or `{ minHeight }`. Fixed values must be positive finite numbers;
 minimum values may be zero.
+
+Resizing changes one source boundary, retains the occurrence resource, and may
+cross visible days on that resource. Every target is an existing slot boundary;
+the minimum duration is one actual slot, including a shorter uneven final slot.
+Pointer release, Enter, or blur commits after movement. Escape, pointer cancel,
+and no movement produce no callback.
 
 ## Event types
 
@@ -377,14 +411,15 @@ The old view-level controls are removed rather than retained as aliases:
 to the previous or next displayed month. Use a configurable time-grid or
 agenda range when the visible unit requires custom navigation.
 
-## Interaction and drop payloads
+## Time-grid interaction payloads
 
-<!-- api:TimeGridColumn TimeGridSlot TimeGridEventSegment TimeGridEventDropPosition TimeGridEventDrop -->
+<!-- api:TimeGridColumn TimeGridSlot TimeGridEventSegment TimeGridEventPosition TimeGridEventDrop TimeGridEventResizeEdge TimeGridEventResize -->
 <!-- props:TimeGridColumn day resource resourceId -->
 <!-- props:TimeGridSlot start end duration day resource resourceId -->
 <!-- props:TimeGridEventSegment start end day resource resourceId -->
-<!-- props:TimeGridEventDropPosition day resource resourceId -->
+<!-- props:TimeGridEventPosition day resource resourceId -->
 <!-- props:TimeGridEventDrop event start end source destination -->
+<!-- props:TimeGridEventResize event edge start end source -->
 
 ### `TimeGridColumn<Resource>`
 
@@ -427,7 +462,12 @@ are private; the library supplies their effect through `elementProps`.
 | `setDate` and `setTime` package exports | Pass `CalendarDateInput`, use the public normalization functions, or use the corresponding date-fns operation directly. |
 | `createCalendarRange`, `getCalendarRangeBounds`, and `moveCalendarDate` package exports | Describe the range with `CalendarRangeDefinition`; call `resolveCalendarRange` when custom view code needs resolved days/navigation. |
 
-### `TimeGridEventDrop`
+### `TimeGridEventPosition<Resource>`
+
+A shared `{ day, resource, resourceId }` position describes where a drop or
+resize originates and, for drops, where it lands.
+
+### `TimeGridEventDrop<Event, Resource>`
 
 `event` is the normalized source. `start` and `end` are proposed complete
 boundaries. `source` and `destination` each contain `day`, concrete `resource`,
@@ -443,11 +483,27 @@ and `resourceId`:
 }
 ```
 
+### `TimeGridEventResize<Event, Resource>`
+
+`edge` is `"start" | "end"`. `start` and `end` are the proposed complete
+source boundaries. `source` identifies the rendered day/resource occurrence;
+resizing never changes that resource.
+
+```ts
+{
+    event: planning,
+    edge: "end",
+    start: new Date(2026, 8, 14, 9, 0),
+    end: new Date(2026, 8, 14, 10, 30),
+    source: { day: monday, resource: studio, resourceId: "studio" }
+}
+```
+
 ## Renderer contracts
 
 Renderers receive prepared data and `elementProps`. Spread `elementProps` onto
 the semantic root unchanged before adding application props. It carries class,
-style, ARIA labeling, selection/editing handlers, drag handlers, and keyboard
+style, ARIA labeling, semantic/raw event handlers, drag handlers, and keyboard
 behavior owned by the library.
 
 <!-- api:CalendarRendererElementProps CalendarComponents CalendarNavigationButton CalendarNavigationButtonProps TimeGridComponents TimeGridSlotProps TimeGridEventProps TimeGridBackgroundEventProps TimeGridDayHeaderProps TimeGridResourceHeaderProps -->
@@ -492,19 +548,15 @@ include native HTML attributes such as `aria-label`, `onClick`, `onKeyDown`,
 import type { TimeGridEventProps } from "@chronolanejs/react";
 
 function MeetingEvent({ event, segment, selected, elementProps }: TimeGridEventProps<Meeting, Room>) {
-    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Root = interactive ? "button" : "div";
-
     return (
-        <Root
+        <div
             {...elementProps}
-            type={interactive ? "button" : undefined}
             data-resource-id={segment.resourceId ?? undefined}
-            aria-pressed={interactive ? selected : undefined}
+            data-selected={selected || undefined}
         >
             <strong>{event.title}</strong>
             <span>{event.owner.name}</span>
-        </Root>
+        </div>
     );
 }
 ```
@@ -514,16 +566,17 @@ replacing interactive renderers.
 
 ## Localization contracts
 
-<!-- api:CalendarLocale DEFAULT_CALENDAR_LOCALE calendarLocaleNames CalendarFormatContext CalendarFormatters defaultCalendarFormatters CalendarMessageContext CalendarNavigationMessageContext CalendarSlotMessageContext CalendarEventMessageContext CalendarTimeRangeMessageContext CalendarMoreEventsMessageContext CalendarMessages defaultCalendarMessages -->
+<!-- api:CalendarLocale DEFAULT_CALENDAR_LOCALE calendarLocaleNames CalendarFormatContext CalendarFormatters defaultCalendarFormatters CalendarMessageContext CalendarNavigationMessageContext CalendarSlotMessageContext CalendarEventMessageContext CalendarEventResizeHandleMessageContext CalendarTimeRangeMessageContext CalendarMoreEventsMessageContext CalendarMessages defaultCalendarMessages -->
 <!-- props:CalendarFormatContext locale view -->
 <!-- props:CalendarFormatters time date weekday dayHeader rangeHeader -->
 <!-- props:CalendarMessageContext view -->
 <!-- props:CalendarNavigationMessageContext range -->
 <!-- props:CalendarSlotMessageContext date time -->
 <!-- props:CalendarEventMessageContext title description startDate startTime endDate endTime -->
+<!-- props:CalendarEventResizeHandleMessageContext edge title date time -->
 <!-- props:CalendarTimeRangeMessageContext startTime endTime -->
 <!-- props:CalendarMoreEventsMessageContext count date -->
-<!-- props:CalendarMessages previous next timeGridLabel monthGridLabel slotLabel eventLabel timeRange agendaEmpty moreEvents -->
+<!-- props:CalendarMessages previous next timeGridLabel monthGridLabel slotLabel eventLabel eventResizeHandle timeRange agendaEmpty moreEvents -->
 
 `CalendarLocale` is a supported name or date-fns `Locale`. The constant
 `DEFAULT_CALENDAR_LOCALE` is `"en-US"`. `calendarLocaleNames` is the frozen,
@@ -559,6 +612,7 @@ const formatters = {
 | `timeGridLabel`, `monthGridLabel` | `view` | Scrollable grid accessible name | `"Week calendar"` |
 | `slotLabel` | `view`, prepared `date`, prepared `time` | Selectable slot label | `"Monday, September 14 at 9:00 AM"` |
 | `eventLabel` | `view`, optional title/description, prepared start/end date/time | Interactive event label | `"Planning, Monday, 9:00 AM to 10:00 AM"` |
+| `eventResizeHandle` | `view`, edge, optional title, prepared date/time | Accessible resize-handle label | `"Resize end of Planning, Monday at 10:00 AM"` |
 | `timeRange` | `view`, prepared start/end time | Visible event time text | `"9:00 AM – 10:00 AM"` |
 | `agendaEmpty` | `view`, `range` | Agenda empty state | `"No events in this range."` |
 | `moreEvents` | `view`, `count`, prepared `date` | Month overflow control | `"Show 3 more events for September 14"` |

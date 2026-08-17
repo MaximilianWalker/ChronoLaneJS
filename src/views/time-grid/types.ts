@@ -87,8 +87,8 @@ export interface TimeGridEventSegment<Resource = unknown> {
     resourceId: CalendarResourceId | null;
 }
 
-/** Calendar position occupied by an event before or after a drop. */
-export interface TimeGridEventDropPosition<Resource = unknown> {
+/** Calendar position occupied by an event interaction in the time grid. */
+export interface TimeGridEventPosition<Resource = unknown> {
     day: Date;
     resource: Resource | null;
     resourceId: CalendarResourceId | null;
@@ -102,8 +102,23 @@ export interface TimeGridEventDrop<
     event: NormalizedCalendarEvent<Event>;
     start: Date;
     end: Date;
-    source: TimeGridEventDropPosition<Resource>;
-    destination: TimeGridEventDropPosition<Resource>;
+    source: TimeGridEventPosition<Resource>;
+    destination: TimeGridEventPosition<Resource>;
+}
+
+/** Event boundary changed by a time-grid resize interaction. */
+export type TimeGridEventResizeEdge = "start" | "end";
+
+/** Complete application-facing result of resizing a time-grid event. */
+export interface TimeGridEventResize<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> {
+    event: NormalizedCalendarEvent<Event>;
+    edge: TimeGridEventResizeEdge;
+    start: Date;
+    end: Date;
+    source: TimeGridEventPosition<Resource>;
 }
 
 export interface TimeGridSlotProps<Resource = unknown> {
@@ -159,7 +174,7 @@ export interface TimeGridComponents<
 export interface TimeGridViewProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
-> extends SharedViewProps<Event> {
+> extends SharedViewProps<Event, Resource> {
     resources?: CalendarResourceConfig<Event, Resource>;
     groupBy?: TimeGridGroupBy;
     range?: CalendarRangeDefinition;
@@ -176,6 +191,12 @@ export interface TimeGridViewProps<
         segment: TimeGridEventSegment<Resource>
     ) => boolean;
     onEventDrop?: (change: TimeGridEventDrop<Event, Resource>) => void;
+    canResizeEvent?: (
+        event: NormalizedCalendarEvent<Event>,
+        segment: TimeGridEventSegment<Resource>,
+        edge: TimeGridEventResizeEdge
+    ) => boolean;
+    onEventResize?: (change: TimeGridEventResize<Event, Resource>) => void;
     onSlotSelect?: (
         slot: TimeGridSlot<Resource>,
         interaction: SyntheticEvent

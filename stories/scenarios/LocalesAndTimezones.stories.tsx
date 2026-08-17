@@ -113,9 +113,10 @@ export const PortugueseMessages: Story = {
         await expect(canvas.findByRole("button", {
             name: /Horário do calendário.*08:00/
         })).resolves.toBeTruthy();
-        await expect(canvas.findByRole("button", {
-            name: /Planning, De .*09:00.*10:15/
-        })).resolves.toBeTruthy();
+        await expect(canvas.findByLabelText(
+            /Planning, De .*09:00.*10:15/,
+            { selector: ".time-grid-view_event" }
+        )).resolves.toBeTruthy();
         await expect(canvas.findByText("08:00")).resolves.toBeTruthy();
     }
 };

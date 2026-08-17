@@ -1,7 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { DragEvent, SyntheticEvent } from "react";
+import {
+    Fragment,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react";
+import type {
+    DragEvent,
+    KeyboardEvent,
+    PointerEvent,
+    SyntheticEvent
+} from "react";
 import { format } from "date-fns/format";
 
 import CalendarNavigation from "../../components/CalendarNavigation.js";
@@ -26,7 +38,8 @@ import { normalizeCalendarSelectionRange } from "../../core/selection.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type {
     CalendarEvent,
-    CalendarStyle
+    CalendarStyle,
+    NormalizedCalendarEvent
 } from "../../types.js";
 import Background from "./Background.js";
 import {
@@ -39,15 +52,39 @@ import Event from "./Event.js";
 import { createLayout } from "./layout/createLayout.js";
 import { createTimeGridHeaderRows } from "./layout/headers.js";
 import type { LayoutEvent, LayoutSlot } from "./layout/types.js";
+import {
+    createEventResize,
+    createTimeGridResizeBoundaries,
+    findAdjacentResizeBoundary,
+    findClosestResizeBoundary
+} from "./resize.js";
+import type { TimeGridResizeBoundary } from "./resize.js";
 import ResourceHeader from "./ResourceHeader.js";
 import { resolveCalendarResourceTitle } from "./resources.js";
 import { resolveSlotDimension } from "./sizing.js";
 import Slot from "./Slot.js";
-import type { TimeGridViewProps } from "./types.js";
+import type {
+    TimeGridEventPosition,
+    TimeGridEventResizeEdge,
+    TimeGridViewProps
+} from "./types.js";
 
 const EMPTY_ITEMS: never[] = [];
 const EMPTY_COMPONENTS = /* @__PURE__ */ Object.freeze({});
 const DEFAULT_SLOT_HEIGHT = 50;
+
+interface EventResizeState<
+    Event extends CalendarEvent,
+    Resource
+> {
+    event: NormalizedCalendarEvent<Event>;
+    edge: TimeGridEventResizeEdge;
+    source: TimeGridEventPosition<Resource>;
+    boundaries: TimeGridResizeBoundary<Resource>[];
+    handleKey: string;
+    pointerId?: number;
+    target?: TimeGridResizeBoundary<Resource>;
+}
 
 /** Rounds percentages to stable CSS values without visible precision noise. */
 const percentage = (value: number): number => Number(value.toFixed(6));
@@ -66,6 +103,13 @@ const getLaneStyle = ({
     };
 };
 
+/** Places a resize preview line around one grid boundary row. */
+const getResizePreviewRows = (row: number, totalMinutes: number): string => {
+    if (row <= 1) return "1 / 2";
+    if (row >= totalMinutes + 1) return `${totalMinutes} / ${totalMinutes + 1}`;
+    return `${Math.floor(row)} / ${Math.floor(row) + 1}`;
+};
+
 /** Groups positioned items by column for direct rendering lookups. */
 const groupByColumn = <Item extends { columnIndex: number }>(
     items: Item[],
@@ -81,9 +125,9 @@ const groupByColumn = <Item extends { columnIndex: number }>(
  *
  * @remarks
  * The view owns range navigation, time-zone normalization, slot generation,
- * event clipping, overlap lanes, and drag-and-drop calculations. Markup for
- * slots, events, background events, and hierarchical headers can be replaced
- * through `components` without replacing layout behavior.
+ * event clipping, overlap lanes, drag/drop, and slot-snapped resizing. Markup
+ * for slots, events, background events, and hierarchical headers can be
+ * replaced through `components` without replacing layout behavior.
  */
 export default function TimeGridView<
     Event extends CalendarEvent = CalendarEvent,
@@ -115,13 +159,17 @@ export default function TimeGridView<
     selectedRange,
     selectedEventIds = EMPTY_ITEMS,
     canDragEvent,
-    canEditEvent,
+    canResizeEvent,
+    canSelectEvent,
+    canOpenEvent,
     onDateChange,
     onRangeChange,
     onEventSelect,
-    onEventEdit,
+    onEventOpen,
     onEventDrop,
+    onEventResize,
     onSlotSelect,
+    eventInteractions,
     components = EMPTY_COMPONENTS
 }: TimeGridViewProps<Event, Resource>) {
     const {
@@ -135,6 +183,10 @@ export default function TimeGridView<
     const [draggedEvent, setDraggedEvent] = useState<
         LayoutEvent<Event, Resource> | null
     >(null);
+    const [eventResize, setEventResize] = useState<
+        EventResizeState<Event, Resource> | null
+    >(null);
+    const gridRef = useRef<HTMLDivElement>(null);
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
     const { anchorDate, setDate } = useCalendarViewDate({
@@ -245,6 +297,139 @@ export default function TimeGridView<
         ...navigationBoundaries
     });
     const canDropEvents = onEventDrop != null;
+    const canResizeEvents = onEventResize != null;
+
+    const updateEventResize = useCallback((
+        next: EventResizeState<Event, Resource> | null
+    ) => {
+        setEventResize(next);
+    }, []);
+
+    const cancelEventResize = useCallback(() => {
+        updateEventResize(null);
+    }, [updateEventResize]);
+
+    const commitEventResize = useCallback((
+        current: EventResizeState<Event, Resource> | null
+    ) => {
+        updateEventResize(null);
+        if (!current?.target || !onEventResize) return;
+
+        const originalBoundary = current.edge === "start"
+            ? current.event.start
+            : current.event.end;
+        if (current.target.date.getTime() === originalBoundary.getTime()) return;
+
+        onEventResize(createEventResize(
+            current.event,
+            current.edge,
+            current.target,
+            current.source
+        ));
+    }, [onEventResize, updateEventResize]);
+
+    const beginEventResize = useCallback((
+        event: NormalizedCalendarEvent<Event>,
+        segment: LayoutEvent<Event, Resource>,
+        edge: TimeGridEventResizeEdge,
+        handleKey: string,
+        pointerId?: number
+    ): EventResizeState<Event, Resource> | null => {
+        const boundaries = createTimeGridResizeBoundaries({
+            event,
+            edge,
+            resourceId: segment.resourceId,
+            slots,
+            slotDuration
+        });
+        if (boundaries.length === 0) return null;
+
+        const next = {
+            event,
+            edge,
+            source: {
+                day: segment.day,
+                resource: segment.resource,
+                resourceId: segment.resourceId
+            },
+            boundaries,
+            handleKey,
+            pointerId
+        } satisfies EventResizeState<Event, Resource>;
+        updateEventResize(next);
+        return next;
+    }, [slotDuration, slots, updateEventResize]);
+
+    const handleResizePointerMove = useCallback((
+        interaction: PointerEvent<HTMLElement>
+    ) => {
+        const current = eventResize;
+        const grid = gridRef.current;
+        if (
+            !current
+            || current.pointerId !== interaction.pointerId
+            || !grid
+            || columns.length === 0
+        ) return;
+
+        interaction.preventDefault();
+        interaction.stopPropagation();
+        const bounds = grid.getBoundingClientRect();
+        if (bounds.width <= 0 || bounds.height <= 0) return;
+
+        const rawColumnIndex = Math.min(
+            columns.length - 1,
+            Math.max(0, Math.floor(
+                (interaction.clientX - bounds.left) / bounds.width * columns.length
+            ))
+        );
+        const pointerColumn = columns[rawColumnIndex];
+        if (!pointerColumn) return;
+
+        const targetColumnIndex = columns.findIndex((column) => (
+            column.dayIndex === pointerColumn.dayIndex
+            && column.resourceId === current.source.resourceId
+        ));
+        if (targetColumnIndex === -1) return;
+
+        const row = 1 + Math.min(
+            totalMinutes,
+            Math.max(0, (interaction.clientY - bounds.top) / bounds.height * totalMinutes)
+        );
+        const target = findClosestResizeBoundary(
+            current.boundaries,
+            targetColumnIndex,
+            row,
+            current.edge
+        );
+        if (!target || current.target === target) return;
+
+        updateEventResize({ ...current, target });
+    }, [columns, eventResize, totalMinutes, updateEventResize]);
+
+    const handleResizePointerUp = useCallback((
+        interaction: PointerEvent<HTMLElement>
+    ) => {
+        const current = eventResize;
+        if (!current || current.pointerId !== interaction.pointerId) return;
+
+        interaction.preventDefault();
+        interaction.stopPropagation();
+        if (interaction.currentTarget.hasPointerCapture(interaction.pointerId)) {
+            interaction.currentTarget.releasePointerCapture(interaction.pointerId);
+        }
+        commitEventResize(current);
+    }, [commitEventResize, eventResize]);
+
+    const handleResizePointerCancel = useCallback((
+        interaction: PointerEvent<HTMLElement>
+    ) => {
+        const current = eventResize;
+        if (!current || current.pointerId !== interaction.pointerId) return;
+
+        interaction.stopPropagation();
+        cancelEventResize();
+    }, [cancelEventResize, eventResize]);
 
     const navigate = useCallback((direction: -1 | 1) => {
         const nextDate = resolvedRange.navigate(direction);
@@ -373,6 +558,7 @@ export default function TimeGridView<
                         ))}
                     </div>
                     <div
+                        ref={gridRef}
                         className="time-grid-view_grid"
                         style={{
                             gridTemplateRows: gridRows,
@@ -425,6 +611,18 @@ export default function TimeGridView<
                                 />
                             );
                         })}
+                        {eventResize?.target && (
+                            <div
+                                className="time-grid-view_resize-preview"
+                                style={{
+                                    gridColumn: eventResize.target.columnIndex + 1,
+                                    gridRow: getResizePreviewRows(
+                                        eventResize.target.row,
+                                        totalMinutes
+                                    )
+                                }}
+                            />
+                        )}
                         {columns.map((column, columnIndex) => (
                             <div
                                 key={`${column.key}-backgrounds`}
@@ -475,13 +673,24 @@ export default function TimeGridView<
                                 {(eventsByColumn[columnIndex] ?? []).map((segment) => {
                                     const { event } = segment;
                                     const rendererSegment = toTimeGridEventSegment(segment);
+                                    const interactionContext = {
+                                        view: viewName,
+                                        occurrence: {
+                                            day: segment.day,
+                                            resource: segment.resource,
+                                            resourceId: segment.resourceId
+                                        }
+                                    };
                                     const draggable = canDropEvents
                                         && (canDragEvent?.(event, rendererSegment) ?? true);
                                     const interactionProps = createEventInteractionProps({
                                         event,
+                                        context: interactionContext,
+                                        canSelectEvent,
+                                        canOpenEvent,
                                         onEventSelect,
-                                        onEventEdit,
-                                        canEditEvent
+                                        onEventOpen,
+                                        eventInteractions
                                     });
                                     const selected = event.id != null
                                         && selectedEventIds.includes(event.id);
@@ -490,45 +699,207 @@ export default function TimeGridView<
                                     const endDate = formatters.date(event.end, formatContext);
                                     const endTime = formatters.time(event.end, formatContext);
                                     const interactive = interactionProps.onClick != null
-                                        || interactionProps.onDoubleClick != null;
+                                        || interactionProps.onDoubleClick != null
+                                        || interactionProps.onContextMenu != null
+                                        || interactionProps.onKeyDown != null;
+                                    const eventKey = `${event.id ?? event.title ?? "event"}-${event.start.getTime()}-${event.end.getTime()}-${columnIndex}`;
 
                                     return (
-                                        <EventComponent
-                                            key={`${event.id ?? event.title ?? "event"}-${segment.start.getTime()}-${segment.end.getTime()}-${columnIndex}`}
-                                            event={event}
-                                            segment={rendererSegment}
-                                            selected={selected}
-                                            elementProps={{
-                                                className: "time-grid-view_event",
-                                                draggable,
-                                                onDragStart: draggable
-                                                    ? () => setDraggedEvent(segment)
-                                                    : undefined,
-                                                onDragEnd: draggable
-                                                    ? () => setDraggedEvent(null)
-                                                    : undefined,
-                                                ...interactionProps,
-                                                "aria-label": interactive
-                                                    ? messages.eventLabel({
-                                                        view: viewName,
-                                                        title: event.title,
-                                                        description: event.description,
-                                                        startDate,
-                                                        startTime,
-                                                        endDate,
-                                                        endTime
-                                                    })
-                                                    : undefined,
-                                                style: {
-                                                    "--color": event.color,
-                                                    gridColumn: "1 / 2",
-                                                    gridRow: `${segment.startRow} / ${segment.endRow}`,
-                                                    overflow: "hidden",
-                                                    ...getLaneStyle(segment),
-                                                    ...event.style
-                                                }
-                                            }}
-                                        />
+                                        <Fragment key={eventKey}>
+                                            <EventComponent
+                                                event={event}
+                                                segment={rendererSegment}
+                                                selected={selected}
+                                                elementProps={{
+                                                    className: "time-grid-view_event",
+                                                    draggable,
+                                                    onDragStart: draggable
+                                                        ? () => setDraggedEvent(segment)
+                                                        : undefined,
+                                                    onDragEnd: draggable
+                                                        ? () => setDraggedEvent(null)
+                                                        : undefined,
+                                                    ...interactionProps,
+                                                    "aria-label": interactive
+                                                        ? messages.eventLabel({
+                                                            view: viewName,
+                                                            title: event.title,
+                                                            description: event.description,
+                                                            startDate,
+                                                            startTime,
+                                                            endDate,
+                                                            endTime
+                                                        })
+                                                        : undefined,
+                                                    style: {
+                                                        "--color": event.color,
+                                                        gridColumn: "1 / 2",
+                                                        gridRow: `${segment.startRow} / ${segment.endRow}`,
+                                                        overflow: "hidden",
+                                                        ...getLaneStyle(segment),
+                                                        ...event.style
+                                                    }
+                                                }}
+                                            />
+                                            {canResizeEvents && (["start", "end"] as const).map((edge) => {
+                                                const boundaryVisible = event[edge].getTime()
+                                                    === segment[edge].getTime();
+                                                const allowed = boundaryVisible
+                                                    && (canResizeEvent?.(
+                                                        event,
+                                                        rendererSegment,
+                                                        edge
+                                                    ) ?? true);
+                                                if (!allowed) return null;
+
+                                                const boundaries = createTimeGridResizeBoundaries({
+                                                    event,
+                                                    edge,
+                                                    resourceId: segment.resourceId,
+                                                    slots,
+                                                    slotDuration
+                                                });
+                                                if (boundaries.length === 0) return null;
+
+                                                const handleKey = `${eventKey}-${edge}`;
+                                                const activeResize = eventResize?.handleKey === handleKey
+                                                    ? eventResize
+                                                    : null;
+                                                const currentBoundary = activeResize?.target?.date
+                                                    ?? event[edge];
+                                                const firstBoundary = boundaries[0];
+                                                const lastBoundary = boundaries.at(-1);
+                                                if (!firstBoundary || !lastBoundary) return null;
+
+                                                const handleKeyDown = (
+                                                    interaction: KeyboardEvent<HTMLElement>
+                                                ) => {
+                                                    interaction.stopPropagation();
+                                                    const current = eventResize?.handleKey
+                                                        === handleKey
+                                                        ? eventResize
+                                                        : null;
+
+                                                    if (interaction.key === "Escape" && current) {
+                                                        interaction.preventDefault();
+                                                        cancelEventResize();
+                                                        return;
+                                                    }
+                                                    if (interaction.key === "Enter" && current) {
+                                                        interaction.preventDefault();
+                                                        commitEventResize(current);
+                                                        return;
+                                                    }
+
+                                                    const direction = interaction.key === "ArrowUp"
+                                                        || interaction.key === "ArrowLeft"
+                                                        ? -1
+                                                        : interaction.key === "ArrowDown"
+                                                            || interaction.key === "ArrowRight"
+                                                            ? 1
+                                                            : null;
+                                                    if (direction == null) return;
+
+                                                    interaction.preventDefault();
+                                                    const nextState = current ?? beginEventResize(
+                                                        event,
+                                                        segment,
+                                                        edge,
+                                                        handleKey
+                                                    );
+                                                    if (!nextState) return;
+
+                                                    const adjacent = findAdjacentResizeBoundary(
+                                                        nextState.boundaries,
+                                                        nextState.target?.date ?? event[edge],
+                                                        direction
+                                                    );
+                                                    if (adjacent) {
+                                                        updateEventResize({
+                                                            ...nextState,
+                                                            target: adjacent
+                                                        });
+                                                    }
+                                                };
+
+                                                const handlePointerDown = (
+                                                    interaction: PointerEvent<HTMLElement>
+                                                ) => {
+                                                    interaction.preventDefault();
+                                                    interaction.stopPropagation();
+                                                    const next = beginEventResize(
+                                                        event,
+                                                        segment,
+                                                        edge,
+                                                        handleKey,
+                                                        interaction.pointerId
+                                                    );
+                                                    if (!next) return;
+
+                                                    if (interaction.nativeEvent.isTrusted) {
+                                                        interaction.currentTarget.setPointerCapture(
+                                                            interaction.pointerId
+                                                        );
+                                                    }
+                                                };
+
+                                                return (
+                                                    <div
+                                                        key={edge}
+                                                        role="slider"
+                                                        tabIndex={0}
+                                                        className={`time-grid-view_event-resize-handle is-${edge}`}
+                                                        data-event-id={event.id}
+                                                        data-resize-edge={edge}
+                                                        aria-label={messages.eventResizeHandle({
+                                                            view: viewName,
+                                                            edge,
+                                                            title: event.title,
+                                                            date: formatters.date(
+                                                                currentBoundary,
+                                                                formatContext
+                                                            ),
+                                                            time: formatters.time(
+                                                                currentBoundary,
+                                                                formatContext
+                                                            )
+                                                        })}
+                                                        aria-orientation="vertical"
+                                                        aria-valuemin={firstBoundary.date.getTime()}
+                                                        aria-valuemax={lastBoundary.date.getTime()}
+                                                        aria-valuenow={currentBoundary.getTime()}
+                                                        aria-valuetext={messages.slotLabel({
+                                                            view: viewName,
+                                                            date: formatters.date(
+                                                                currentBoundary,
+                                                                formatContext
+                                                            ),
+                                                            time: formatters.time(
+                                                                currentBoundary,
+                                                                formatContext
+                                                            )
+                                                        })}
+                                                        onBlur={() => {
+                                                            if (eventResize?.handleKey === handleKey) {
+                                                                commitEventResize(eventResize);
+                                                            }
+                                                        }}
+                                                        onKeyDown={handleKeyDown}
+                                                        onPointerDown={handlePointerDown}
+                                                        onPointerMove={handleResizePointerMove}
+                                                        onPointerUp={handleResizePointerUp}
+                                                        onPointerCancel={handleResizePointerCancel}
+                                                        style={{
+                                                            color: event.color,
+                                                            gridColumn: "1 / 2",
+                                                            gridRow: `${segment.startRow} / ${segment.endRow}`,
+                                                            alignSelf: edge === "start" ? "start" : "end",
+                                                            ...getLaneStyle(segment)
+                                                        }}
+                                                    />
+                                                );
+                                            })}
+                                        </Fragment>
                                     );
                                 })}
                             </div>

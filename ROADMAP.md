@@ -62,8 +62,8 @@ Last reviewed: 2026-08-16
 
 - [x] **[P0][TG-01] Preserve original event identity in time-grid callbacks.**
   - Layout segments retain their normalized source event.
-  - Selection and editing callbacks receive the source with its unclipped
-    boundaries and original resource data.
+  - Selection and opening callbacks receive the source with its unclipped
+    boundaries, plus the rendered day/resource occurrence.
   - Renderers receive the source event and visible segment separately.
 - [x] **[P0][TG-02] Return a complete event-drop payload.**
   - Drops return the source event, proposed start and end, and explicit source
@@ -126,13 +126,17 @@ Last reviewed: 2026-08-16
     directly.
   - Uncontrolled view state is never updated during render.
 - [x] **[P0][API-03] Keep one callback for each user action.**
-  - Event selection uses `onEventSelect(event, interaction)`.
+  - Event selection and opening use separate semantic callbacks with one shared
+    `(event, interaction, context)` shape.
+  - Raw event-root interactions are additive through `eventInteractions` and
+    never replace selection or opening behavior.
   - Slot selection uses `onSlotSelect(slot, interaction)`.
   - Callback naming and argument order are consistent across views.
 - [x] **[P0][API-04] Make callback presence enable interactions.**
-  - `onEventEdit` enables editing and `onEventDrop` enables dragging.
-  - Optional `canEditEvent` and `canDragEvent` predicates restrict individual
-    source events or visible drag segments.
+  - `onEventSelect`, `onEventOpen`, `onEventDrop`, and `onEventResize` enable
+    only their corresponding behavior without remapping gestures.
+  - Optional `canSelectEvent`, `canOpenEvent`, `canDragEvent`, and
+    `canResizeEvent` predicates restrict individual occurrences or segments.
 - [x] **[P1][API-05] Replace flat renderer props with a `components` contract.**
   - Group event, slot, background, day-header, resource-header, empty-state,
     and navigation renderers by view.
@@ -202,7 +206,7 @@ Last reviewed: 2026-08-16
   - Event interaction predicates are evaluated where their behavior is owned.
   - Drop construction is a focused, independently tested domain operation.
 - [x] **[P1][ARCH-03] Share event interaction semantics across views.**
-  - One tested policy owns selection, editing, keyboard, and shortcut behavior
+  - One tested policy owns selection, opening, raw interactions, keyboard, and shortcut behavior
     for month, agenda, and time-grid renderers.
   - View-specific markup remains separate and receives cohesive standard React
     interaction props.
@@ -222,7 +226,8 @@ Last reviewed: 2026-08-16
     and month overflow text.
   - Do not require replacing a renderer solely to translate a string.
 - [ ] **[P1][A11Y-01] Define time-grid keyboard semantics.**
-  - Document focus order and selection/edit shortcuts.
+  - Event selection/opening and resize-handle focus/keyboard behavior are
+    documented and tested; complete grid navigation remains open.
   - Add appropriate grid, row, column-header, and grid-cell semantics where
     they improve assistive-technology behavior.
   - Test the behavior with keyboard-only interaction.
@@ -244,8 +249,8 @@ Last reviewed: 2026-08-16
 - [x] **[P0][TEST-01] Test public callback identity and payloads.**
   - Browser stories cover ordinary, clipped multi-day, overnight, and
     multi-resource event callbacks.
-  - Selection and editing assertions verify source boundaries and resource
-    data rather than visible layout-segment values.
+  - Selection and opening assertions verify source boundaries and occurrence
+    resource data rather than visible layout-segment values.
 - [x] **[P0][TEST-02] Test drag and drop across days and resources.**
   - Unit tests cover duration preservation and cross-resource destinations.
   - Browser stories cover successful, cancelled, and invalid-target drops.
@@ -262,7 +267,7 @@ Last reviewed: 2026-08-16
     ranges, and custom range-owned navigation.
 - [x] **[P1][TEST-05] Cover interaction enablement and renderer contracts.**
   - Callback-presence defaults and event-specific predicates.
-  - Selection, editing, and slot interaction with customized renderers.
+  - Selection, opening, resize, and slot interaction with customized renderers.
   - Interaction remains available when grid lines are visually hidden.
 - [x] **[P1][TEST-06] Test supported dependency combinations.**
   - The CI compatibility matrix installs matching React and React DOM 18.2
@@ -332,10 +337,13 @@ Last reviewed: 2026-08-16
 
 ## Product decisions
 
-- [ ] **[P1][DEC-01] Decide whether event resizing is in scope.**
-  - If included, define mouse, touch, keyboard, minimum-duration, and
-    cross-boundary behavior before exposing an API.
-  - If excluded, clarify that `onEventEdit` launches application-owned editing.
+- [x] **[P1][DEC-01] Include slot-snapped time-grid event resizing.**
+  - `onEventResize` and `canResizeEvent` cover start/end edges with pointer,
+    touch, and keyboard handles independent from event selection/opening.
+  - Targets use existing slot boundaries, minimum duration is one real slot,
+    and resizing may cross visible days while retaining the resource.
+  - Commit emits one complete proposal; Escape, pointer cancel, and no movement
+    emit nothing. Background events remain non-interactive.
 - [ ] **[P1][DEC-02] Decide how all-day events appear in time-grid views.**
   - Either define a dedicated all-day region or document that consumers should
     use month/agenda views or a custom renderer.

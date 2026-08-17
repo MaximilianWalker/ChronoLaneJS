@@ -39,7 +39,7 @@ const EMPTY_COMPONENTS = /* @__PURE__ */ Object.freeze({});
  * @remarks
  * Multi-day events appear once, under the earliest visible day they overlap.
  * The view supports controlled or uncontrolled navigation, event selection and
- * editing callbacks, locale-aware formatting, and replaceable renderers.
+ * opening callbacks, locale-aware formatting, and replaceable renderers.
  */
 export default function AgendaView<Event extends CalendarEvent = CalendarEvent>({
     className,
@@ -58,11 +58,13 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
     viewName = "agenda",
     timeZone,
     selectedEventIds = EMPTY_EVENTS,
-    canEditEvent,
+    canSelectEvent,
+    canOpenEvent,
     onDateChange,
     onRangeChange,
     onEventSelect,
-    onEventEdit,
+    onEventOpen,
+    eventInteractions,
     components = EMPTY_COMPONENTS
 }: AgendaViewProps<Event>) {
     const {
@@ -165,18 +167,31 @@ export default function AgendaView<Event extends CalendarEvent = CalendarEvent>(
                         </h3>
                         <div className="agenda-view_day-events">
                             {group.events.map((event) => {
+                                const interactionContext = {
+                                    view: viewName,
+                                    occurrence: {
+                                        day: group.day,
+                                        resource: null,
+                                        resourceId: null
+                                    }
+                                };
                                 const interactionProps = createEventInteractionProps({
                                     event,
+                                    context: interactionContext,
+                                    canSelectEvent,
+                                    canOpenEvent,
                                     onEventSelect,
-                                    onEventEdit,
-                                    canEditEvent
+                                    onEventOpen,
+                                    eventInteractions
                                 });
                                 const startDate = formatters.date(event.start, formatContext);
                                 const startTime = formatters.time(event.start, formatContext);
                                 const endDate = formatters.date(event.end, formatContext);
                                 const endTime = formatters.time(event.end, formatContext);
                                 const interactive = interactionProps.onClick != null
-                                    || interactionProps.onDoubleClick != null;
+                                    || interactionProps.onDoubleClick != null
+                                    || interactionProps.onContextMenu != null
+                                    || interactionProps.onKeyDown != null;
                                 return (
                                     <EventComponent
                                         key={`${event.id ?? event.title}-${event.start.getTime()}`}

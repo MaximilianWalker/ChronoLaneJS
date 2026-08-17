@@ -211,7 +211,7 @@ button.time-grid-view_slot {
     z-index: 10;
 }
 
-button.time-grid-view_event {
+.time-grid-view_event[data-interactive="true"] {
     appearance: none;
     padding: 0;
     color: inherit;
@@ -222,6 +222,47 @@ button.time-grid-view_event {
 
 .time-grid-view_event[draggable="true"] {
     cursor: grab;
+}
+
+.time-grid-view_event-resize-handle {
+    position: relative;
+    box-sizing: border-box;
+    height: 12px;
+    border: 0;
+    background: transparent;
+    cursor: ns-resize;
+    pointer-events: auto;
+    touch-action: none;
+    z-index: 14;
+}
+
+.time-grid-view_event-resize-handle::after {
+    content: "";
+    position: absolute;
+    inset: 5px 8px auto;
+    height: 2px;
+    border-radius: 999px;
+    background: color-mix(in srgb, currentColor 72%, white);
+    opacity: 0.72;
+}
+
+.time-grid-view_event-resize-handle.is-start {
+    transform: translateY(-4px);
+}
+
+.time-grid-view_event-resize-handle.is-end {
+    transform: translateY(4px);
+}
+
+.time-grid-view_resize-preview {
+    align-self: center;
+    height: 3px;
+    margin-inline: 3px;
+    border-radius: 999px;
+    background: #1e293c;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.84);
+    pointer-events: none;
+    z-index: 30;
 }
 
 .time-grid-view_event:hover::after,
@@ -280,7 +321,8 @@ button.time-grid-view_event {
 
 .time-grid-view_navigation-button:focus-visible,
 .time-grid-view_slot:focus-visible,
-.time-grid-view_event:focus-visible {
+.time-grid-view_event:focus-visible,
+.time-grid-view_event-resize-handle:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: -2px;
     z-index: 12;

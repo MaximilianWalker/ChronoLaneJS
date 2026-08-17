@@ -57,12 +57,18 @@ interface CalendarBuiltInViewProps<
 }
 
 export type CalendarBuiltInView = keyof CalendarBuiltInViewProps;
-type CalendarSharedProps<Event extends CalendarEvent> = Omit<
-    SharedViewProps<Event>,
+type CalendarSharedProps<
+    Event extends CalendarEvent,
+    Resource
+> = Omit<
+    SharedViewProps<Event, Resource>,
     "className" | "style" | "viewName"
 >;
-type ForwardedCalendarSharedProps<Event extends CalendarEvent> = Omit<
-    CalendarSharedProps<Event>,
+type ForwardedCalendarSharedProps<
+    Event extends CalendarEvent,
+    Resource
+> = Omit<
+    CalendarSharedProps<Event, Resource>,
     "events" | "backgroundEvents" | "locale" | "formatters" | "messages"
 >;
 type DisallowedViewProps = keyof SharedViewProps | keyof CalendarRootProps | "viewName";
@@ -83,7 +89,7 @@ type CalendarBuiltInBranch<
     Event extends CalendarEvent,
     Resource
 > = CalendarRootProps
-    & CalendarSharedProps<Event>
+    & CalendarSharedProps<Event, Resource>
     & {
         viewProps?: Partial<CalendarViewProps<View, Event, Resource>>;
         views?: CalendarViewRegistry;
@@ -124,10 +130,11 @@ type CustomViewProps<Registration> = ViewProps<RegisteredViewProps<Registration>
 
 type CalendarCustomProps<
     Event extends CalendarEvent,
+    Resource,
     Views extends CalendarViewRegistry
 > = {
     [View in keyof Views & string]: CalendarRootProps
-        & CalendarSharedProps<Event>
+        & CalendarSharedProps<Event, Resource>
         & {
             view: View;
             views: Views & ValidatedViewRegistry<Views>;
@@ -155,15 +162,18 @@ export type CalendarProps<
     Views extends CalendarViewRegistry | undefined = undefined
 > = StrictUnion<CalendarBuiltInProps<Event, Resource>>
     | (Views extends CalendarViewRegistry
-        ? StrictUnion<CalendarCustomProps<Event, Views>>
+        ? StrictUnion<CalendarCustomProps<Event, Resource, Views>>
         : never);
 
-interface ResolvedCalendarViewProps<Event extends CalendarEvent> {
+interface ResolvedCalendarViewProps<
+    Event extends CalendarEvent,
+    Resource
+> {
     ViewComponent: ElementType;
     locale: CalendarLocale;
     formatters: CalendarFormatters;
     messages: CalendarMessages;
-    sharedProps: ForwardedCalendarSharedProps<Event>;
+    sharedProps: ForwardedCalendarSharedProps<Event, Resource>;
     defaultViewProps: object;
     viewProps: object;
     events: Event[];
@@ -175,7 +185,7 @@ interface ResolvedCalendarViewProps<Event extends CalendarEvent> {
  * Resolves a locale inside `Suspense` and applies the ordered prop layers to a
  * registered view component.
  */
-const ResolvedCalendarView = <Event extends CalendarEvent>({
+const ResolvedCalendarView = <Event extends CalendarEvent, Resource>({
     ViewComponent,
     locale,
     formatters,
@@ -186,7 +196,7 @@ const ResolvedCalendarView = <Event extends CalendarEvent>({
     events,
     backgroundEvents,
     view
-}: ResolvedCalendarViewProps<Event>) => (
+}: ResolvedCalendarViewProps<Event, Resource>) => (
     <ViewComponent
         {...sharedProps}
         {...defaultViewProps}
@@ -243,13 +253,15 @@ export default function Calendar<
     maxDate,
     showControls,
     selectedEventIds,
-    canEditEvent,
+    canSelectEvent,
+    canOpenEvent,
     onDateChange,
     onRangeChange,
     onEventSelect,
-    onEventEdit
+    onEventOpen,
+    eventInteractions
 }: CalendarProps<Event, Resource, Views>): ReactElement {
-    const sharedProps: ForwardedCalendarSharedProps<Event> = {
+    const sharedProps: ForwardedCalendarSharedProps<Event, Resource> = {
         date,
         defaultDate,
         timeZone,
@@ -257,11 +269,13 @@ export default function Calendar<
         maxDate,
         showControls,
         selectedEventIds,
-        canEditEvent,
+        canSelectEvent,
+        canOpenEvent,
         onDateChange,
         onRangeChange,
         onEventSelect,
-        onEventEdit
+        onEventOpen,
+        eventInteractions
     };
     const registeredViews: CalendarViewRegistry = views ?? EMPTY_VIEWS;
     const builtInView = view in defaultCalendarViews

@@ -54,8 +54,8 @@ keeping state management and persistence outside the component.
   date-fns locales, and explicit week-start behavior are built in.
 - **Flexible layout:** overlapping events, clipped multi-day events,
   background events, resources, and non-contiguous ranges are first-class.
-- **Flexible integration:** controlled or uncontrolled navigation,
-  selection, editing, and drag-and-drop integrate with your state layer.
+- **Flexible integration:** controlled or uncontrolled navigation, event
+  selection/opening, resizing, and drag-and-drop integrate with your state layer.
 - **Customizable presentation:** override the meaningful render boundaries or
   style the defaults without inheriting a design system.
 - **Typed and tested:** the ESM package emits declarations from source, and
@@ -72,7 +72,7 @@ every public customization point, including:
 - resources, background events, and custom ranges;
 - custom renderers and view registration;
 - locale, timezone, and daylight-saving transitions;
-- responsive layouts, selection, editing, and drag-and-drop.
+- responsive layouts, selection, opening, resizing, and drag-and-drop.
 
 Use Storybook's toolbar to change the locale, IANA timezone, and viewport. The
 website and full catalog are rebuilt and deployed together from `main`.
@@ -351,7 +351,7 @@ normalized `event`, their prepared visible values, `selected`, and
 `elementProps`.
 
 Spread `elementProps` onto the renderer's root element to retain layout,
-accessibility, drag, selection, and editing behavior. ChronoLaneJS owns those
+accessibility, drag, selection, opening, and raw event behavior. ChronoLaneJS owns those
 behaviors while the renderer owns markup and presentation.
 
 ### Styling
@@ -427,19 +427,29 @@ hidden end buttons can be enforced through the WebKit scrollbar API.
 
 ### Interactions
 
-Selection and editing callbacks receive the normalized source event, never a
-clipped time-grid segment. Event renderers receive that source as `event` and
-the visible positioned portion as `segment`.
+Selection and opening callbacks receive the normalized source event and a
+rendered-occurrence context, never a clipped source in place of the event.
+Single click and Space select; double-click, double-tap, and Enter open. These
+gestures never change meaning based on which callbacks are present.
 
-Providing the shared `onEventEdit` callback enables editing. Supplying
-`viewProps.onEventDrop` enables time-grid dragging. Use the shared
-`canEditEvent(event)` or view-specific `canDragEvent(event, segment)` predicates
-to restrict individual events or visible resource segments.
+`eventInteractions` adds raw click, double-click, context-menu, and key-down
+callbacks without replacing the semantic behavior. Use `canSelectEvent` and
+`canOpenEvent` to restrict those semantic actions per event occurrence.
+
+Supplying `viewProps.onEventDrop` enables native time-grid dragging. Supplying
+`viewProps.onEventResize` exposes start/end resize handles with pointer, touch,
+and keyboard support. Resizes snap to visible slot boundaries, preserve the
+resource, require at least one actual slot, and report one proposal when
+committed. Use `canDragEvent` and `canResizeEvent` for per-segment restrictions.
 
 `onEventDrop` receives the source event, proposed `start` and `end`, and
 explicit `source` and `destination` positions. Dropping a clipped multi-day
 event preserves the source event's complete duration. Each position includes
 both the concrete `resource` value and its stable `resourceId`.
+
+`onEventResize` receives the source event, changed edge, proposed complete
+boundaries, and source day/resource position. ChronoLaneJS proposes changes;
+application state remains consumer-owned.
 
 ### Custom views
 

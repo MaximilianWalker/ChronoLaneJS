@@ -53,6 +53,13 @@ test("default messages compose prepared values without formatting dates", () => 
         endDate: "Monday",
         endTime: "2:05 PM"
     }), "Planning, Monday, 1:05 PM to Monday, 2:05 PM");
+    assert.equal(defaultCalendarMessages.eventResizeHandle({
+        view: "day",
+        edge: "end",
+        title: "Planning",
+        date: "Monday, September 14th, 2026",
+        time: "2:05 PM"
+    }), "Resize end of Planning, Monday, September 14th, 2026, 2:05 PM");
 });
 
 test("default localization registries are stable immutable objects", () => {

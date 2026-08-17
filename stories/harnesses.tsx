@@ -85,9 +85,9 @@ export function ControlledNavigation({
     );
 }
 
-/** Provides visible state for selection, editing, and event-drop examples. */
+/** Provides visible state for selection, opening, drop, and resize examples. */
 export function InteractionHarness({
-    onEventEdit,
+    onEventOpen,
     onEventSelect,
     ...props
 }: StoryCalendarProps) {
@@ -95,20 +95,26 @@ export function InteractionHarness({
     const [selectedRange, setSelectedRange] = useState<CalendarSelectionRange>();
     const [lastAction, setLastAction] = useState("Choose an event or time slot.");
 
-    const handleEventSelect: NonNullable<SharedViewProps<StoryEvent>["onEventSelect"]> = (
+    const handleEventSelect: NonNullable<
+        SharedViewProps<StoryEvent, StoryResource>["onEventSelect"]
+    > = (
         event,
-        interaction
+        interaction,
+        context
     ) => {
         if (event.id != null) setSelectedEventIds([event.id]);
         setLastAction(`Selected ${event.title ?? "event"}`);
-        onEventSelect?.(event, interaction);
+        onEventSelect?.(event, interaction, context);
     };
-    const handleEventEdit: NonNullable<SharedViewProps<StoryEvent>["onEventEdit"]> = (
+    const handleEventOpen: NonNullable<
+        SharedViewProps<StoryEvent, StoryResource>["onEventOpen"]
+    > = (
         event,
-        interaction
+        interaction,
+        context
     ) => {
-        setLastAction(`Editing ${event.title ?? "event"}`);
-        onEventEdit?.(event, interaction);
+        setLastAction(`Opened ${event.title ?? "event"}`);
+        onEventOpen?.(event, interaction, context);
     };
     const calendar = props.view === "agenda" || props.view === "month"
         ? (
@@ -116,11 +122,11 @@ export function InteractionHarness({
                 {...props}
                 selectedEventIds={selectedEventIds}
                 onEventSelect={handleEventSelect}
-                onEventEdit={handleEventEdit}
+                onEventOpen={handleEventOpen}
             />
         )
         : (() => {
-            const { onEventDrop, onSlotSelect } = props.viewProps ?? {};
+            const { onEventDrop, onEventResize, onSlotSelect } = props.viewProps ?? {};
             const handleSlotSelect: NonNullable<
                 TimeGridViewProps<StoryEvent, StoryResource>["onSlotSelect"]
             > = (slot, interaction) => {
@@ -134,18 +140,27 @@ export function InteractionHarness({
                 setLastAction(`Dropped ${change.event.title ?? "event"} at ${format(change.start, "HH:mm")}`);
                 onEventDrop?.(change);
             };
+            const handleEventResize: NonNullable<
+                TimeGridViewProps<StoryEvent, StoryResource>["onEventResize"]
+            > = (change) => {
+                setLastAction(
+                    `Resized ${change.event.title ?? "event"} to ${format(change.start, "HH:mm")}–${format(change.end, "HH:mm")}`
+                );
+                onEventResize?.(change);
+            };
 
             return (
                 <Calendar
                     {...props}
                     selectedEventIds={selectedEventIds}
                     onEventSelect={handleEventSelect}
-                    onEventEdit={handleEventEdit}
+                    onEventOpen={handleEventOpen}
                     viewProps={{
                         ...props.viewProps,
                         selectedRange,
                         onSlotSelect: handleSlotSelect,
-                        onEventDrop: handleEventDrop
+                        onEventDrop: handleEventDrop,
+                        onEventResize: handleEventResize
                     }}
                 />
             );
@@ -242,19 +257,15 @@ export function CustomTimeGridEvent({
     selected,
     elementProps
 }: TimeGridEventProps<StoryEvent, StoryResource>) {
-    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Component: ElementType = interactive ? "button" : "div";
-
     return (
-        <Component
+        <div
             {...elementProps}
-            type={interactive ? "button" : undefined}
             className={`${elementProps.className} story-event${selected ? " is-selected" : ""}`}
             data-story-day={format(segment.day, "yyyy-MM-dd")}
         >
             <strong>{event.title}</strong>
             <span>{format(event.start, "HH:mm")}–{format(event.end, "HH:mm")}</span>
-        </Component>
+        </div>
     );
 }
 
@@ -342,18 +353,14 @@ export function CustomAgendaEvent({
     selected,
     elementProps
 }: AgendaEventProps<StoryEvent>) {
-    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Component: ElementType = interactive ? "button" : "div";
-
     return (
-        <Component
+        <div
             {...elementProps}
-            type={interactive ? "button" : undefined}
             className={`${elementProps.className} story-event${selected ? " is-selected" : ""}`}
         >
             <strong>{event.title}</strong>
             <span>{timeLabel}</span>
-        </Component>
+        </div>
     );
 }
 
@@ -375,18 +382,14 @@ export function CustomMonthEvent({
     selected,
     elementProps
 }: MonthEventProps<StoryEvent>) {
-    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Component: ElementType = interactive ? "button" : "div";
-
     return (
-        <Component
+        <div
             {...elementProps}
-            type={interactive ? "button" : undefined}
             className={`${elementProps.className} story-event${selected ? " is-selected" : ""}`}
         >
             <strong>{event.title}</strong>
             <span>{timeLabel}</span>
-        </Component>
+        </div>
     );
 }
 
@@ -434,7 +437,7 @@ export function CustomEmptyState({ message }: AgendaEmptyProps) {
     );
 }
 
-interface CustomViewProps extends SharedViewProps<StoryEvent> {
+interface CustomViewProps extends SharedViewProps<StoryEvent, StoryResource> {
     heading?: ReactNode;
     viewName?: string;
 }
@@ -499,7 +502,7 @@ export function FullyCustomizedMonth(props: MonthViewProps<StoryEvent>) {
 export function CustomViewExample({
     events = basicEvents,
     ...props
-}: Omit<SharedViewProps<StoryEvent>, "viewName">) {
+}: Omit<SharedViewProps<StoryEvent, StoryResource>, "viewName">) {
     return (
         <Calendar
             {...props}

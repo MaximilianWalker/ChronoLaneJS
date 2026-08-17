@@ -83,6 +83,9 @@ export const defaultCalendarMessages = /* @__PURE__ */ Object.freeze<CalendarMes
         `${startDate}, ${startTime} to ${endDate}, ${endTime}`,
         description
     ].filter(Boolean).join(", "),
+    eventResizeHandle: ({ edge, title, date, time }) => (
+        `Resize ${edge} of ${title ?? "calendar event"}, ${date}, ${time}`
+    ),
     timeRange: ({ startTime, endTime }) => `${startTime}–${endTime}`,
     agendaEmpty: () => "No events in this range.",
     moreEvents: ({ count }) => `+${count} more`

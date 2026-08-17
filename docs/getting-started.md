@@ -173,18 +173,19 @@ being parsed as UTC midnight.
 ## Event identity in callbacks
 
 Time-grid events may be clipped into visible day or resource segments. Public
-selection and editing callbacks always receive the complete normalized source
-event, including its original boundaries and application fields:
+selection and opening callbacks always receive the complete normalized source
+event plus the occurrence that was used:
 
 ```tsx
 <Calendar<Meeting>
     events={meetings}
-    onEventSelect={(event, interaction) => {
+    onEventSelect={(event, interaction, context) => {
         console.log(event.projectId);
         console.log(event.start, event.end); // complete normalized boundaries
         console.log(interaction.type);       // React synthetic event
+        console.log(context.view, context.occurrence.resourceId);
     }}
-    onEventEdit={(event) => openEditor(event)}
+    onEventOpen={(event) => openEditor(event)}
 />
 ```
 
@@ -288,14 +289,21 @@ Resource IDs compare by JavaScript `Map`/`Set` equality. Strings and numbers
 are distinct, so `101` does not match `"101"`. Missing, empty, non-finite, or
 duplicate IDs throw during rendering.
 
-## Selection, editing, and dropping
+## Selection, opening, resizing, and dropping
 
-Callback presence enables the associated interaction:
+Callback presence enables the associated semantic without changing its gesture:
 
-- `onEventSelect` enables primary click selection.
-- `onEventEdit` enables double-click and keyboard editing.
+- `onEventSelect` enables selection by single click or Space.
+- `onEventOpen` enables opening by double-click, double-tap, or Enter.
 - `onSlotSelect` enables time-grid slot selection.
 - `onEventDrop` enables native time-grid dragging.
+- `onEventResize` enables time-grid start/end resizing by pointer, touch, or
+  keyboard. Resize boundaries are the existing slot boundaries.
+
+`eventInteractions` may add raw click, double-click, context-menu, and key-down
+callbacks. They are composed after the semantic behavior rather than replacing
+it. `canSelectEvent` and `canOpenEvent` restrict one semantic action for one
+rendered occurrence; view-specific predicates restrict drag and resize.
 
 State remains application-owned:
 
@@ -309,6 +317,13 @@ const [events, setEvents] = useState(meetings);
     onEventSelect={(event) => {
         if (event.id != null) setSelectedEventIds([event.id]);
     }}
+    onEventOpen={(event) => setEditorEvent(event)}
+    eventInteractions={{
+        onContextMenu: (event, interaction) => {
+            interaction.preventDefault();
+            openEventMenu(event, interaction.clientX, interaction.clientY);
+        }
+    }}
     viewProps={{
         onEventDrop: ({ event, start, end, destination }) => {
             setEvents((current) => current.map((item) => item.id === event.id
@@ -319,10 +334,20 @@ const [events, setEvents] = useState(meetings);
                     resourceId: destination.resourceId ?? undefined
                 }
                 : item));
+        },
+        onEventResize: ({ event, start, end }) => {
+            setEvents((current) => current.map((item) => item.id === event.id
+                ? { ...item, start, end }
+                : item));
         }
     }}
 />
 ```
+
+Keyboard resize handles use Arrow keys to preview the adjacent slot boundary,
+Enter or blur to commit, and Escape to cancel. A no-op resize does not fire a
+callback. Native event dropping still requires an application-provided
+keyboard/touch alternative.
 
 `selectedDate` and both `CalendarSelectionRange` boundaries accept the same
 `Date`, string, and timestamp inputs as events. The view clones and validates

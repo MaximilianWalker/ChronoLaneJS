@@ -50,7 +50,7 @@
     text-align: left;
 }
 
-button.agenda-view_event {
+.agenda-view_event[data-interactive="true"] {
     cursor: pointer;
 }
 

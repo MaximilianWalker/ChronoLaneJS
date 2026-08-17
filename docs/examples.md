@@ -5,7 +5,8 @@ The repository contains two runnable consumer applications. The
 
 - [`examples/vite`](../examples/vite/) demonstrates a client-rendered Vite app
   with controlled navigation, resources, localization, a custom event
-  renderer, selection, editing, slot selection, and event-drop state updates.
+  renderer, selection, opening, slot selection, resizing, and event-drop state
+  updates.
 - [`examples/next`](../examples/next/) demonstrates the App Router boundary:
   CSS in the server layout and interactive calendar state in a client
   component.
@@ -173,20 +174,16 @@ loading uses React Suspense.
 import type { TimeGridEventProps } from "@chronolanejs/react";
 
 function ProductEvent({ event, segment, selected, elementProps }: TimeGridEventProps<Meeting, Room>) {
-    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Root = interactive ? "button" : "div";
-
     return (
-        <Root
+        <div
             {...elementProps}
-            type={interactive ? "button" : undefined}
             className={`${elementProps.className} product-event`}
             data-resource-id={segment.resourceId ?? undefined}
-            aria-pressed={interactive ? selected : undefined}
+            data-selected={selected || undefined}
         >
             <strong>{event.title}</strong>
             <small>{event.owner.name}</small>
-        </Root>
+        </div>
     );
 }
 
@@ -213,7 +210,13 @@ const [selectedRange, setSelectedRange] = useState<CalendarSelectionRange>();
     onEventSelect={(event) => {
         if (event.id != null) setSelectedEventIds([event.id]);
     }}
-    onEventEdit={(event) => setEditorEvent(event)}
+    onEventOpen={(event) => setEditorEvent(event)}
+    eventInteractions={{
+        onContextMenu: (event, interaction) => {
+            interaction.preventDefault();
+            setMenuEvent(event);
+        }
+    }}
     viewProps={{
         selectedRange,
         onSlotSelect: (slot) => {
@@ -227,6 +230,11 @@ const [selectedRange, setSelectedRange] = useState<CalendarSelectionRange>();
                     end,
                     resourceId: destination.resourceId ?? undefined
                 }
+                : item));
+        },
+        onEventResize: ({ event, start, end }) => {
+            setEvents((current) => current.map((item) => item.id === event.id
+                ? { ...item, start, end }
                 : item));
         }
     }}
