@@ -96,6 +96,7 @@ export type {
     TimeGridEventResizeEdge,
     TimeGridEventSegment,
     TimeGridGroupBy,
+    TimeGridMultiDayEventLayout,
     TimeGridResourceHeaderProps,
     TimeGridSlot,
     TimeGridSlotProps,

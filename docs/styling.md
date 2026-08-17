@@ -180,6 +180,8 @@ styles may change.
 
 - `.time-grid-view`, `.time-grid-view_grid-wrapper`
 - `.time-grid-view_header`, `.time-grid-view_header-cell`
+- `.time-grid-view_multi-day-region`, `.time-grid-view_multi-day-label`,
+  `.time-grid-view_multi-day-grid`, `.time-grid-view_multi-day-event`
 - `.time-grid-view_body`, `.time-grid-view_time-labels`, `.time-grid-view_time-label`
 - `.time-grid-view_grid`, `.time-grid-view_slot`
 - `.time-grid-view_background-events`, `.time-grid-view_background-event`

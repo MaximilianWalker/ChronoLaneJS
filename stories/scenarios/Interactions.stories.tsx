@@ -141,6 +141,61 @@ export const OpenClippedEvent: Story = {
     }
 };
 
+export const DedicatedMultiDayInteractions: Story = {
+    args: {
+        view: "week",
+        events: multiDayEvents.filter(({ id }) => id === "conference"),
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            multiDayEventLayout: "dedicated"
+        }
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const event = getEventElement(
+            canvasElement,
+            "Design systems conference"
+        );
+
+        await userEvent.click(event);
+        await expect(args.onEventSelect).toHaveBeenCalledOnce();
+
+        const moveHandle = canvas.getByRole("button", {
+            name: "Move Design systems conference"
+        });
+        moveHandle.focus();
+        await userEvent.keyboard("{ArrowRight}");
+        await expect(canvasElement.querySelector(
+            ".time-grid-view_move-preview.is-multi-day"
+        )).toBeVisible();
+        await userEvent.keyboard("{Enter}");
+        await expect(getTimeGridViewProps(args)?.onEventDrop).toHaveBeenCalledWith(
+            expect.objectContaining({
+                start: asCalendarDate("2026-09-15T14:00:00", "UTC"),
+                end: asCalendarDate("2026-09-17T11:00:00", "UTC")
+            })
+        );
+
+        const resizeHandle = canvas.getByRole("slider", {
+            name: /Resize end of Design systems conference/i
+        });
+        await expect(resizeHandle).toHaveAttribute("aria-orientation", "horizontal");
+        resizeHandle.focus();
+        await userEvent.keyboard("{ArrowRight}");
+        await expect(canvasElement.querySelector(
+            ".time-grid-view_resize-preview.is-multi-day"
+        )).toBeVisible();
+        await userEvent.keyboard("{Enter}");
+        await expect(
+            getTimeGridViewProps(args)?.onEventResize
+        ).toHaveBeenCalledWith(expect.objectContaining({
+            edge: "end",
+            start: asCalendarDate("2026-09-14T14:00:00", "UTC"),
+            end: asCalendarDate("2026-09-17T11:00:00", "UTC")
+        }));
+    }
+};
+
 export const SelectOvernightEvent: Story = {
     args: {
         date: "2026-09-15",

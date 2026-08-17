@@ -101,6 +101,99 @@
     font-size: 0.75rem;
 }
 
+.time-grid-view_multi-day-region {
+    display: grid;
+    grid-template-columns:
+        var(--calendar-time-grid-time-axis-width, 64px)
+        var(--_time-grid-slot-columns);
+    flex: 0 0 auto;
+    border-bottom: var(--calendar-time-grid-line-width, 1px) solid #c8d3e1;
+    background: #f7f9fc;
+}
+
+.time-grid-view_multi-day-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    grid-column: 1;
+    padding: 4px 6px;
+    color: #667085;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.time-grid-view_multi-day-grid {
+    display: grid;
+    grid-column: 2 / -1;
+    grid-template-columns: var(--_time-grid-slot-columns);
+    min-width: 0;
+}
+
+.time-grid-view_multi-day-column {
+    min-width: 0;
+    border-left: var(--calendar-time-grid-line-width, 1px) solid #d8e1ec;
+    pointer-events: none;
+}
+
+.time-grid-view_multi-day-event {
+    min-height: 26px;
+    margin-block: 2px;
+}
+
+.time-grid-view_multi-day-event .time-grid-view_event-content {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    padding-block: 3px;
+}
+
+.time-grid-view_multi-day-event .time-grid-view_event-title,
+.time-grid-view_multi-day-event .time-grid-view_event-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.time-grid-view_multi-day-resize-handle {
+    position: relative;
+    box-sizing: border-box;
+    width: 12px;
+    border: 0;
+    background: transparent;
+    cursor: ew-resize;
+    pointer-events: auto;
+    touch-action: none;
+    z-index: 14;
+}
+
+.time-grid-view_multi-day-resize-handle::after {
+    content: "";
+    position: absolute;
+    inset: 6px auto;
+    width: 2px;
+    border-radius: 999px;
+    background: color-mix(in srgb, currentColor 72%, white);
+    opacity: 0.72;
+}
+
+.time-grid-view_multi-day-resize-handle.is-start {
+    transform: translateX(-2px);
+}
+
+.time-grid-view_multi-day-resize-handle.is-start::after {
+    left: 5px;
+}
+
+.time-grid-view_multi-day-resize-handle.is-end {
+    transform: translateX(2px);
+}
+
+.time-grid-view_multi-day-resize-handle.is-end::after {
+    right: 5px;
+}
+
 .time-grid-view_time-label {
     display: flex;
     box-sizing: border-box;
@@ -299,6 +392,11 @@ button.time-grid-view_slot {
     z-index: 12;
 }
 
+.time-grid-view_move-preview.is-multi-day,
+.time-grid-view_resize-preview.is-multi-day {
+    min-height: 26px;
+}
+
 .time-grid-view_live-region {
     position: absolute;
     width: 1px;
@@ -374,4 +472,10 @@ button.time-grid-view_slot {
     outline: 2px solid currentColor;
     outline-offset: -2px;
     z-index: 12;
+}
+
+.time-grid-view_multi-day-resize-handle:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+    z-index: 15;
 }

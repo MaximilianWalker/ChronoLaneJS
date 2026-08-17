@@ -356,9 +356,14 @@ Last reviewed: 2026-08-17
   - Resizing may cross visible days while retaining the resource.
   - Commit emits one complete proposal; Escape, pointer cancel, and no movement
     emit nothing. Background events remain non-interactive.
-- [ ] **[P1][DEC-02] Decide how all-day events appear in time-grid views.**
-  - Either define a dedicated all-day region or document that consumers should
-    use month/agenda views or a custom renderer.
+- [x] **[P1][DEC-02] Decide how multi-day events appear in time-grid views.**
+  - `multiDayEventLayout` selects the backward-compatible `"timed"` layout or
+    a `"dedicated"` region aligned with visible day/resource columns.
+  - Multi-day placement is derived from positive half-open event intervals; no
+    redundant all-day event flag is introduced.
+  - Dedicated foreground events retain selection, opening, day/resource
+    movement, whole-day resizing, accessible labels, and DST-stable wall times.
+    Background events remain in the hourly grid.
 - [ ] **[P2][DEC-03] Decide the large-resource strategy.**
   - Define practical limits and whether horizontal virtualization, grouped
     resources, or consumer-owned pagination belongs in the library.

@@ -49,7 +49,20 @@ import DayHeader from "./DayHeader.js";
 import Event from "./Event.js";
 import { createLayout } from "./layout/createLayout.js";
 import { createTimeGridHeaderRows } from "./layout/headers.js";
-import type { LayoutEvent, LayoutSlot } from "./layout/types.js";
+import {
+    createMultiDayEventDrop,
+    createMultiDayEventLayout,
+    createMultiDayEventPreview,
+    createMultiDayEventResize,
+    getMultiDayResizeOffset,
+    isMultiDayEvent
+} from "./layout/multiDayEvents.js";
+import type { LayoutMultiDayEvent } from "./layout/multiDayEvents.js";
+import type {
+    LayoutColumn,
+    LayoutEvent,
+    LayoutSlot
+} from "./layout/types.js";
 import {
     createEventDrop,
     findAdjacentMoveSlot,
@@ -104,6 +117,30 @@ interface EventResizeState<
     target?: TimeGridResizeBoundary<Resource>;
 }
 
+interface MultiDayEventMoveState<
+    Event extends CalendarEvent,
+    Resource
+> {
+    segment: LayoutMultiDayEvent<Event, Resource>;
+    origin: LayoutColumn<Resource>;
+    handleKey: string;
+    pointerId?: number;
+    target?: LayoutColumn<Resource>;
+}
+
+interface MultiDayEventResizeState<
+    Event extends CalendarEvent,
+    Resource
+> {
+    segment: LayoutMultiDayEvent<Event, Resource>;
+    edge: TimeGridEventResizeEdge;
+    source: TimeGridEventPosition<Resource>;
+    dayOffsets: number[];
+    handleKey: string;
+    pointerId?: number;
+    targetOffset?: number;
+}
+
 /** Rounds percentages to stable CSS values without visible precision noise. */
 const percentage = (value: number): number => Number(value.toFixed(6));
 
@@ -150,6 +187,7 @@ export default function TimeGridView<
     backgroundEvents = EMPTY_ITEMS,
     resources,
     groupBy = "day",
+    multiDayEventLayout = "timed",
     date: controlledDate,
     defaultDate,
     range = "week",
@@ -198,7 +236,14 @@ export default function TimeGridView<
     const [eventResize, setEventResize] = useState<
         EventResizeState<Event, Resource> | null
     >(null);
+    const [multiDayEventMove, setMultiDayEventMove] = useState<
+        MultiDayEventMoveState<Event, Resource> | null
+    >(null);
+    const [multiDayEventResize, setMultiDayEventResize] = useState<
+        MultiDayEventResizeState<Event, Resource> | null
+    >(null);
     const gridRef = useRef<HTMLDivElement>(null);
+    const multiDayGridRef = useRef<HTMLDivElement>(null);
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
     const { anchorDate, setDate } = useCalendarViewDate({
@@ -219,6 +264,21 @@ export default function TimeGridView<
         () => normalizeEvents(events, timeZone),
         [events, timeZone]
     );
+    if (multiDayEventLayout !== "timed" && multiDayEventLayout !== "dedicated") {
+        throw new TypeError(
+            'multiDayEventLayout must be either "timed" or "dedicated".'
+        );
+    }
+    const { timedEvents, dedicatedEvents } = useMemo(() => {
+        if (multiDayEventLayout === "timed") {
+            return { timedEvents: calendarEvents, dedicatedEvents: EMPTY_ITEMS };
+        }
+
+        return {
+            timedEvents: calendarEvents.filter((event) => !isMultiDayEvent(event)),
+            dedicatedEvents: calendarEvents.filter(isMultiDayEvent)
+        };
+    }, [calendarEvents, multiDayEventLayout]);
     const calendarBackgroundEvents = useMemo(
         () => normalizeEvents(backgroundEvents, timeZone),
         [backgroundEvents, timeZone]
@@ -231,7 +291,7 @@ export default function TimeGridView<
     );
     const layout = useMemo(() => createLayout({
         days,
-        events: calendarEvents,
+        events: timedEvents,
         backgroundEvents: calendarBackgroundEvents,
         resources,
         groupBy,
@@ -241,14 +301,14 @@ export default function TimeGridView<
         labelInterval
     }), [
         calendarBackgroundEvents,
-        calendarEvents,
         days,
         groupBy,
         labelInterval,
         maxTime,
         minTime,
         resources,
-        slotDuration
+        slotDuration,
+        timedEvents
     ]);
     const {
         columns,
@@ -259,6 +319,11 @@ export default function TimeGridView<
         backgroundEvents: positionedBackgroundEvents,
         totalMinutes
     } = layout;
+    const dedicatedLayout = useMemo(() => createMultiDayEventLayout({
+        events: dedicatedEvents,
+        columns,
+        resources
+    }), [columns, dedicatedEvents, resources]);
     const canResizeEvents = onEventResize != null;
     const resolvedResizeStep = resolveTimeGridResizeStep(resizeStep);
     const resizeIntervals = useMemo(
@@ -395,6 +460,79 @@ export default function TimeGridView<
         };
     }, [columns, eventResize, timeWindow]);
 
+    const multiDayMovePreview = useMemo(() => {
+        if (!multiDayEventMove?.target) return null;
+
+        const change = createMultiDayEventDrop(
+            multiDayEventMove.segment,
+            multiDayEventMove.target
+        );
+        const resourceTitle = multiDayEventMove.target.resource == null
+            || multiDayEventMove.target.resourceId == null
+            ? null
+            : resolveCalendarResourceTitle(
+                resources,
+                multiDayEventMove.target.resource,
+                multiDayEventMove.target.resourceId
+            );
+        const resource = typeof resourceTitle === "string"
+            || typeof resourceTitle === "number"
+            ? String(resourceTitle)
+            : multiDayEventMove.target.resourceId == null
+                ? undefined
+                : String(multiDayEventMove.target.resourceId);
+
+        return {
+            announcement: messages.eventMoveTarget({
+                view: viewName,
+                title: multiDayEventMove.segment.event.title,
+                date: formatters.date(change.start, formatContext),
+                time: formatters.time(change.start, formatContext),
+                resource
+            }),
+            color: multiDayEventMove.segment.event.color,
+            laneIndex: multiDayEventMove.segment.laneIndex,
+            segments: createMultiDayEventPreview({
+                event: multiDayEventMove.segment.event,
+                start: change.start,
+                end: change.end,
+                resourceId: change.destination.resourceId,
+                columns
+            })
+        };
+    }, [
+        columns,
+        formatContext,
+        formatters,
+        messages,
+        multiDayEventMove,
+        resources,
+        viewName
+    ]);
+
+    const multiDayResizePreview = useMemo(() => {
+        if (multiDayEventResize?.targetOffset == null) return null;
+
+        const change = createMultiDayEventResize({
+            event: multiDayEventResize.segment.event,
+            edge: multiDayEventResize.edge,
+            dayOffset: multiDayEventResize.targetOffset,
+            source: multiDayEventResize.source
+        });
+
+        return {
+            color: multiDayEventResize.segment.event.color,
+            laneIndex: multiDayEventResize.segment.laneIndex,
+            segments: createMultiDayEventPreview({
+                event: multiDayEventResize.segment.event,
+                start: change.start,
+                end: change.end,
+                resourceId: multiDayEventResize.source.resourceId,
+                columns
+            })
+        };
+    }, [columns, multiDayEventResize]);
+
     const updateEventMove = useCallback((
         next: EventMoveState<Event, Resource> | null
     ) => {
@@ -434,6 +572,8 @@ export default function TimeGridView<
             pointerId
         } satisfies EventMoveState<Event, Resource>;
         setEventResize(null);
+        setMultiDayEventMove(null);
+        setMultiDayEventResize(null);
         updateEventMove(next);
         return next;
     }, [slots, updateEventMove]);
@@ -570,6 +710,8 @@ export default function TimeGridView<
             pointerId
         } satisfies EventResizeState<Event, Resource>;
         setEventMove(null);
+        setMultiDayEventMove(null);
+        setMultiDayEventResize(null);
         updateEventResize(next);
         return next;
     }, [updateEventResize]);
@@ -644,6 +786,214 @@ export default function TimeGridView<
         interaction.stopPropagation();
         cancelEventResize();
     }, [cancelEventResize, eventResize]);
+
+    const cancelMultiDayEventMove = useCallback(() => {
+        setMultiDayEventMove(null);
+    }, []);
+
+    const commitMultiDayEventMove = useCallback((
+        current: MultiDayEventMoveState<Event, Resource> | null
+    ) => {
+        setMultiDayEventMove(null);
+        if (!current?.target || !onEventDrop) return;
+        if (
+            current.target.day.getTime() === current.origin.day.getTime()
+            && current.target.resourceId === current.origin.resourceId
+        ) return;
+
+        onEventDrop(createMultiDayEventDrop(current.segment, current.target));
+    }, [onEventDrop]);
+
+    const beginMultiDayEventMove = useCallback((
+        segment: LayoutMultiDayEvent<Event, Resource>,
+        handleKey: string,
+        pointerId?: number
+    ): MultiDayEventMoveState<Event, Resource> | null => {
+        const origin = columns[segment.columnIndex];
+        if (!origin) return null;
+
+        const next = {
+            segment,
+            origin,
+            handleKey,
+            pointerId
+        } satisfies MultiDayEventMoveState<Event, Resource>;
+        setEventMove(null);
+        setEventResize(null);
+        setMultiDayEventResize(null);
+        setMultiDayEventMove(next);
+        return next;
+    }, [columns]);
+
+    const updateMultiDayEventMoveTarget = useCallback((
+        current: MultiDayEventMoveState<Event, Resource>,
+        target: LayoutColumn<Resource>
+    ) => {
+        const nextTarget = target.key === current.origin.key ? undefined : target;
+        if (current.target?.key === nextTarget?.key) return;
+        setMultiDayEventMove({ ...current, target: nextTarget });
+    }, []);
+
+    const handleMultiDayMovePointerMove = useCallback((
+        interaction: PointerEvent<HTMLElement>
+    ) => {
+        const current = multiDayEventMove;
+        const grid = multiDayGridRef.current;
+        if (
+            !current
+            || current.pointerId !== interaction.pointerId
+            || !grid
+            || columns.length === 0
+        ) return;
+
+        interaction.preventDefault();
+        interaction.stopPropagation();
+        const bounds = grid.getBoundingClientRect();
+        if (bounds.width <= 0) return;
+        const columnIndex = Math.min(
+            columns.length - 1,
+            Math.max(0, Math.floor(
+                (interaction.clientX - bounds.left) / bounds.width * columns.length
+            ))
+        );
+        const target = columns[columnIndex];
+        if (target) updateMultiDayEventMoveTarget(current, target);
+    }, [columns, multiDayEventMove, updateMultiDayEventMoveTarget]);
+
+    const handleMultiDayMovePointerUp = useCallback((
+        interaction: PointerEvent<HTMLElement>
+    ) => {
+        const current = multiDayEventMove;
+        if (!current || current.pointerId !== interaction.pointerId) return;
+
+        interaction.preventDefault();
+        interaction.stopPropagation();
+        if (interaction.currentTarget.hasPointerCapture(interaction.pointerId)) {
+            interaction.currentTarget.releasePointerCapture(interaction.pointerId);
+        }
+        commitMultiDayEventMove(current);
+    }, [commitMultiDayEventMove, multiDayEventMove]);
+
+    const handleMultiDayMovePointerCancel = useCallback((
+        interaction: PointerEvent<HTMLElement>
+    ) => {
+        if (multiDayEventMove?.pointerId !== interaction.pointerId) return;
+        interaction.stopPropagation();
+        cancelMultiDayEventMove();
+    }, [cancelMultiDayEventMove, multiDayEventMove]);
+
+    const cancelMultiDayEventResize = useCallback(() => {
+        setMultiDayEventResize(null);
+    }, []);
+
+    const commitMultiDayEventResize = useCallback((
+        current: MultiDayEventResizeState<Event, Resource> | null
+    ) => {
+        setMultiDayEventResize(null);
+        if (current?.targetOffset == null || !onEventResize) return;
+
+        onEventResize(createMultiDayEventResize({
+            event: current.segment.event,
+            edge: current.edge,
+            dayOffset: current.targetOffset,
+            source: current.source
+        }));
+    }, [onEventResize]);
+
+    const beginMultiDayEventResize = useCallback((
+        segment: LayoutMultiDayEvent<Event, Resource>,
+        edge: TimeGridEventResizeEdge,
+        handleKey: string,
+        dayOffsets: number[],
+        pointerId?: number
+    ): MultiDayEventResizeState<Event, Resource> | null => {
+        if (dayOffsets.length === 0) return null;
+
+        const next = {
+            segment,
+            edge,
+            source: {
+                day: segment.day,
+                resource: segment.resource,
+                resourceId: segment.resourceId
+            },
+            dayOffsets,
+            handleKey,
+            pointerId
+        } satisfies MultiDayEventResizeState<Event, Resource>;
+        setEventMove(null);
+        setEventResize(null);
+        setMultiDayEventMove(null);
+        setMultiDayEventResize(next);
+        return next;
+    }, []);
+
+    const handleMultiDayResizePointerMove = useCallback((
+        interaction: PointerEvent<HTMLElement>
+    ) => {
+        const current = multiDayEventResize;
+        const grid = multiDayGridRef.current;
+        if (
+            !current
+            || current.pointerId !== interaction.pointerId
+            || !grid
+            || columns.length === 0
+        ) return;
+
+        interaction.preventDefault();
+        interaction.stopPropagation();
+        const bounds = grid.getBoundingClientRect();
+        if (bounds.width <= 0) return;
+        const rawColumnIndex = Math.min(
+            columns.length - 1,
+            Math.max(0, Math.floor(
+                (interaction.clientX - bounds.left) / bounds.width * columns.length
+            ))
+        );
+        const pointerColumn = columns[rawColumnIndex];
+        if (!pointerColumn) return;
+        const targetColumn = columns.find((column) => (
+            column.dayIndex === pointerColumn.dayIndex
+            && column.resourceId === current.source.resourceId
+        ));
+        if (!targetColumn) return;
+        const targetOffset = getMultiDayResizeOffset(
+            current.segment.event,
+            current.edge,
+            targetColumn.day
+        );
+        if (
+            !current.dayOffsets.includes(targetOffset)
+            || current.targetOffset === targetOffset
+        ) return;
+
+        setMultiDayEventResize({
+            ...current,
+            targetOffset: targetOffset === 0 ? undefined : targetOffset
+        });
+    }, [columns, multiDayEventResize]);
+
+    const handleMultiDayResizePointerUp = useCallback((
+        interaction: PointerEvent<HTMLElement>
+    ) => {
+        const current = multiDayEventResize;
+        if (!current || current.pointerId !== interaction.pointerId) return;
+
+        interaction.preventDefault();
+        interaction.stopPropagation();
+        if (interaction.currentTarget.hasPointerCapture(interaction.pointerId)) {
+            interaction.currentTarget.releasePointerCapture(interaction.pointerId);
+        }
+        commitMultiDayEventResize(current);
+    }, [commitMultiDayEventResize, multiDayEventResize]);
+
+    const handleMultiDayResizePointerCancel = useCallback((
+        interaction: PointerEvent<HTMLElement>
+    ) => {
+        if (multiDayEventResize?.pointerId !== interaction.pointerId) return;
+        interaction.stopPropagation();
+        cancelMultiDayEventResize();
+    }, [cancelMultiDayEventResize, multiDayEventResize]);
 
     const navigate = useCallback((direction: -1 | 1) => {
         const nextDate = resolvedRange.navigate(direction);
@@ -739,6 +1089,428 @@ export default function TimeGridView<
                         ))
                     )}
                 </div>
+                {dedicatedLayout.events.length > 0 && (
+                    <section
+                        className="time-grid-view_multi-day-region"
+                        aria-label={messages.multiDayRegionLabel({ view: viewName })}
+                    >
+                        <div
+                            className="time-grid-view_multi-day-label"
+                            aria-hidden="true"
+                        >
+                            {messages.multiDayRegionLabel({ view: viewName })}
+                        </div>
+                        <div
+                            ref={multiDayGridRef}
+                            className="time-grid-view_multi-day-grid"
+                            style={{
+                                gridTemplateRows: `repeat(${dedicatedLayout.laneCount}, minmax(30px, auto))`
+                            }}
+                        >
+                            {columns.map((column, columnIndex) => (
+                                <div
+                                    key={`${column.key}-multi-day-column`}
+                                    aria-hidden="true"
+                                    className="time-grid-view_multi-day-column"
+                                    style={{
+                                        gridColumn: columnIndex + 1,
+                                        gridRow: `1 / ${dedicatedLayout.laneCount + 1}`
+                                    }}
+                                />
+                            ))}
+                            {multiDayMovePreview?.segments.map((segment) => (
+                                <div
+                                    key={`${segment.columnIndex}-${segment.columnSpan}`}
+                                    aria-hidden="true"
+                                    className="time-grid-view_move-preview is-multi-day"
+                                    style={{
+                                        "--color": multiDayMovePreview.color,
+                                        gridColumn: `${segment.columnIndex + 1} / span ${segment.columnSpan}`,
+                                        gridRow: multiDayMovePreview.laneIndex + 1
+                                    } as CalendarStyle}
+                                />
+                            ))}
+                            {multiDayResizePreview?.segments.map((segment) => (
+                                <div
+                                    key={`${segment.columnIndex}-${segment.columnSpan}`}
+                                    aria-hidden="true"
+                                    className="time-grid-view_resize-preview is-multi-day"
+                                    style={{
+                                        "--color": multiDayResizePreview.color,
+                                        gridColumn: `${segment.columnIndex + 1} / span ${segment.columnSpan}`,
+                                        gridRow: multiDayResizePreview.laneIndex + 1
+                                    } as CalendarStyle}
+                                />
+                            ))}
+                            {dedicatedLayout.events.map((segment) => {
+                                const { event } = segment;
+                                const rendererSegment = toTimeGridEventSegment<Resource>(
+                                    segment
+                                );
+                                const interactionContext = {
+                                    view: viewName,
+                                    occurrence: {
+                                        day: segment.day,
+                                        resource: segment.resource,
+                                        resourceId: segment.resourceId
+                                    }
+                                };
+                                const movable = canMoveEvents
+                                    && (canDragEvent?.(event, rendererSegment) ?? true);
+                                const interactionProps = createEventInteractionProps({
+                                    event,
+                                    context: interactionContext,
+                                    canSelectEvent,
+                                    canOpenEvent,
+                                    onEventSelect,
+                                    onEventOpen,
+                                    eventInteractions
+                                });
+                                const selected = event.id != null
+                                    && selectedEventIds.includes(event.id);
+                                const startDate = formatters.date(event.start, formatContext);
+                                const startTime = formatters.time(event.start, formatContext);
+                                const endDate = formatters.date(event.end, formatContext);
+                                const endTime = formatters.time(event.end, formatContext);
+                                const interactive = interactionProps.onClick != null
+                                    || interactionProps.onDoubleClick != null
+                                    || interactionProps.onContextMenu != null
+                                    || interactionProps.onKeyDown != null;
+                                const eventKey = `${event.id ?? event.title ?? "event"}-${event.start.getTime()}-${event.end.getTime()}-${segment.columnIndex}-multi-day`;
+                                const moveHandleKey = `${eventKey}-move`;
+                                const activeMove = multiDayEventMove?.handleKey === moveHandleKey
+                                    ? multiDayEventMove
+                                    : null;
+                                const eventStyle: CalendarStyle = {
+                                    "--color": event.color,
+                                    gridColumn: `${segment.columnIndex + 1} / span ${segment.columnSpan}`,
+                                    gridRow: segment.laneIndex + 1,
+                                    overflow: "hidden"
+                                };
+
+                                const handleMoveKeyDown = (
+                                    interaction: KeyboardEvent<HTMLElement>
+                                ) => {
+                                    interaction.stopPropagation();
+                                    const current = multiDayEventMove?.handleKey
+                                        === moveHandleKey
+                                        ? multiDayEventMove
+                                        : null;
+
+                                    if (interaction.key === "Escape" && current) {
+                                        interaction.preventDefault();
+                                        cancelMultiDayEventMove();
+                                        return;
+                                    }
+                                    if (interaction.key === "Enter" && current) {
+                                        interaction.preventDefault();
+                                        commitMultiDayEventMove(current);
+                                        return;
+                                    }
+                                    if (
+                                        interaction.key !== "ArrowLeft"
+                                        && interaction.key !== "ArrowRight"
+                                    ) return;
+
+                                    interaction.preventDefault();
+                                    const nextState = current ?? beginMultiDayEventMove(
+                                        segment,
+                                        moveHandleKey
+                                    );
+                                    if (!nextState) return;
+                                    const currentColumn = nextState.target
+                                        ?? nextState.origin;
+                                    const currentIndex = columns.indexOf(currentColumn);
+                                    const target = columns[
+                                        currentIndex + (interaction.key === "ArrowLeft" ? -1 : 1)
+                                    ];
+                                    if (target) {
+                                        updateMultiDayEventMoveTarget(nextState, target);
+                                    }
+                                };
+
+                                const handleMovePointerDown = (
+                                    interaction: PointerEvent<HTMLElement>
+                                ) => {
+                                    interaction.preventDefault();
+                                    interaction.stopPropagation();
+                                    const next = beginMultiDayEventMove(
+                                        segment,
+                                        moveHandleKey,
+                                        interaction.pointerId
+                                    );
+                                    if (
+                                        next
+                                        && interaction.nativeEvent.isTrusted
+                                    ) {
+                                        interaction.currentTarget.setPointerCapture(
+                                            interaction.pointerId
+                                        );
+                                    }
+                                };
+
+                                return (
+                                    <Fragment key={eventKey}>
+                                        <EventComponent
+                                            event={event}
+                                            segment={rendererSegment}
+                                            selected={selected}
+                                            elementProps={{
+                                                className: "time-grid-view_event time-grid-view_multi-day-event",
+                                                ...interactionProps,
+                                                "aria-label": interactive
+                                                    ? messages.eventLabel({
+                                                        view: viewName,
+                                                        title: event.title,
+                                                        description: event.description,
+                                                        startDate,
+                                                        startTime,
+                                                        endDate,
+                                                        endTime
+                                                    })
+                                                    : undefined,
+                                                style: {
+                                                    ...eventStyle,
+                                                    ...event.style
+                                                }
+                                            }}
+                                        />
+                                        {movable && (
+                                            <div
+                                                className="time-grid-view_event-move-controls"
+                                                style={eventStyle}
+                                            >
+                                                <button
+                                                    type="button"
+                                                    className="time-grid-view_event-move-handle"
+                                                    data-event-id={event.id}
+                                                    data-moving={activeMove != null || undefined}
+                                                    aria-label={messages.eventMoveHandle({
+                                                        view: viewName,
+                                                        title: event.title
+                                                    })}
+                                                    aria-keyshortcuts="ArrowLeft ArrowRight Enter Escape"
+                                                    onBlur={() => {
+                                                        if (
+                                                            multiDayEventMove?.handleKey
+                                                            === moveHandleKey
+                                                        ) {
+                                                            commitMultiDayEventMove(
+                                                                multiDayEventMove
+                                                            );
+                                                        }
+                                                    }}
+                                                    onKeyDown={handleMoveKeyDown}
+                                                    onPointerDown={handleMovePointerDown}
+                                                    onPointerMove={handleMultiDayMovePointerMove}
+                                                    onPointerUp={handleMultiDayMovePointerUp}
+                                                    onPointerCancel={handleMultiDayMovePointerCancel}
+                                                >
+                                                    <span aria-hidden="true">↔</span>
+                                                </button>
+                                            </div>
+                                        )}
+                                        {canResizeEvents && (["start", "end"] as const).map((edge) => {
+                                            const boundaryVisible = event[edge].getTime()
+                                                === segment[edge].getTime();
+                                            const allowed = boundaryVisible
+                                                && (canResizeEvent?.(
+                                                    event,
+                                                    rendererSegment,
+                                                    edge
+                                                ) ?? true);
+                                            if (!allowed) return null;
+
+                                            const source = {
+                                                day: segment.day,
+                                                resource: segment.resource,
+                                                resourceId: segment.resourceId
+                                            };
+                                            const dayOffsets = [...new Set(columns
+                                                .filter((column) => (
+                                                    column.resourceId === segment.resourceId
+                                                ))
+                                                .map((column) => getMultiDayResizeOffset(
+                                                    event,
+                                                    edge,
+                                                    column.day
+                                                ))
+                                                .filter((dayOffset) => {
+                                                    const change = createMultiDayEventResize({
+                                                        event,
+                                                        edge,
+                                                        dayOffset,
+                                                        source
+                                                    });
+                                                    return change.end > change.start;
+                                                }))].sort((first, second) => first - second);
+                                            if (dayOffsets.length === 0) return null;
+
+                                            const handleKey = `${eventKey}-${edge}`;
+                                            const activeResize = multiDayEventResize?.handleKey
+                                                === handleKey
+                                                ? multiDayEventResize
+                                                : null;
+                                            const currentOffset = activeResize?.targetOffset ?? 0;
+                                            const currentChange = createMultiDayEventResize({
+                                                event,
+                                                edge,
+                                                dayOffset: currentOffset,
+                                                source
+                                            });
+                                            const currentBoundary = currentChange[edge];
+                                            const boundaries = dayOffsets.map((dayOffset) => (
+                                                createMultiDayEventResize({
+                                                    event,
+                                                    edge,
+                                                    dayOffset,
+                                                    source
+                                                })[edge]
+                                            ));
+                                            const firstBoundary = boundaries[0];
+                                            const lastBoundary = boundaries.at(-1);
+                                            if (!firstBoundary || !lastBoundary) return null;
+
+                                            const handleKeyDown = (
+                                                interaction: KeyboardEvent<HTMLElement>
+                                            ) => {
+                                                interaction.stopPropagation();
+                                                const current = multiDayEventResize?.handleKey
+                                                    === handleKey
+                                                    ? multiDayEventResize
+                                                    : null;
+
+                                                if (interaction.key === "Escape" && current) {
+                                                    interaction.preventDefault();
+                                                    cancelMultiDayEventResize();
+                                                    return;
+                                                }
+                                                if (interaction.key === "Enter" && current) {
+                                                    interaction.preventDefault();
+                                                    commitMultiDayEventResize(current);
+                                                    return;
+                                                }
+                                                if (
+                                                    interaction.key !== "ArrowLeft"
+                                                    && interaction.key !== "ArrowRight"
+                                                ) return;
+
+                                                interaction.preventDefault();
+                                                const nextState = current
+                                                    ?? beginMultiDayEventResize(
+                                                        segment,
+                                                        edge,
+                                                        handleKey,
+                                                        dayOffsets
+                                                    );
+                                                if (!nextState) return;
+                                                const offset = nextState.targetOffset ?? 0;
+                                                const nextOffset = interaction.key
+                                                    === "ArrowLeft"
+                                                    ? [...nextState.dayOffsets]
+                                                        .reverse()
+                                                        .find((value) => value < offset)
+                                                    : nextState.dayOffsets
+                                                        .find((value) => value > offset);
+                                                if (nextOffset == null) return;
+                                                setMultiDayEventResize({
+                                                    ...nextState,
+                                                    targetOffset: nextOffset === 0
+                                                        ? undefined
+                                                        : nextOffset
+                                                });
+                                            };
+
+                                            const handlePointerDown = (
+                                                interaction: PointerEvent<HTMLElement>
+                                            ) => {
+                                                interaction.preventDefault();
+                                                interaction.stopPropagation();
+                                                const next = beginMultiDayEventResize(
+                                                    segment,
+                                                    edge,
+                                                    handleKey,
+                                                    dayOffsets,
+                                                    interaction.pointerId
+                                                );
+                                                if (
+                                                    next
+                                                    && interaction.nativeEvent.isTrusted
+                                                ) {
+                                                    interaction.currentTarget.setPointerCapture(
+                                                        interaction.pointerId
+                                                    );
+                                                }
+                                            };
+
+                                            return (
+                                                <div
+                                                    key={edge}
+                                                    role="slider"
+                                                    tabIndex={0}
+                                                    className={`time-grid-view_multi-day-resize-handle is-${edge}`}
+                                                    data-event-id={event.id}
+                                                    data-resize-edge={edge}
+                                                    aria-label={messages.eventResizeHandle({
+                                                        view: viewName,
+                                                        edge,
+                                                        title: event.title,
+                                                        date: formatters.date(
+                                                            currentBoundary,
+                                                            formatContext
+                                                        ),
+                                                        time: formatters.time(
+                                                            currentBoundary,
+                                                            formatContext
+                                                        )
+                                                    })}
+                                                    aria-orientation="horizontal"
+                                                    aria-valuemin={firstBoundary.getTime()}
+                                                    aria-valuemax={lastBoundary.getTime()}
+                                                    aria-valuenow={currentBoundary.getTime()}
+                                                    aria-valuetext={messages.slotLabel({
+                                                        view: viewName,
+                                                        date: formatters.date(
+                                                            currentBoundary,
+                                                            formatContext
+                                                        ),
+                                                        time: formatters.time(
+                                                            currentBoundary,
+                                                            formatContext
+                                                        )
+                                                    })}
+                                                    onBlur={() => {
+                                                        if (
+                                                            multiDayEventResize?.handleKey
+                                                            === handleKey
+                                                        ) {
+                                                            commitMultiDayEventResize(
+                                                                multiDayEventResize
+                                                            );
+                                                        }
+                                                    }}
+                                                    onKeyDown={handleKeyDown}
+                                                    onPointerDown={handlePointerDown}
+                                                    onPointerMove={handleMultiDayResizePointerMove}
+                                                    onPointerUp={handleMultiDayResizePointerUp}
+                                                    onPointerCancel={handleMultiDayResizePointerCancel}
+                                                    style={{
+                                                        color: event.color,
+                                                        gridColumn: `${segment.columnIndex + 1} / span ${segment.columnSpan}`,
+                                                        gridRow: segment.laneIndex + 1,
+                                                        justifySelf: edge === "start"
+                                                            ? "start"
+                                                            : "end"
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                    </Fragment>
+                                );
+                            })}
+                        </div>
+                    </section>
+                )}
                 <div className="time-grid-view_body">
                     <div
                         className="time-grid-view_time-labels"
@@ -813,7 +1585,7 @@ export default function TimeGridView<
                             aria-atomic="true"
                             className="time-grid-view_live-region"
                         >
-                            {movePreview?.announcement}
+                            {movePreview?.announcement ?? multiDayMovePreview?.announcement}
                         </div>
                         {movePreview?.segments.map((segment) => (
                             <div
@@ -851,7 +1623,9 @@ export default function TimeGridView<
                                 }}
                             >
                                 {(backgroundEventsByColumn[columnIndex] ?? []).map((segment) => {
-                                    const rendererSegment = toTimeGridEventSegment(segment);
+                                    const rendererSegment = toTimeGridEventSegment<Resource>(
+                                        segment
+                                    );
 
                                     return (
                                         <BackgroundEventComponent
@@ -888,7 +1662,9 @@ export default function TimeGridView<
                             >
                                 {(eventsByColumn[columnIndex] ?? []).map((segment) => {
                                     const { event } = segment;
-                                    const rendererSegment = toTimeGridEventSegment(segment);
+                                    const rendererSegment = toTimeGridEventSegment<Resource>(
+                                        segment
+                                    );
                                     const interactionContext = {
                                         view: viewName,
                                         occurrence: {

@@ -69,6 +69,7 @@ export const defaultCalendarMessages = /* @__PURE__ */ Object.freeze<CalendarMes
     previous: (context) => `Previous ${navigationRangeName(context)}`,
     next: (context) => `Next ${navigationRangeName(context)}`,
     timeGridLabel: () => "Calendar grid",
+    multiDayRegionLabel: () => "Multi-day events",
     monthGridLabel: () => "Month calendar grid",
     slotLabel: ({ date, time }) => `Calendar slot, ${date}, ${time}`,
     eventLabel: ({

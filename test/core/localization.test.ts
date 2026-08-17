@@ -40,6 +40,10 @@ test("default date headings use the active locale and view", () => {
 
 test("default messages compose prepared values without formatting dates", () => {
     assert.equal(defaultCalendarMessages.previous({ view: "day", range }), "Previous day");
+    assert.equal(
+        defaultCalendarMessages.multiDayRegionLabel({ view: "week" }),
+        "Multi-day events"
+    );
     assert.equal(defaultCalendarMessages.slotLabel({
         view: "day",
         date: "Monday, September 14th, 2026",

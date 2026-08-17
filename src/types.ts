@@ -306,6 +306,7 @@ export interface CalendarMessages {
     previous: (context: CalendarNavigationMessageContext) => string;
     next: (context: CalendarNavigationMessageContext) => string;
     timeGridLabel: (context: CalendarMessageContext) => string;
+    multiDayRegionLabel: (context: CalendarMessageContext) => string;
     monthGridLabel: (context: CalendarMessageContext) => string;
     slotLabel: (context: CalendarSlotMessageContext) => string;
     eventLabel: (context: CalendarEventMessageContext) => string;

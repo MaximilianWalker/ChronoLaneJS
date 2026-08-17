@@ -22,6 +22,7 @@ import type {
     TimeGridEventProps,
     TimeGridEventResize,
     TimeGridEventPosition,
+    TimeGridMultiDayEventLayout,
     TimeGridResourceHeaderProps,
     TimeGridSlotSizing,
     TimeGridSlotProps
@@ -232,6 +233,11 @@ void (
     />
 );
 void <Calendar view="time-grid" events={events} viewProps={{ range: projectRange }} />;
+const multiDayEventLayout: TimeGridMultiDayEventLayout = "dedicated";
+void <Calendar view="week" viewProps={{ multiDayEventLayout }} />;
+void <TimeGridView multiDayEventLayout="timed" />;
+// @ts-expect-error Multi-day layout accepts only the documented policies.
+void <TimeGridView multiDayEventLayout="separate" />;
 void (
     <Calendar
         view="week"

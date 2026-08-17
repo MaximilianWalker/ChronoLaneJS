@@ -215,6 +215,21 @@ touch, and keyboard resize precision, and `labelInterval` controls time labels
 and major dividers. Invalid configurations throw rather than being silently
 adjusted.
 
+Multi-day foreground events can remain in those hourly slots or use a compact
+region aligned below the day/resource headers:
+
+```tsx
+<Calendar
+    view="week"
+    viewProps={{ multiDayEventLayout: "dedicated" }}
+/>
+```
+
+The default is `"timed"`, which preserves the original layout. `"dedicated"`
+derives placement from `start` and `end`: any event crossing local midnight is
+shown in the separate region, while background events stay in the hourly grid.
+No `allDay` event flag is required.
+
 ### Slot sizing
 
 Time-grid slot dimensions use one flat typed contract. `width` and `height`
@@ -446,6 +461,10 @@ column, Enter or blur commits, and Escape cancels. Supplying
 `viewProps.onEventResize` exposes equivalent start/end resize handles. Resizes
 snap by `resizeStep` independently from the visual slots and preserve the
 resource. Use `canDragEvent` and `canResizeEvent` for per-segment restrictions.
+
+In a dedicated multi-day region, Left/Right moves across visible day/resource
+columns and resizing uses whole calendar-day steps. Both operations preserve
+the event's wall-clock fields, including across daylight-saving transitions.
 
 `onEventDrop` receives the source event, proposed `start` and `end`, and
 explicit `source` and `destination` positions. Moving a clipped multi-day

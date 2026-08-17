@@ -139,9 +139,8 @@ double-click while semantic selection runs once and semantic opening runs once.
 `ariaKeyShortcuts` accepts a string or `(event, context) => string`; its tokens
 are deduplicated with the built-in Space/Enter shortcuts.
 
-Invalid date inputs throw `TypeError: Calendar dates must be valid.` Event
-normalization currently validates each boundary but does not reject reversed
-event ranges; consumers should supply `end > start`.
+Invalid event boundaries throw a contextual `TypeError`. Equal or reversed
+event intervals throw `RangeError`; every event must satisfy `end > start`.
 
 ### Navigation boundaries
 
@@ -218,13 +217,14 @@ defaults to `range="week"` and `viewName="week"`; the week preset moves seven
 days. Explicit `range` values carry their own navigation. `TimeGridView`
 defaults to the week preset and `viewName="time-grid"`.
 
-<!-- api:TimeGridViewProps TimeGridGroupBy TimeOfDay TimeGridSlotSizing -->
-<!-- props:TimeGridViewProps resources groupBy range weekStart minTime maxTime slotDuration resizeStep labelInterval slotSizing selectedRange canDragEvent onEventDrop canResizeEvent onEventResize onSlotSelect components -->
+<!-- api:TimeGridViewProps TimeGridGroupBy TimeGridMultiDayEventLayout TimeOfDay TimeGridSlotSizing -->
+<!-- props:TimeGridViewProps resources groupBy multiDayEventLayout range weekStart minTime maxTime slotDuration resizeStep labelInterval slotSizing selectedRange canDragEvent onEventDrop canResizeEvent onEventResize onSlotSelect components -->
 
 | Prop | Type | Default | Meaning | Example |
 | --- | --- | --- | --- | --- |
 | `resources` | `CalendarResourceConfig<Event, Resource>` | none | Creates one column per resource per visible day. | `{ items: rooms, getId: (room) => room.code }` |
 | `groupBy` | `"day" \| "resource"` | `"day"` | Chooses the outer header/column grouping when resources exist. | `"resource"` |
+| `multiDayEventLayout` | `"timed" \| "dedicated"` | `"timed"` | Keeps foreground events that cross local midnight in hourly slots or places them in a dedicated region above the hourly grid. | `"dedicated"` |
 | `range` | `CalendarRangeDefinition` | `"week"` | Owns the days rendered by the grid and how previous/next resolves a new anchor. | `"day"`, `5`, or `{ dates, navigation }` |
 | `weekStart` | `CalendarWeekStart` | locale convention | First day for `"week"` ranges. | `1` |
 | `minTime` | `TimeOfDay` | `"00:00"` | Inclusive visible wall-clock start. | `"08:30"` |
@@ -252,6 +252,15 @@ anchored to `minTime`; a shorter final interval ends exactly at `maxTime`.
 The complete proposed event interval is previewed during movement. Pointer
 release, Enter, or blur commits once after movement. Escape, pointer cancel,
 and no movement produce no callback.
+
+`multiDayEventLayout="dedicated"` derives placement exclusively from each
+half-open `start`/`end` interval; it does not add event metadata. An event is
+multi-day when it crosses a local calendar-day boundary, including overnight
+events. Dedicated bars span contiguous visible day/resource columns and split
+around unrelated resource columns. They retain selection/opening behavior,
+move by visible day/resource columns, and resize in whole calendar-day steps.
+Background events always remain in the hourly grid. The dedicated region is
+omitted when no qualifying foreground event is visible.
 
 ## Event types
 
@@ -580,7 +589,7 @@ replacing interactive renderers.
 <!-- props:CalendarEventResizeHandleMessageContext edge title date time -->
 <!-- props:CalendarTimeRangeMessageContext startTime endTime -->
 <!-- props:CalendarMoreEventsMessageContext count date -->
-<!-- props:CalendarMessages previous next timeGridLabel monthGridLabel slotLabel eventLabel eventMoveHandle eventMoveTarget eventResizeHandle timeRange agendaEmpty moreEvents -->
+<!-- props:CalendarMessages previous next timeGridLabel multiDayRegionLabel monthGridLabel slotLabel eventLabel eventMoveHandle eventMoveTarget eventResizeHandle timeRange agendaEmpty moreEvents -->
 
 `CalendarLocale` is a supported name or date-fns `Locale`. The constant
 `DEFAULT_CALENDAR_LOCALE` is `"en-US"`. `calendarLocaleNames` is the frozen,
@@ -614,6 +623,7 @@ const formatters = {
 | --- | --- | --- | --- |
 | `previous`, `next` | `view`, `range` | Navigation accessible label | `"Next week"` |
 | `timeGridLabel`, `monthGridLabel` | `view` | Scrollable grid accessible name | `"Week calendar"` |
+| `multiDayRegionLabel` | `view` | Visible and accessible dedicated-region label | `"Multi-day events"` |
 | `slotLabel` | `view`, prepared `date`, prepared `time` | Selectable slot label | `"Monday, September 14 at 9:00 AM"` |
 | `eventLabel` | `view`, optional title/description, prepared start/end date/time | Interactive event label | `"Planning, Monday, 9:00 AM to 10:00 AM"` |
 | `eventMoveHandle` | `view`, optional title | Accessible move-control label | `"Move Planning"` |

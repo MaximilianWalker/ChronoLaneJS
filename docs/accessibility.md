@@ -16,7 +16,8 @@ first. Agenda then exposes interactive events in day order. Month exposes its
 focusable scroll region followed by each enabled day control, that day's
 interactive events, and its overflow control. Time grid exposes its focusable
 scroll region, selectable slots in time/column construction order, then
-interactive events and any resize handles in column order.
+interactive events and any resize handles in column order. When enabled, the
+dedicated multi-day region appears before the timed slots in focus order.
 
 Disabled navigation directions retain layout space as native disabled buttons,
 receive `aria-hidden`, have no click handler, and are visually hidden. They
@@ -42,6 +43,8 @@ model is planned under `A11Y-01`; it is not implemented today.
 | Event resize handle | Arrow keys | Previews the adjacent valid `resizeStep` boundary. |
 | Event resize handle | `Enter` or blur | Commits one `onEventResize` proposal after movement. |
 | Event resize handle | `Escape` | Cancels without calling `onEventResize`. |
+| Dedicated multi-day move handle | `ArrowLeft` or `ArrowRight` | Previews the adjacent visible day/resource column. |
+| Dedicated multi-day resize handle | `ArrowLeft` or `ArrowRight` | Previews the adjacent whole-calendar-day boundary. |
 | Selectable month day | `Enter` or `Space` | Calls `onSelectDay`. |
 | Month overflow | `Enter` or `Space` | Calls `onShowMore`. |
 | Selectable time slot | `Enter` or `Space` | Calls `onSlotSelect`. |
@@ -91,6 +94,7 @@ The `messages` registry owns all library-generated labels:
 
 - previous/next navigation labels;
 - month and time-grid names;
+- the dedicated multi-day region name;
 - selectable slot labels;
 - interactive event labels;
 - visible event time ranges;
@@ -128,11 +132,14 @@ application text. Translate the complete `messages` registry explicitly.
 ### Time grid
 
 - The focusable scroll surface has the configured time-grid accessible name.
+- The optional dedicated multi-day section is a labelled region before the
+  hourly slots and is omitted when empty.
 - Selectable slots are native buttons with formatted date/time labels.
 - Interactive events are focusable event elements with complete labels and
   explicit Space/Enter keyboard handlers; they are not represented as buttons.
-- Resize handles use vertical slider semantics with current, minimum, maximum,
-  and formatted boundary values.
+- Timed resize handles use vertical slider semantics; dedicated multi-day
+  handles use horizontal slider semantics. Both expose current, minimum,
+  maximum, and formatted boundary values.
 - Day and resource headers currently provide visible headings but do not yet
   implement the complete grid/row/column-header model planned in `A11Y-01`.
 
@@ -172,6 +179,11 @@ Pointer cancel and Escape discard the preview. Releasing the pointer, pressing
 Enter, or leaving the keyboard control commits one `onEventDrop` proposal. No
 movement produces no callback. Moving a clipped segment preserves the complete
 source duration, and background events never expose movement controls.
+
+Dedicated multi-day controls follow the same commit and cancellation model.
+Movement targets adjacent visible day/resource columns. Resizing moves only the
+chosen edge in whole calendar-day steps, preserving wall-clock fields across
+DST. Exact formatted start/end values remain in event and handle labels.
 
 ## Custom renderer responsibilities
 

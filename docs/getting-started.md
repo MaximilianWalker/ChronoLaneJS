@@ -302,6 +302,12 @@ Callback presence enables the associated semantic without changing its gesture:
   keyboard. Targets follow `resizeStep`, which defaults to `slotDuration` but
   may provide finer precision than the visual slots.
 
+Set `multiDayEventLayout: "dedicated"` to move foreground events that cross
+local midnight into a compact region above the hourly slots. The default
+`"timed"` behavior is unchanged. Placement is derived from the event's
+half-open `start`/`end` interval; there is no separate all-day flag, and
+background events remain in the hourly grid.
+
 `eventInteractions` may add raw click, double-click, context-menu, and key-down
 callbacks. They are composed after the semantic behavior rather than replacing
 it. `canSelectEvent` and `canOpenEvent` restrict one semantic action for one
@@ -353,6 +359,9 @@ adjacent day/resource columns. Resize handles use Arrow keys for the adjacent
 Enter or blur to commit, and use Escape to cancel. Pointer, touch, and keyboard
 share the same targets and fire the application callback only once on commit.
 A no-op move or resize does not fire a callback.
+
+Dedicated multi-day handles use Left/Right for visible day/resource movement
+and whole-calendar-day resizing. Wall-clock times remain stable across DST.
 
 `selectedDate` and both `CalendarSelectionRange` boundaries accept the same
 `Date`, string, and timestamp inputs as events. The view clones and validates

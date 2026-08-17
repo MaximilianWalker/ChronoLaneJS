@@ -27,6 +27,9 @@ export type TimeOfDay = `${TimeHour}:${TimeMinute}`;
 /** Outer grouping dimension used when both days and resources are visible. */
 export type TimeGridGroupBy = "day" | "resource";
 
+/** Placement policy for events that cross a local calendar-day boundary. */
+export type TimeGridMultiDayEventLayout = "timed" | "dedicated";
+
 type TimeGridSlotWidth =
     | {
         /** Fixed positive pixel width of each day or resource slot. */
@@ -177,6 +180,8 @@ export interface TimeGridViewProps<
 > extends SharedViewProps<Event, Resource> {
     resources?: CalendarResourceConfig<Event, Resource>;
     groupBy?: TimeGridGroupBy;
+    /** Places multi-day foreground events in timed slots or a dedicated region. */
+    multiDayEventLayout?: TimeGridMultiDayEventLayout;
     range?: CalendarRangeDefinition;
     weekStart?: CalendarWeekStart;
     minTime?: TimeOfDay;

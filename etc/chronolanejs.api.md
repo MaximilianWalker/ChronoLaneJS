@@ -281,6 +281,8 @@ export interface CalendarMessages {
     // (undocumented)
     moreEvents: (context: CalendarMoreEventsMessageContext) => string;
     // (undocumented)
+    multiDayRegionLabel: (context: CalendarMessageContext) => string;
+    // (undocumented)
     next: (context: CalendarNavigationMessageContext) => string;
     // (undocumented)
     previous: (context: CalendarNavigationMessageContext) => string;
@@ -702,6 +704,9 @@ export interface TimeGridEventSegment<Resource = unknown> {
 // @public
 export type TimeGridGroupBy = "day" | "resource";
 
+// @public
+export type TimeGridMultiDayEventLayout = "timed" | "dedicated";
+
 // @public (undocumented)
 export interface TimeGridResourceHeaderProps<Resource = unknown> {
     // (undocumented)
@@ -764,6 +769,7 @@ export interface TimeGridViewProps<Event extends CalendarEvent = CalendarEvent, 
     maxTime?: TimeOfDay | "24:00";
     // (undocumented)
     minTime?: TimeOfDay;
+    multiDayEventLayout?: TimeGridMultiDayEventLayout;
     onEventDrop?: (change: TimeGridEventDrop<Event, Resource>) => void;
     // (undocumented)
     onEventResize?: (change: TimeGridEventResize<Event, Resource>) => void;

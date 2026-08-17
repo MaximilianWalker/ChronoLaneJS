@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect } from "storybook/test";
 
 import { WeekView } from "../../src/index.js";
 import {
@@ -59,6 +60,43 @@ export const MultiDay: Story = {
     args: {
         events: multiDayEvents,
         range: 3
+    },
+    play: async ({ canvasElement }) => {
+        await expect(canvasElement.querySelector(
+            ".time-grid-view_multi-day-region"
+        )).not.toBeInTheDocument();
+        await expect(canvasElement.querySelectorAll(
+            '.time-grid-view_column-events [data-event-id="conference"]'
+        )).toHaveLength(3);
+    }
+};
+
+export const DedicatedMultiDay: Story = {
+    args: {
+        events: multiDayEvents,
+        backgroundEvents: [multiDayEvents[0]!],
+        range: 3,
+        multiDayEventLayout: "dedicated"
+    },
+    play: async ({ canvasElement }) => {
+        const region = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_multi-day-region"
+        );
+        const event = region?.querySelector<HTMLElement>(
+            '[data-event-id="conference"]'
+        );
+
+        await expect(region).toHaveAccessibleName("Multi-day events");
+        await expect(event).toBeVisible();
+        await expect(canvasElement.querySelector(
+            '.time-grid-view_column-events [data-event-id="conference"]'
+        )).not.toBeInTheDocument();
+        await expect(canvasElement.querySelector(
+            '.time-grid-view_column-events [data-event-id="planning"]'
+        )).toBeVisible();
+        await expect(canvasElement.querySelectorAll(
+            '[data-background-event-id="conference"]'
+        )).toHaveLength(3);
     }
 };
 
