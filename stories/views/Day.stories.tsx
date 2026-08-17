@@ -74,7 +74,7 @@ export const SelectedRange: Story = {
     },
     parameters: {
         calendar: {
-            timeZone: "Europe/Lisbon"
+            timeZone: "UTC"
         }
     }
 };

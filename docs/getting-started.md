@@ -64,7 +64,7 @@ export function Schedule() {
         <Calendar<Meeting>
             events={meetings}
             defaultDate="2026-09-14"
-            timeZone="Europe/Lisbon"
+            timeZone="UTC"
             viewProps={{
                 minTime: "08:00",
                 maxTime: "18:00",
@@ -146,13 +146,13 @@ throw `TypeError`; `minDate` after `maxDate` throws `RangeError`.
 
 `timeZone` applies one IANA zone to event boundaries, the anchor date, range
 calculations, and callbacks. Inputs are interpreted as calendar fields in that
-zone: attaching `Europe/Lisbon` to `09:00` keeps the wall clock at `09:00`.
+zone: attaching `America/New_York` to `09:00` keeps the wall clock at `09:00`.
 
 ```tsx
 <Calendar
-    date="2026-03-29"
+    date="2026-03-08"
     events={meetings}
-    timeZone="Europe/Lisbon"
+    timeZone="America/New_York"
 />
 ```
 
@@ -162,9 +162,9 @@ you need its visible fields in a zone:
 ```tsx
 import { calendarDateFromTimestamp } from "@chronolanejs/react";
 
-const lisbonDate = calendarDateFromTimestamp(
-    Date.parse("2026-09-14T08:00:00Z"),
-    "Europe/Lisbon"
+const newYorkDate = calendarDateFromTimestamp(
+    Date.parse("2026-09-14T13:00:00Z"),
+    "America/New_York"
 );
 ```
 
@@ -362,7 +362,7 @@ events and the navigation date:
 ```tsx
 <Calendar
     view="day"
-    timeZone="Europe/Lisbon"
+    timeZone="UTC"
     viewProps={{
         selectedRange: {
             start: "2026-09-14T09:00:00",
@@ -391,16 +391,16 @@ import {
     preloadCalendarLocale
 } from "@chronolanejs/react";
 
-await preloadCalendarLocale("pt-PT");
+await preloadCalendarLocale("en-GB");
 
 const messages = {
     ...defaultCalendarMessages,
-    previous: () => "Anterior",
-    next: () => "Seguinte",
-    agendaEmpty: () => "Sem eventos neste período."
+    previous: () => "Previous period",
+    next: () => "Next period",
+    agendaEmpty: () => "No events in this period."
 };
 
-<Calendar locale="pt-PT" messages={messages} events={meetings} />
+<Calendar locale="en-GB" messages={messages} events={meetings} />
 ```
 
 `locale` formats dates and provides the default week start. Library-owned text

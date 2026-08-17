@@ -149,19 +149,19 @@ import {
     preloadCalendarLocale
 } from "@chronolanejs/react";
 
-void preloadCalendarLocale("pt-PT");
+void preloadCalendarLocale("en-GB");
 
-const portugueseMessages = {
+const messages = {
     ...defaultCalendarMessages,
-    previous: () => "Anterior",
-    next: () => "Seguinte",
-    agendaEmpty: () => "Sem eventos neste período."
+    previous: () => "Previous period",
+    next: () => "Next period",
+    agendaEmpty: () => "No events in this period."
 };
 
 <Calendar
-    locale="pt-PT"
-    localeFallback={<p role="status">A carregar calendário…</p>}
-    messages={portugueseMessages}
+    locale="en-GB"
+    localeFallback={<p role="status">Loading calendar…</p>}
+    messages={messages}
 />
 ```
 

@@ -53,7 +53,7 @@ export type StoryCalendarProps = CalendarProps<StoryEvent, StoryResource>;
 export const StoryCalendar = Calendar<StoryEvent, StoryResource>;
 
 const COMPARISON_LOCALES = ["en-US", "en-GB", "pt-PT", "fr-FR", "ja-JP"];
-const COMPARISON_TIME_ZONES = ["Europe/Lisbon", "America/New_York", "Asia/Tokyo"];
+const COMPARISON_TIME_ZONES = ["UTC", "America/New_York", "Europe/Lisbon", "Asia/Tokyo"];
 
 /** Demonstrates controlled navigation while exposing the latest anchor date. */
 export function ControlledNavigation({
@@ -178,7 +178,7 @@ export function InteractionHarness({
 
 /** Renders several fixed locales side by side for formatting comparison. */
 export function LocaleComparison({
-    timeZone = "Europe/Lisbon"
+    timeZone = "UTC"
 }: {
     locale?: CalendarLocale;
     timeZone?: string;

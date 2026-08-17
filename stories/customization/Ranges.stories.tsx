@@ -12,7 +12,7 @@ import {
     basicEvents
 } from "../fixtures.js";
 
-const TIME_ZONE = "Europe/Lisbon";
+const TIME_ZONE = "UTC";
 const calendarDate = (day: number): Date => (
     asCalendarDate(`2026-09-${String(day).padStart(2, "0")}`, TIME_ZONE)
 );

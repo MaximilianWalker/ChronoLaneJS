@@ -26,7 +26,7 @@ from `@chronolanejs/react/styles.css`.
 <Calendar<Meeting, Room>
     view="week"
     events={meetings}
-    timeZone="Europe/Lisbon"
+    timeZone="UTC"
     viewProps={{ resources: roomConfig, minTime: "08:00" }}
 />
 ```
@@ -98,11 +98,11 @@ owns at the root.
 | `backgroundEvents` | `Event[]` | `[]` | Non-interactive availability/background regions. Agenda currently ignores them. | `[{ start: "2026-09-14T12:00", end: "2026-09-14T13:00", color: "#fee2e2" }]` |
 | `date` | `CalendarDateInput` | none | Controlled navigation anchor. | `"2026-09-14"` |
 | `defaultDate` | `CalendarDateInput` | current time | Initial uncontrolled anchor; ignored when `date` is supplied. | `new Date(2026, 8, 14)` |
-| `locale` | `CalendarLocale` | `"en-US"` | date-fns locale object or supported BCP 47-style name. Named non-default locales may suspend. | `"pt-PT"` |
+| `locale` | `CalendarLocale` | `"en-US"` | date-fns locale object or supported BCP 47-style name. Named non-default locales may suspend. | `"en-GB"` |
 | `formatters` | `CalendarFormatters` | `defaultCalendarFormatters` | Complete registry for calendar-owned date/time rendering. | `{ ...defaultCalendarFormatters, time: customTime }` |
-| `messages` | `CalendarMessages` | `defaultCalendarMessages` | Complete registry for visible and accessible library text. | `{ ...defaultCalendarMessages, next: () => "Seguinte" }` |
+| `messages` | `CalendarMessages` | `defaultCalendarMessages` | Complete registry for visible and accessible library text. | `{ ...defaultCalendarMessages, next: () => "Next period" }` |
 | `viewName` | `string` | view-specific | Identity supplied to formatter/message contexts. Normally set only on a direct view or custom wrapper. | `"work-week"` |
-| `timeZone` | `string` | host local zone | IANA zone used for calendar-field normalization and arithmetic. | `"Europe/Lisbon"` |
+| `timeZone` | `string` | host local zone | IANA zone used for calendar-field normalization and arithmetic. | `"UTC"` |
 | `minDate` | `CalendarDateInput \| null` | `null` | Inclusive earliest navigation day. Previous navigation is disabled when the anchor or active period reaches/crosses it; visible days and events are not filtered. | `"2026-01-01"` |
 | `maxDate` | `CalendarDateInput \| null` | `null` | Inclusive latest navigation day. Next navigation is disabled when the anchor or active period reaches/crosses it; visible days and events are not filtered. | `"2026-12-31"` |
 | `showControls` | `boolean` | `true` | Shows the built-in range header and navigation controls. | `false` |
@@ -652,7 +652,7 @@ const BuiltInView = defaultCalendarViews[viewName];
 | Function | Signature summary | Result and errors | Example |
 | --- | --- | --- | --- |
 | `parseCalendarDate` | `(CalendarDateInput) => Date` | Clones/parses; invalid input returns an invalid `Date`. | `parseCalendarDate("2026-09-14")` |
-| `asCalendarDate` | `(input, timeZone?) => Date` | Parses, validates, and attaches a wall-clock zone. Throws `TypeError` when invalid. | `asCalendarDate("2026-09-14", "Europe/Lisbon")` |
+| `asCalendarDate` | `(input, timeZone?) => Date` | Parses, validates, and attaches a wall-clock zone. Throws `TypeError` when invalid. | `asCalendarDate("2026-09-14", "UTC")` |
 | `toCalendarTimeZone` | `(date, timeZone?) => Date` | Attaches an IANA zone while preserving visible fields; does not preserve the instant. | `toCalendarTimeZone(new Date(2026, 8, 14, 9), "Asia/Tokyo")` |
 | `calendarDateFromTimestamp` | `(milliseconds, timeZone?) => Date` | Preserves the instant and derives visible fields in the zone. | `calendarDateFromTimestamp(Date.now(), "UTC")` |
 
@@ -666,9 +666,9 @@ above when a concrete calendar `Date` is required.
 
 | Function | Behavior | Errors | Example |
 | --- | --- | --- | --- |
-| `resolveCalendarLocaleName` | Canonicalizes aliases, scripts, regions, then language fallbacks to one registry key. | `TypeError` for empty/non-string; `RangeError` for invalid or unsupported names. | `resolveCalendarLocaleName("pt-PT") // "pt"` |
-| `loadCalendarLocale` | Loads and caches a supported named locale, or validates and resolves an object immediately. Concurrent loads share a promise. | `TypeError`, `RangeError`, or `Error` when dynamic import fails. | `await loadCalendarLocale("fr-FR")` |
-| `preloadCalendarLocale` | Alias of `loadCalendarLocale`, named for pre-render use. | same as above | `await preloadCalendarLocale("ja-JP")` |
+| `resolveCalendarLocaleName` | Canonicalizes aliases, scripts, regions, then language fallbacks to one registry key. | `TypeError` for empty/non-string; `RangeError` for invalid or unsupported names. | `resolveCalendarLocaleName("en") // "en-US"` |
+| `loadCalendarLocale` | Loads and caches a supported named locale, or validates and resolves an object immediately. Concurrent loads share a promise. | `TypeError`, `RangeError`, or `Error` when dynamic import fails. | `await loadCalendarLocale("en-CA")` |
+| `preloadCalendarLocale` | Alias of `loadCalendarLocale`, named for pre-render use. | same as above | `await preloadCalendarLocale("en-AU")` |
 
 ## Range function
 

@@ -95,7 +95,7 @@ export default function App() {
                 locale="en-GB"
                 localeFallback={<p role="status">Loading locale…</p>}
                 messages={messages}
-                timeZone="Europe/Lisbon"
+                timeZone="UTC"
                 selectedEventIds={selectedEventIds}
                 onEventSelect={(event) => {
                     setSelectedEventIds([event.id]);

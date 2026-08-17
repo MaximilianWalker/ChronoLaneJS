@@ -10,7 +10,6 @@ updates:
       interval: weekly
       day: monday
       time: "06:00"
-      timezone: Europe/Lisbon
     open-pull-requests-limit: 10
     reviewers:
       - MaximilianWalker
@@ -38,7 +37,6 @@ updates:
       interval: weekly
       day: monday
       time: "06:00"
-      timezone: Europe/Lisbon
     open-pull-requests-limit: 5
     reviewers:
       - MaximilianWalker

@@ -99,14 +99,14 @@ export const SelectClippedEvent: Story = {
         await expect(args.onEventSelect).toHaveBeenCalledWith(
             expect.objectContaining({
                 id: "conference",
-                start: asCalendarDate("2026-09-14T14:00:00", "Europe/Lisbon"),
-                end: asCalendarDate("2026-09-16T11:00:00", "Europe/Lisbon")
+                start: asCalendarDate("2026-09-14T14:00:00", "UTC"),
+                end: asCalendarDate("2026-09-16T11:00:00", "UTC")
             }),
             expect.anything(),
             expect.objectContaining({
                 view: "day",
                 occurrence: {
-                    day: asCalendarDate("2026-09-15", "Europe/Lisbon"),
+                    day: asCalendarDate("2026-09-15", "UTC"),
                     resource: null,
                     resourceId: null
                 }
@@ -125,14 +125,14 @@ export const OpenClippedEvent: Story = {
         await expect(args.onEventOpen).toHaveBeenCalledWith(
             expect.objectContaining({
                 id: "conference",
-                start: asCalendarDate("2026-09-14T14:00:00", "Europe/Lisbon"),
-                end: asCalendarDate("2026-09-16T11:00:00", "Europe/Lisbon")
+                start: asCalendarDate("2026-09-14T14:00:00", "UTC"),
+                end: asCalendarDate("2026-09-16T11:00:00", "UTC")
             }),
             expect.anything(),
             expect.objectContaining({
                 view: "day",
                 occurrence: {
-                    day: asCalendarDate("2026-09-15", "Europe/Lisbon"),
+                    day: asCalendarDate("2026-09-15", "UTC"),
                     resource: null,
                     resourceId: null
                 }
@@ -156,14 +156,14 @@ export const SelectOvernightEvent: Story = {
         await expect(args.onEventSelect).toHaveBeenCalledWith(
             expect.objectContaining({
                 id: "overnight",
-                start: asCalendarDate("2026-09-14T23:00:00", "Europe/Lisbon"),
-                end: asCalendarDate("2026-09-15T02:00:00", "Europe/Lisbon")
+                start: asCalendarDate("2026-09-14T23:00:00", "UTC"),
+                end: asCalendarDate("2026-09-15T02:00:00", "UTC")
             }),
             expect.anything(),
             expect.objectContaining({
                 view: "day",
                 occurrence: {
-                    day: asCalendarDate("2026-09-15", "Europe/Lisbon"),
+                    day: asCalendarDate("2026-09-15", "UTC"),
                     resource: null,
                     resourceId: null
                 }
@@ -188,14 +188,14 @@ export const SelectMultiResourceEvent: Story = {
             expect.objectContaining({
                 id: "shared-briefing",
                 resourceIds: ["studio", "workshop"],
-                start: asCalendarDate("2026-09-14T11:30:00", "Europe/Lisbon"),
-                end: asCalendarDate("2026-09-14T12:30:00", "Europe/Lisbon")
+                start: asCalendarDate("2026-09-14T11:30:00", "UTC"),
+                end: asCalendarDate("2026-09-14T12:30:00", "UTC")
             }),
             expect.anything(),
             expect.objectContaining({
                 view: "day",
                 occurrence: {
-                    day: asCalendarDate("2026-09-14", "Europe/Lisbon"),
+                    day: asCalendarDate("2026-09-14", "UTC"),
                     resource: resourceConfig.items[0]!,
                     resourceId: "studio"
                 }
@@ -320,8 +320,8 @@ export const KeyboardResize: Story = {
             getTimeGridViewProps(args)?.onEventResize
         ).toHaveBeenCalledWith(expect.objectContaining({
             edge: "end",
-            start: asCalendarDate("2026-09-14T09:00:00", "Europe/Lisbon"),
-            end: asCalendarDate("2026-09-14T10:30:00", "Europe/Lisbon")
+            start: asCalendarDate("2026-09-14T09:00:00", "UTC"),
+            end: asCalendarDate("2026-09-14T10:30:00", "UTC")
         }));
     }
 };
@@ -350,11 +350,11 @@ export const UnsnappedResizeBoundaries: Story = {
         });
         const startValue = asCalendarDate(
             "2026-09-14T09:10:00",
-            "Europe/Lisbon"
+            "UTC"
         ).getTime();
         const endValue = asCalendarDate(
             "2026-09-14T09:50:00",
-            "Europe/Lisbon"
+            "UTC"
         ).getTime();
 
         await expect(Number(startHandle.getAttribute("aria-valuemin")))
@@ -372,7 +372,7 @@ export const UnsnappedResizeBoundaries: Story = {
             "aria-valuenow",
             String(asCalendarDate(
                 "2026-09-14T10:00:00",
-                "Europe/Lisbon"
+                "UTC"
             ).getTime())
         );
         await userEvent.keyboard("{Escape}");
@@ -628,8 +628,8 @@ export const KeyboardMove: Story = {
 
         await expect(getTimeGridViewProps(args)?.onEventDrop).toHaveBeenCalledWith(
             expect.objectContaining({
-                start: asCalendarDate("2026-09-14T09:30:00", "Europe/Lisbon"),
-                end: asCalendarDate("2026-09-14T10:45:00", "Europe/Lisbon")
+                start: asCalendarDate("2026-09-14T09:30:00", "UTC"),
+                end: asCalendarDate("2026-09-14T10:45:00", "UTC")
             })
         );
     }

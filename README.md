@@ -122,7 +122,7 @@ export default function Schedule() {
             view="week"
             events={events}
             locale="en-US"
-            timeZone="Europe/Lisbon"
+            timeZone="UTC"
         />
     );
 }
@@ -253,7 +253,7 @@ independent width, so custom header content cannot drift out of alignment.
 is the synchronous default; other named locales are loaded lazily and cached.
 
 ```tsx
-<Calendar locale="pt-PT" timeZone="Europe/Lisbon" />
+<Calendar locale="en-GB" timeZone="UTC" />
 ```
 
 Call `preloadCalendarLocale(name)` when a locale should be available before

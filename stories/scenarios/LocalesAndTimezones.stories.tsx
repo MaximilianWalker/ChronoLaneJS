@@ -55,7 +55,7 @@ const meta = {
     component: LocaleComparison,
     args: {
         locale: "en-US",
-        timeZone: "Europe/Lisbon"
+        timeZone: "UTC"
     },
     argTypes: {
         locale: { control: false },

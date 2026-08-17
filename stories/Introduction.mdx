@@ -34,7 +34,7 @@ import "@chronolanejs/react/styles.css";
     date="2026-09-14"
     events={events}
     locale="en-US"
-    timeZone="Europe/Lisbon"
+    timeZone="UTC"
 />
 ```
 
@@ -53,12 +53,12 @@ import {
 
 const messages: CalendarMessages = {
     ...defaultCalendarMessages,
-    previous: () => "Período anterior",
-    next: () => "Período seguinte",
-    agendaEmpty: () => "Não existem eventos neste período."
+    previous: () => "Previous period",
+    next: () => "Next period",
+    agendaEmpty: () => "No events in this period."
 };
 
-<Calendar locale="pt-PT" messages={messages} />
+<Calendar locale="en-GB" messages={messages} />
 ```
 
 The registries are intentionally complete rather than `Partial`: TypeScript
