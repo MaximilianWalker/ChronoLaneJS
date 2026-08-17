@@ -164,8 +164,8 @@ Last reviewed: 2026-08-16
 - [x] **[P1][API-08] Keep time-grid scale configuration independently overridable.**
   - Flat primitive props avoid configuration-object merge rules and unstable
     object identities when callers override one value.
-  - `slotDuration` and `labelInterval` replace the ambiguous `step` and
-    presentation-oriented `dividerInterval` names.
+  - `slotDuration`, `resizeStep`, and `labelInterval` independently own slot
+    selection, resize precision, and label cadence.
 - [x] **[P1][API-09] Group resource configuration.**
   - Keep resource items and their ID, title, and event-assignment accessors in
     one typed resource contract.
@@ -337,11 +337,12 @@ Last reviewed: 2026-08-16
 
 ## Product decisions
 
-- [x] **[P1][DEC-01] Include slot-snapped time-grid event resizing.**
+- [x] **[P1][DEC-01] Include precise time-grid event resizing.**
   - `onEventResize` and `canResizeEvent` cover start/end edges with pointer,
     touch, and keyboard handles independent from event selection/opening.
-  - Targets use existing slot boundaries, minimum duration is one real slot,
-    and resizing may cross visible days while retaining the resource.
+  - `resizeStep` owns target precision independently from visible slot size;
+    movement previews the complete interval immediately.
+  - Resizing may cross visible days while retaining the resource.
   - Commit emits one complete proposal; Escape, pointer cancel, and no movement
     emit nothing. Background events remain non-interactive.
 - [ ] **[P1][DEC-02] Decide how all-day events appear in time-grid views.**

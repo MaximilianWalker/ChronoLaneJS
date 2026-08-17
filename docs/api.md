@@ -219,7 +219,7 @@ days. Explicit `range` values carry their own navigation. `TimeGridView`
 defaults to the week preset and `viewName="time-grid"`.
 
 <!-- api:TimeGridViewProps TimeGridGroupBy TimeOfDay TimeGridSlotSizing -->
-<!-- props:TimeGridViewProps resources groupBy range weekStart minTime maxTime slotDuration labelInterval slotSizing selectedRange canDragEvent onEventDrop canResizeEvent onEventResize onSlotSelect components -->
+<!-- props:TimeGridViewProps resources groupBy range weekStart minTime maxTime slotDuration resizeStep labelInterval slotSizing selectedRange canDragEvent onEventDrop canResizeEvent onEventResize onSlotSelect components -->
 
 | Prop | Type | Default | Meaning | Example |
 | --- | --- | --- | --- | --- |
@@ -230,13 +230,14 @@ defaults to the week preset and `viewName="time-grid"`.
 | `minTime` | `TimeOfDay` | `"00:00"` | Inclusive visible wall-clock start. | `"08:30"` |
 | `maxTime` | `TimeOfDay \| "24:00"` | `"24:00"` | Exclusive visible wall-clock end. `24:00` is valid only here. | `"18:00"` |
 | `slotDuration` | `number` | `60` | Positive integer minutes represented by one selectable slot. | `30` |
+| `resizeStep` | `number` | `slotDuration` | Positive integer minutes between pointer, touch, and keyboard resize targets. Independent from visual slot size. | `15` |
 | `labelInterval` | `number` | `slotDuration` | Label/divider cadence; must be an integer multiple of `slotDuration`. | `60` |
 | `slotSizing` | `TimeGridSlotSizing` | fluid width, fixed `50px` height | Fixed or minimum pixel dimension per slot axis. Fixed and minimum values on one axis are mutually exclusive. | `{ minWidth: 120, height: 48 }` |
 | `selectedRange` | `CalendarSelectionRange` | none | Validates and normalizes the controlled half-open range in `timeZone`, then marks every overlapping slot. The end must follow the start. | `{ start: "2026-09-14T09:00:00", end: "2026-09-14T10:00:00" }` |
 | `canDragEvent` | `(event, segment) => boolean` | allow all | Restricts native dragging by source event and visible segment. Evaluated only when `onEventDrop` exists. | `(_, segment) => segment.resourceId !== "locked"` |
 | `onEventDrop` | `(change: TimeGridEventDrop) => void` | none | Enables native dragging and reports the proposed complete move. It does not mutate events. | `({ event, start, end }) => update(event.id, { start, end })` |
 | `canResizeEvent` | `(event, segment, edge) => boolean` | allow all | Restricts a visible start or end resize handle. Evaluated only when `onEventResize` exists. | `(_, segment) => segment.resourceId !== "locked"` |
-| `onEventResize` | `(change: TimeGridEventResize) => void` | none | Enables slot-snapped pointer, touch, and keyboard resize handles and reports one committed proposal. | `({ event, start, end }) => update(event.id, { start, end })` |
+| `onEventResize` | `(change: TimeGridEventResize) => void` | none | Enables live-preview pointer, touch, and keyboard resize handles and reports one committed proposal. | `({ event, start, end }) => update(event.id, { start, end })` |
 | `onSlotSelect` | `(slot, interaction) => void` | none | Enables slot buttons and reports the complete slot model. | `(slot) => setRange({ start: slot.start, end: slot.end })` |
 | `components` | `TimeGridComponents<Event, Resource>` | default renderers | Replaces event, slot, background, day header, resource header, or navigation renderers. | `{ event: ScheduleEvent }` |
 
@@ -246,9 +247,10 @@ defaults to the week preset and `viewName="time-grid"`.
 minimum values may be zero.
 
 Resizing changes one source boundary, retains the occurrence resource, and may
-cross visible days on that resource. Every target is an existing slot boundary;
-the minimum duration is one actual slot, including a shorter uneven final slot.
-Pointer release, Enter, or blur commits after movement. Escape, pointer cancel,
+cross visible days on that resource. Targets follow the `resizeStep` scale
+anchored to `minTime`; a shorter final interval ends exactly at `maxTime`.
+The complete proposed event interval is previewed during movement. Pointer
+release, Enter, or blur commits once after movement. Escape, pointer cancel,
 and no movement produce no callback.
 
 ## Event types

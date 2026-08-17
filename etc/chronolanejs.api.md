@@ -753,6 +753,7 @@ export interface TimeGridViewProps<Event extends CalendarEvent = CalendarEvent, 
     onSlotSelect?: (slot: TimeGridSlot<Resource>, interaction: SyntheticEvent) => void;
     // (undocumented)
     range?: CalendarRangeDefinition;
+    resizeStep?: number;
     // (undocumented)
     resources?: CalendarResourceConfig<Event, Resource>;
     // (undocumented)

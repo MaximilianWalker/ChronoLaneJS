@@ -108,6 +108,7 @@ export default function App() {
                     minTime: "08:00",
                     maxTime: "18:00",
                     slotDuration: 30,
+                    resizeStep: 15,
                     labelInterval: 60,
                     slotSizing: { minWidth: 140, height: 44 },
                     selectedRange,

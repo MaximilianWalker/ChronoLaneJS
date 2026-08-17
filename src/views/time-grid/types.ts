@@ -182,6 +182,8 @@ export interface TimeGridViewProps<
     minTime?: TimeOfDay;
     maxTime?: TimeOfDay | "24:00";
     slotDuration?: number;
+    /** Positive whole-minute increment used by pointer and keyboard resizing. */
+    resizeStep?: number;
     labelInterval?: number;
     /** Per-slot fixed or fluid-minimum dimensions. */
     slotSizing?: TimeGridSlotSizing;

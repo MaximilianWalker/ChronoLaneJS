@@ -69,6 +69,7 @@ export function Schedule() {
                 minTime: "08:00",
                 maxTime: "18:00",
                 slotDuration: 30,
+                resizeStep: 15,
                 labelInterval: 60
             }}
         />
@@ -298,7 +299,8 @@ Callback presence enables the associated semantic without changing its gesture:
 - `onSlotSelect` enables time-grid slot selection.
 - `onEventDrop` enables native time-grid dragging.
 - `onEventResize` enables time-grid start/end resizing by pointer, touch, or
-  keyboard. Resize boundaries are the existing slot boundaries.
+  keyboard. Targets follow `resizeStep`, which defaults to `slotDuration` but
+  may provide finer precision than the visual slots.
 
 `eventInteractions` may add raw click, double-click, context-menu, and key-down
 callbacks. They are composed after the semantic behavior rather than replacing
@@ -325,6 +327,7 @@ const [events, setEvents] = useState(meetings);
         }
     }}
     viewProps={{
+        resizeStep: 15,
         onEventDrop: ({ event, start, end, destination }) => {
             setEvents((current) => current.map((item) => item.id === event.id
                 ? {
@@ -344,9 +347,11 @@ const [events, setEvents] = useState(meetings);
 />
 ```
 
-Keyboard resize handles use Arrow keys to preview the adjacent slot boundary,
-Enter or blur to commit, and Escape to cancel. A no-op resize does not fire a
-callback. Native event dropping still requires an application-provided
+Keyboard resize handles use Arrow keys to preview the adjacent resize boundary,
+Enter or blur to commit, and Escape to cancel. Pointer, touch, and keyboard
+movement immediately previews the complete proposed interval, while the
+application callback still fires only once on commit. A no-op resize does not
+fire a callback. Native event dropping still requires an application-provided
 keyboard/touch alternative.
 
 `selectedDate` and both `CalendarSelectionRange` boundaries accept the same

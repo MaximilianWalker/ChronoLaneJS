@@ -39,7 +39,7 @@ model is planned under `A11Y-01`; it is not implemented today.
 | Openable event | `Enter` | Calls `onEventOpen`. |
 | Pointer event | Single click | Calls `onEventSelect`; a double-click still selects only once. |
 | Pointer event | Double-click or double-tap | Calls `onEventOpen`. |
-| Event resize handle | Arrow keys | Previews the adjacent valid slot boundary. |
+| Event resize handle | Arrow keys | Previews the adjacent valid `resizeStep` boundary. |
 | Event resize handle | `Enter` or blur | Commits one `onEventResize` proposal after movement. |
 | Event resize handle | `Escape` | Cancels without calling `onEventResize`. |
 | Selectable month day | `Enter` or `Space` | Calls `onSelectDay`. |
@@ -147,9 +147,11 @@ application text. Translate the complete `messages` registry explicitly.
 
 Time-grid resize handles are independent siblings of the event renderer, so
 operating a handle does not select, open, or drag the event. Pointer and touch
-movement snaps to the existing visible slot boundaries. Keyboard Arrow keys
-move by the same boundaries. The event always remains at least one real slot
-long, including a shorter final slot when the configured time window is uneven.
+movement snaps to the configured `resizeStep` boundaries. Keyboard Arrow keys
+move by the same boundaries even when visual slots are larger. The complete
+proposed interval is shown immediately. The event always contains at least one
+resize interval, including a shorter final interval when the configured time
+window is uneven.
 
 Only the chosen start or end edge changes. Resizing may cross visible days on
 the same resource but never moves an event between resources. Pointer cancel

@@ -202,6 +202,7 @@ label cadence:
         minTime: "08:00",
         maxTime: "18:00",
         slotDuration: 30,
+        resizeStep: 15,
         labelInterval: 60
     }}
 />
@@ -209,9 +210,10 @@ label cadence:
 
 `minTime` is inclusive and `maxTime` is exclusive. Both use strict,
 zero-padded `HH:mm` values; `maxTime` also accepts `24:00`. `slotDuration`
-controls selectable granularity, while `labelInterval` controls time labels
-and major dividers. Invalid or reversed configurations throw rather than being
-silently adjusted.
+controls selectable granularity, `resizeStep` independently controls pointer,
+touch, and keyboard resize precision, and `labelInterval` controls time labels
+and major dividers. Invalid configurations throw rather than being silently
+adjusted.
 
 ### Slot sizing
 
@@ -438,9 +440,10 @@ callbacks without replacing the semantic behavior. Use `canSelectEvent` and
 
 Supplying `viewProps.onEventDrop` enables native time-grid dragging. Supplying
 `viewProps.onEventResize` exposes start/end resize handles with pointer, touch,
-and keyboard support. Resizes snap to visible slot boundaries, preserve the
-resource, require at least one actual slot, and report one proposal when
-committed. Use `canDragEvent` and `canResizeEvent` for per-segment restrictions.
+and keyboard support. Resizes preview the complete proposed interval
+immediately, snap by `resizeStep` independently from the visual slots, preserve
+the resource, and report one proposal when committed. Use `canDragEvent` and
+`canResizeEvent` for per-segment restrictions.
 
 `onEventDrop` receives the source event, proposed `start` and `end`, and
 explicit `source` and `destination` positions. Dropping a clipped multi-day

@@ -1,5 +1,10 @@
 import type { CalendarEvent, CalendarResourceId } from "../../types.js";
-import type { LayoutSlot } from "./layout/types.js";
+import {
+    atDayMinute,
+    getGridRows
+} from "./layout/timeScale.js";
+import type { ResolvedTimeWindow } from "./layout/timeScale.js";
+import type { LayoutColumn } from "./layout/types.js";
 import type {
     TimeGridEventPosition,
     TimeGridEventResize,
@@ -14,6 +19,25 @@ export interface TimeGridResizeBoundary<Resource = unknown>
     row: number;
 }
 
+/** One adjacent pair of valid boundaries on the configured resize scale. */
+export interface TimeGridResizeInterval<Resource = unknown> {
+    start: TimeGridResizeBoundary<Resource>;
+    end: TimeGridResizeBoundary<Resource>;
+}
+
+/** Positioned visible portion of the current resize proposal. */
+export interface TimeGridResizePreviewSegment {
+    columnIndex: number;
+    startRow: number;
+    endRow: number;
+}
+
+interface CreateTimeGridResizeIntervalsOptions<Resource> {
+    columns: LayoutColumn<Resource>[];
+    timeWindow: ResolvedTimeWindow;
+    resizeStep: number;
+}
+
 interface CreateTimeGridResizeBoundariesOptions<
     Event extends CalendarEvent,
     Resource
@@ -21,14 +45,61 @@ interface CreateTimeGridResizeBoundariesOptions<
     event: TimeGridEventResize<Event, Resource>["event"];
     edge: TimeGridEventResizeEdge;
     resourceId: CalendarResourceId | null;
-    slots: LayoutSlot<Resource>[];
-    slotDuration: number;
+    intervals: TimeGridResizeInterval<Resource>[];
 }
 
+interface CreateTimeGridResizePreviewSegmentsOptions<Resource> {
+    start: Date;
+    end: Date;
+    resourceId: CalendarResourceId | null;
+    columns: LayoutColumn<Resource>[];
+    timeWindow: ResolvedTimeWindow;
+}
+
+/** Validates the positive whole-minute increment used by event resizing. */
+export const resolveTimeGridResizeStep = (resizeStep: number): number => {
+    if (!Number.isInteger(resizeStep) || resizeStep < 1) {
+        throw new RangeError("Calendar resizeStep must be a positive integer.");
+    }
+
+    return resizeStep;
+};
+
+/** Creates every adjacent boundary pair on the visible resize scale. */
+export const createTimeGridResizeIntervals = <Resource>({
+    columns,
+    timeWindow,
+    resizeStep
+}: CreateTimeGridResizeIntervalsOptions<Resource>): TimeGridResizeInterval<Resource>[] => {
+    const step = resolveTimeGridResizeStep(resizeStep);
+    const { startMinute, totalMinutes } = timeWindow;
+
+    return columns.flatMap((column, columnIndex) => {
+        const createBoundary = (offset: number): TimeGridResizeBoundary<Resource> => ({
+            date: atDayMinute(column.day, startMinute + offset),
+            day: column.day,
+            resource: column.resource,
+            resourceId: column.resourceId,
+            columnIndex,
+            row: offset + 1
+        });
+        const intervals: TimeGridResizeInterval<Resource>[] = [];
+
+        for (let offset = 0; offset < totalMinutes; offset += step) {
+            intervals.push({
+                start: createBoundary(offset),
+                end: createBoundary(Math.min(offset + step, totalMinutes))
+            });
+        }
+
+        return intervals;
+    });
+};
+
 /**
- * Returns every visible resize boundary that leaves at least one whole slot.
+ * Returns every visible resize boundary that leaves at least one resize interval.
  *
- * @param options - Source event, edge, occurrence resource, and visible slots.
+ * @param options - Source event, edge, occurrence resource, and resize scale.
  * @returns Chronologically ordered valid boundaries across visible days.
  */
 export const createTimeGridResizeBoundaries = <
@@ -38,34 +109,47 @@ export const createTimeGridResizeBoundaries = <
     event,
     edge,
     resourceId,
-    slots,
-    slotDuration
+    intervals
 }: CreateTimeGridResizeBoundariesOptions<Event, Resource>): TimeGridResizeBoundary<Resource>[] => (
-    slots.flatMap((slot) => {
-        if (slot.resourceId !== resourceId) return [];
+    intervals.flatMap((interval) => {
+        if (interval.start.resourceId !== resourceId) return [];
 
         if (edge === "start") {
-            if (slot.end > event.end) return [];
-            return [{
-                date: slot.start,
-                day: slot.day,
-                resource: slot.resource,
-                resourceId: slot.resourceId,
-                columnIndex: slot.columnIndex,
-                row: (slot.timeIndex * slotDuration) + 1
-            }];
+            if (interval.end.date > event.end) return [];
+            return [interval.start];
         }
 
-        if (slot.start < event.start) return [];
-        return [{
-            date: slot.end,
-            day: slot.day,
-            resource: slot.resource,
-            resourceId: slot.resourceId,
-            columnIndex: slot.columnIndex,
-            row: (slot.timeIndex * slotDuration) + slot.duration + 1
-        }];
+        if (interval.start.date < event.start) return [];
+        return [interval.end];
     }).sort((first, second) => first.date.getTime() - second.date.getTime())
+);
+
+/** Projects a resize proposal into every overlapping visible grid column. */
+export const createTimeGridResizePreviewSegments = <Resource>({
+    start,
+    end,
+    resourceId,
+    columns,
+    timeWindow
+}: CreateTimeGridResizePreviewSegmentsOptions<Resource>): TimeGridResizePreviewSegment[] => (
+    columns.flatMap((column, columnIndex) => {
+        if (column.resourceId !== resourceId) return [];
+
+        const windowStart = atDayMinute(column.day, timeWindow.startMinute);
+        const windowEnd = atDayMinute(column.day, timeWindow.endMinute);
+        const segmentStart = start > windowStart ? start : windowStart;
+        const segmentEnd = end < windowEnd ? end : windowEnd;
+        if (segmentStart >= segmentEnd) return [];
+
+        const { startRow, endRow } = getGridRows(
+            segmentStart,
+            segmentEnd,
+            column.day,
+            timeWindow.startMinute
+        );
+
+        return [{ columnIndex, startRow, endRow }];
+    })
 );
 
 /** Chooses the valid boundary nearest a pointer position in one column. */

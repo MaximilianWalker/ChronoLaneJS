@@ -238,6 +238,7 @@ void (
         events={events}
         viewProps={{
             slotDuration: 30,
+            resizeStep: 15,
             labelInterval: 60,
             slotSizing
         }}

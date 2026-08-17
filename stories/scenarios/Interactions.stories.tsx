@@ -294,6 +294,12 @@ export const RawInteractionsAreAdditive: Story = {
 };
 
 export const KeyboardResize: Story = {
+    args: {
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            resizeStep: 15
+        }
+    },
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
         const handle = canvas.getByRole("slider", {
@@ -301,18 +307,79 @@ export const KeyboardResize: Story = {
         });
 
         handle.focus();
-        await userEvent.keyboard("{ArrowDown}{Enter}");
+        await userEvent.keyboard("{ArrowDown}");
+        await expect(
+            canvasElement.querySelector<HTMLElement>(".time-grid-view_resize-preview")
+                ?.style.gridRow
+        ).toBe("61 / 151");
+        await userEvent.keyboard("{Enter}");
 
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent(
-            "Resized Planning to 09:00–11:00"
+            "Resized Planning to 09:00–10:30"
         );
         await expect(
             getTimeGridViewProps(args)?.onEventResize
         ).toHaveBeenCalledWith(expect.objectContaining({
             edge: "end",
             start: asCalendarDate("2026-09-14T09:00:00", "Europe/Lisbon"),
-            end: asCalendarDate("2026-09-14T11:00:00", "Europe/Lisbon")
+            end: asCalendarDate("2026-09-14T10:30:00", "Europe/Lisbon")
         }));
+    }
+};
+
+export const UnsnappedResizeBoundaries: Story = {
+    args: {
+        events: [{
+            id: "unsnapped",
+            title: "Unsnapped event",
+            start: "2026-09-14T09:10:00",
+            end: "2026-09-14T09:50:00"
+        }],
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            slotDuration: 30,
+            resizeStep: 15
+        }
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const startHandle = canvas.getByRole("slider", {
+            name: /Resize start of Unsnapped event/i
+        });
+        const endHandle = canvas.getByRole("slider", {
+            name: /Resize end of Unsnapped event/i
+        });
+        const startValue = asCalendarDate(
+            "2026-09-14T09:10:00",
+            "Europe/Lisbon"
+        ).getTime();
+        const endValue = asCalendarDate(
+            "2026-09-14T09:50:00",
+            "Europe/Lisbon"
+        ).getTime();
+
+        await expect(Number(startHandle.getAttribute("aria-valuemin")))
+            .toBeLessThanOrEqual(startValue);
+        await expect(Number(startHandle.getAttribute("aria-valuemax")))
+            .toBeGreaterThanOrEqual(startValue);
+        await expect(Number(endHandle.getAttribute("aria-valuemin")))
+            .toBeLessThanOrEqual(endValue);
+        await expect(Number(endHandle.getAttribute("aria-valuemax")))
+            .toBeGreaterThanOrEqual(endValue);
+
+        endHandle.focus();
+        await userEvent.keyboard("{ArrowDown}");
+        await expect(endHandle).toHaveAttribute(
+            "aria-valuenow",
+            String(asCalendarDate(
+                "2026-09-14T10:00:00",
+                "Europe/Lisbon"
+            ).getTime())
+        );
+        await userEvent.keyboard("{Escape}");
+        await expect(
+            getTimeGridViewProps(args)?.onEventResize
+        ).not.toHaveBeenCalled();
     }
 };
 
@@ -358,6 +425,10 @@ export const TouchResize: Story = {
             ...pointer,
             clientY: destinationBounds.bottom
         });
+        await expect(
+            canvasElement.querySelector<HTMLElement>(".time-grid-view_resize-preview")
+                ?.style.gridRow
+        ).toBe("61 / 181");
         await fireEvent.pointerUp(handle, {
             ...pointer,
             clientY: destinationBounds.bottom
@@ -366,6 +437,9 @@ export const TouchResize: Story = {
         await expect(
             getTimeGridViewProps(args)?.onEventResize
         ).toHaveBeenCalledOnce();
+        await expect(
+            canvasElement.querySelector(".time-grid-view_resize-preview")
+        ).toBeNull();
     }
 };
 

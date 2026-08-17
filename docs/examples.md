@@ -218,6 +218,7 @@ const [selectedRange, setSelectedRange] = useState<CalendarSelectionRange>();
         }
     }}
     viewProps={{
+        resizeStep: 15,
         selectedRange,
         onSlotSelect: (slot) => {
             setSelectedRange({ start: slot.start, end: slot.end });

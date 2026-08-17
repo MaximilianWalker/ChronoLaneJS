@@ -55,8 +55,11 @@ import type { LayoutEvent, LayoutSlot } from "./layout/types.js";
 import {
     createEventResize,
     createTimeGridResizeBoundaries,
+    createTimeGridResizeIntervals,
+    createTimeGridResizePreviewSegments,
     findAdjacentResizeBoundary,
-    findClosestResizeBoundary
+    findClosestResizeBoundary,
+    resolveTimeGridResizeStep
 } from "./resize.js";
 import type { TimeGridResizeBoundary } from "./resize.js";
 import ResourceHeader from "./ResourceHeader.js";
@@ -103,13 +106,6 @@ const getLaneStyle = ({
     };
 };
 
-/** Places a resize preview line around one grid boundary row. */
-const getResizePreviewRows = (row: number, totalMinutes: number): string => {
-    if (row <= 1) return "1 / 2";
-    if (row >= totalMinutes + 1) return `${totalMinutes} / ${totalMinutes + 1}`;
-    return `${Math.floor(row)} / ${Math.floor(row) + 1}`;
-};
-
 /** Groups positioned items by column for direct rendering lookups. */
 const groupByColumn = <Item extends { columnIndex: number }>(
     items: Item[],
@@ -125,7 +121,7 @@ const groupByColumn = <Item extends { columnIndex: number }>(
  *
  * @remarks
  * The view owns range navigation, time-zone normalization, slot generation,
- * event clipping, overlap lanes, drag/drop, and slot-snapped resizing. Markup
+ * event clipping, overlap lanes, drag/drop, and step-snapped resizing. Markup
  * for slots, events, background events, and hierarchical headers can be
  * replaced through `components` without replacing layout behavior.
  */
@@ -149,6 +145,7 @@ export default function TimeGridView<
     maxTime = "24:00",
     showControls = true,
     slotDuration = 60,
+    resizeStep = slotDuration,
     labelInterval = slotDuration,
     slotSizing,
     locale = DEFAULT_CALENDAR_LOCALE,
@@ -240,12 +237,25 @@ export default function TimeGridView<
     ]);
     const {
         columns,
+        timeWindow,
         slots,
         dividers,
         events: positionedEvents,
         backgroundEvents: positionedBackgroundEvents,
         totalMinutes
     } = layout;
+    const canResizeEvents = onEventResize != null;
+    const resolvedResizeStep = resolveTimeGridResizeStep(resizeStep);
+    const resizeIntervals = useMemo(
+        () => canResizeEvents
+            ? createTimeGridResizeIntervals({
+                columns,
+                timeWindow,
+                resizeStep: resolvedResizeStep
+            })
+            : [],
+        [canResizeEvents, columns, resolvedResizeStep, timeWindow]
+    );
     const eventsByColumn = useMemo(
         () => groupByColumn(positionedEvents, columns.length),
         [columns.length, positionedEvents]
@@ -297,7 +307,28 @@ export default function TimeGridView<
         ...navigationBoundaries
     });
     const canDropEvents = onEventDrop != null;
-    const canResizeEvents = onEventResize != null;
+
+    const resizePreview = useMemo(() => {
+        if (!eventResize?.target) return null;
+
+        const change = createEventResize(
+            eventResize.event,
+            eventResize.edge,
+            eventResize.target,
+            eventResize.source
+        );
+
+        return {
+            color: eventResize.event.color,
+            segments: createTimeGridResizePreviewSegments({
+                start: change.start,
+                end: change.end,
+                resourceId: eventResize.source.resourceId,
+                columns,
+                timeWindow
+            })
+        };
+    }, [columns, eventResize, timeWindow]);
 
     const updateEventResize = useCallback((
         next: EventResizeState<Event, Resource> | null
@@ -333,15 +364,9 @@ export default function TimeGridView<
         segment: LayoutEvent<Event, Resource>,
         edge: TimeGridEventResizeEdge,
         handleKey: string,
+        boundaries: TimeGridResizeBoundary<Resource>[],
         pointerId?: number
     ): EventResizeState<Event, Resource> | null => {
-        const boundaries = createTimeGridResizeBoundaries({
-            event,
-            edge,
-            resourceId: segment.resourceId,
-            slots,
-            slotDuration
-        });
         if (boundaries.length === 0) return null;
 
         const next = {
@@ -358,7 +383,7 @@ export default function TimeGridView<
         } satisfies EventResizeState<Event, Resource>;
         updateEventResize(next);
         return next;
-    }, [slotDuration, slots, updateEventResize]);
+    }, [updateEventResize]);
 
     const handleResizePointerMove = useCallback((
         interaction: PointerEvent<HTMLElement>
@@ -611,18 +636,18 @@ export default function TimeGridView<
                                 />
                             );
                         })}
-                        {eventResize?.target && (
+                        {resizePreview?.segments.map((segment) => (
                             <div
+                                key={segment.columnIndex}
+                                aria-hidden="true"
                                 className="time-grid-view_resize-preview"
                                 style={{
-                                    gridColumn: eventResize.target.columnIndex + 1,
-                                    gridRow: getResizePreviewRows(
-                                        eventResize.target.row,
-                                        totalMinutes
-                                    )
-                                }}
+                                    "--color": resizePreview.color,
+                                    gridColumn: segment.columnIndex + 1,
+                                    gridRow: `${segment.startRow} / ${segment.endRow}`
+                                } as CalendarStyle}
                             />
-                        )}
+                        ))}
                         {columns.map((column, columnIndex) => (
                             <div
                                 key={`${column.key}-backgrounds`}
@@ -756,8 +781,7 @@ export default function TimeGridView<
                                                     event,
                                                     edge,
                                                     resourceId: segment.resourceId,
-                                                    slots,
-                                                    slotDuration
+                                                    intervals: resizeIntervals
                                                 });
                                                 if (boundaries.length === 0) return null;
 
@@ -770,6 +794,15 @@ export default function TimeGridView<
                                                 const firstBoundary = boundaries[0];
                                                 const lastBoundary = boundaries.at(-1);
                                                 if (!firstBoundary || !lastBoundary) return null;
+                                                const currentValue = currentBoundary.getTime();
+                                                const minimumValue = Math.min(
+                                                    firstBoundary.date.getTime(),
+                                                    currentValue
+                                                );
+                                                const maximumValue = Math.max(
+                                                    lastBoundary.date.getTime(),
+                                                    currentValue
+                                                );
 
                                                 const handleKeyDown = (
                                                     interaction: KeyboardEvent<HTMLElement>
@@ -805,7 +838,8 @@ export default function TimeGridView<
                                                         event,
                                                         segment,
                                                         edge,
-                                                        handleKey
+                                                        handleKey,
+                                                        boundaries
                                                     );
                                                     if (!nextState) return;
 
@@ -832,6 +866,7 @@ export default function TimeGridView<
                                                         segment,
                                                         edge,
                                                         handleKey,
+                                                        boundaries,
                                                         interaction.pointerId
                                                     );
                                                     if (!next) return;
@@ -865,9 +900,9 @@ export default function TimeGridView<
                                                             )
                                                         })}
                                                         aria-orientation="vertical"
-                                                        aria-valuemin={firstBoundary.date.getTime()}
-                                                        aria-valuemax={lastBoundary.date.getTime()}
-                                                        aria-valuenow={currentBoundary.getTime()}
+                                                        aria-valuemin={minimumValue}
+                                                        aria-valuemax={maximumValue}
+                                                        aria-valuenow={currentValue}
                                                         aria-valuetext={messages.slotLabel({
                                                             view: viewName,
                                                             date: formatters.date(
