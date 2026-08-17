@@ -319,9 +319,13 @@ Last reviewed: 2026-08-17
 
 ## Repository and maintenance
 
-- [ ] **[P1][REPO-01] Add issue and pull-request templates.**
-  - Include reproduction, browser/time-zone/locale information, accessibility
-    impact, tests, stories, and the relevant roadmap identifier.
+- [x] **[P1][REPO-01] Add issue and pull-request templates.**
+  - Structured bug and feature forms capture reproduction or use-case details,
+    browser/time-zone/locale considerations, accessibility impact, verification
+    expectations, and the relevant roadmap identifier.
+  - The pull-request template records issue and roadmap tracking, compatibility
+    impact, tests, Storybook coverage, and validation results. Security reports
+    are directed to the private vulnerability-reporting form.
 - [x] **[P1][REPO-02] Automate dependency maintenance.**
   - Weekly Dependabot updates cover the root package, locked Vite and Next.js
     consumers, and pinned GitHub Actions; routine minor/patch updates are

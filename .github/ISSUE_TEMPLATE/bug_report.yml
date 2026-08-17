@@ -1,0 +1,122 @@
+name: Bug report
+description: Report a reproducible problem with ChronoLaneJS.
+title: "Bug: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve ChronoLaneJS. Search existing issues before
+        submitting a report. Do not disclose security vulnerabilities here;
+        use the private security reporting option in the issue chooser.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the current behavior and what you expected instead.
+      placeholder: Tell us what happened and what should have happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide a minimal repository, Storybook link, or exact steps that reproduce the problem.
+      placeholder: |
+        1. Render ...
+        2. Interact with ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: ChronoLaneJS version
+      placeholder: 1.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      description: State "Not applicable" for a non-browser problem.
+      placeholder: Firefox 141
+    validations:
+      required: true
+
+  - type: input
+    id: timezone
+    attributes:
+      label: Time zone
+      description: Provide the relevant IANA time zone or state "Not applicable."
+      placeholder: UTC
+    validations:
+      required: true
+
+  - type: input
+    id: locale
+    attributes:
+      label: Locale
+      description: Provide the relevant locale or state "Not applicable."
+      placeholder: en-US
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Additional environment details
+      description: Include the operating system, React version, calendar view, and other relevant configuration.
+      placeholder: |
+        - Operating system:
+        - React version:
+        - View:
+        - Relevant props or configuration:
+    validations:
+      required: false
+
+  - type: textarea
+    id: accessibility
+    attributes:
+      label: Accessibility impact
+      description: Describe any keyboard, screen-reader, focus, contrast, zoom, or touch impact, or state "No known impact."
+    validations:
+      required: true
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Suggested regression coverage
+      description: Suggest a unit, browser, or Storybook test that would prevent this problem from returning, if known.
+    validations:
+      required: false
+
+  - type: input
+    id: roadmap
+    attributes:
+      label: Roadmap item
+      description: Enter the relevant ROADMAP.md identifier, such as A11Y-01, or state "None."
+      placeholder: A11Y-01
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add screenshots, recordings, logs, or other details that may help diagnose the problem.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched the existing issues and did not find a duplicate.
+          required: true
+        - label: This report does not disclose a security vulnerability.
+          required: true
