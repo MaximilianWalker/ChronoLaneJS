@@ -193,6 +193,22 @@ export interface CalendarEventMessageContext extends CalendarMessageContext {
 }
 
 // @public
+export interface CalendarEventMoveHandleMessageContext extends CalendarMessageContext {
+    // (undocumented)
+    title?: string;
+}
+
+// @public
+export interface CalendarEventMoveTargetMessageContext extends CalendarEventMoveHandleMessageContext {
+    // (undocumented)
+    date: string;
+    // (undocumented)
+    resource?: string;
+    // (undocumented)
+    time: string;
+}
+
+// @public
 export interface CalendarEventOccurrence<Resource = unknown> {
     // (undocumented)
     day: Date;
@@ -254,6 +270,10 @@ export interface CalendarMessages {
     agendaEmpty: (context: CalendarNavigationMessageContext) => string;
     // (undocumented)
     eventLabel: (context: CalendarEventMessageContext) => string;
+    // (undocumented)
+    eventMoveHandle: (context: CalendarEventMoveHandleMessageContext) => string;
+    // (undocumented)
+    eventMoveTarget: (context: CalendarEventMoveTargetMessageContext) => string;
     // (undocumented)
     eventResizeHandle: (context: CalendarEventResizeHandleMessageContext) => string;
     // (undocumented)
@@ -731,7 +751,6 @@ export function TimeGridView<Event extends CalendarEvent = CalendarEvent, Resour
 
 // @public (undocumented)
 export interface TimeGridViewProps<Event extends CalendarEvent = CalendarEvent, Resource = unknown> extends SharedViewProps<Event, Resource> {
-    // (undocumented)
     canDragEvent?: (event: NormalizedCalendarEvent<Event>, segment: TimeGridEventSegment<Resource>) => boolean;
     // (undocumented)
     canResizeEvent?: (event: NormalizedCalendarEvent<Event>, segment: TimeGridEventSegment<Resource>, edge: TimeGridEventResizeEdge) => boolean;
@@ -745,7 +764,6 @@ export interface TimeGridViewProps<Event extends CalendarEvent = CalendarEvent, 
     maxTime?: TimeOfDay | "24:00";
     // (undocumented)
     minTime?: TimeOfDay;
-    // (undocumented)
     onEventDrop?: (change: TimeGridEventDrop<Event, Resource>) => void;
     // (undocumented)
     onEventResize?: (change: TimeGridEventResize<Event, Resource>) => void;

@@ -94,7 +94,7 @@ export interface TimeGridEventPosition<Resource = unknown> {
     resourceId: CalendarResourceId | null;
 }
 
-/** Complete application-facing result of dropping a time-grid event. */
+/** Complete application-facing result of moving a time-grid event. */
 export interface TimeGridEventDrop<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
@@ -188,10 +188,12 @@ export interface TimeGridViewProps<
     /** Per-slot fixed or fluid-minimum dimensions. */
     slotSizing?: TimeGridSlotSizing;
     selectedRange?: CalendarSelectionRange;
+    /** Restricts movement controls for individual visible event segments. */
     canDragEvent?: (
         event: NormalizedCalendarEvent<Event>,
         segment: TimeGridEventSegment<Resource>
     ) => boolean;
+    /** Reports one complete movement proposal when the user commits it. */
     onEventDrop?: (change: TimeGridEventDrop<Event, Resource>) => void;
     canResizeEvent?: (
         event: NormalizedCalendarEvent<Event>,

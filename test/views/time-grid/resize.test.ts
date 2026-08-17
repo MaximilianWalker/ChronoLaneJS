@@ -6,11 +6,11 @@ import {
     createEventResize,
     createTimeGridResizeBoundaries,
     createTimeGridResizeIntervals,
-    createTimeGridResizePreviewSegments,
     findAdjacentResizeBoundary,
     findClosestResizeBoundary,
     resolveTimeGridResizeStep
 } from "../../../src/views/time-grid/resize.js";
+import { createTimeGridEventPreviewSegments } from "../../../src/views/time-grid/preview.js";
 import type { LayoutColumn } from "../../../src/views/time-grid/layout/types.js";
 
 const at = (hour: number, minute = 0) => new Date(2026, 8, 14, hour, minute);
@@ -183,7 +183,7 @@ test("resize previews project the complete proposal into visible columns", () =>
         resourceIndex: 1
     };
 
-    assert.deepEqual(createTimeGridResizePreviewSegments({
+    assert.deepEqual(createTimeGridEventPreviewSegments({
         start: at(10),
         end: new Date(2026, 8, 15, 9, 30),
         resourceId: "studio",

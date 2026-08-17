@@ -55,7 +55,7 @@ keeping state management and persistence outside the component.
 - **Flexible layout:** overlapping events, clipped multi-day events,
   background events, resources, and non-contiguous ranges are first-class.
 - **Flexible integration:** controlled or uncontrolled navigation, event
-  selection/opening, resizing, and drag-and-drop integrate with your state layer.
+  selection/opening, resizing, and event movement integrate with your state layer.
 - **Customizable presentation:** override the meaningful render boundaries or
   style the defaults without inheriting a design system.
 - **Typed and tested:** the ESM package emits declarations from source, and
@@ -72,7 +72,7 @@ every public customization point, including:
 - resources, background events, and custom ranges;
 - custom renderers and view registration;
 - locale, timezone, and daylight-saving transitions;
-- responsive layouts, selection, opening, resizing, and drag-and-drop.
+- responsive layouts, selection, opening, resizing, and event movement.
 
 Use Storybook's toolbar to change the locale, IANA timezone, and viewport. The
 website and full catalog are rebuilt and deployed together from `main`.
@@ -353,7 +353,7 @@ normalized `event`, their prepared visible values, `selected`, and
 `elementProps`.
 
 Spread `elementProps` onto the renderer's root element to retain layout,
-accessibility, drag, selection, opening, and raw event behavior. ChronoLaneJS owns those
+accessibility, selection, opening, and raw event behavior. ChronoLaneJS owns those
 behaviors while the renderer owns markup and presentation.
 
 ### Styling
@@ -438,15 +438,17 @@ gestures never change meaning based on which callbacks are present.
 callbacks without replacing the semantic behavior. Use `canSelectEvent` and
 `canOpenEvent` to restrict those semantic actions per event occurrence.
 
-Supplying `viewProps.onEventDrop` enables native time-grid dragging. Supplying
-`viewProps.onEventResize` exposes start/end resize handles with pointer, touch,
-and keyboard support. Resizes preview the complete proposed interval
-immediately, snap by `resizeStep` independently from the visual slots, preserve
-the resource, and report one proposal when committed. Use `canDragEvent` and
-`canResizeEvent` for per-segment restrictions.
+Supplying `viewProps.onEventDrop` exposes an event move handle with pointer,
+touch, and keyboard support. Movement previews the complete event, targets the
+visible `slotDuration` scale, and announces each proposed date, time, and
+resource. Arrow Up/Down changes time, Arrow Left/Right changes the visible
+column, Enter or blur commits, and Escape cancels. Supplying
+`viewProps.onEventResize` exposes equivalent start/end resize handles. Resizes
+snap by `resizeStep` independently from the visual slots and preserve the
+resource. Use `canDragEvent` and `canResizeEvent` for per-segment restrictions.
 
 `onEventDrop` receives the source event, proposed `start` and `end`, and
-explicit `source` and `destination` positions. Dropping a clipped multi-day
+explicit `source` and `destination` positions. Moving a clipped multi-day
 event preserves the source event's complete duration. Each position includes
 both the concrete `resource` value and its stable `resourceId`.
 

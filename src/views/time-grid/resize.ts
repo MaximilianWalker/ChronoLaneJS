@@ -1,7 +1,6 @@
 import type { CalendarEvent, CalendarResourceId } from "../../types.js";
 import {
-    atDayMinute,
-    getGridRows
+    atDayMinute
 } from "./layout/timeScale.js";
 import type { ResolvedTimeWindow } from "./layout/timeScale.js";
 import type { LayoutColumn } from "./layout/types.js";
@@ -25,13 +24,6 @@ export interface TimeGridResizeInterval<Resource = unknown> {
     end: TimeGridResizeBoundary<Resource>;
 }
 
-/** Positioned visible portion of the current resize proposal. */
-export interface TimeGridResizePreviewSegment {
-    columnIndex: number;
-    startRow: number;
-    endRow: number;
-}
-
 interface CreateTimeGridResizeIntervalsOptions<Resource> {
     columns: LayoutColumn<Resource>[];
     timeWindow: ResolvedTimeWindow;
@@ -46,14 +38,6 @@ interface CreateTimeGridResizeBoundariesOptions<
     edge: TimeGridEventResizeEdge;
     resourceId: CalendarResourceId | null;
     intervals: TimeGridResizeInterval<Resource>[];
-}
-
-interface CreateTimeGridResizePreviewSegmentsOptions<Resource> {
-    start: Date;
-    end: Date;
-    resourceId: CalendarResourceId | null;
-    columns: LayoutColumn<Resource>[];
-    timeWindow: ResolvedTimeWindow;
 }
 
 /** Validates the positive whole-minute increment used by event resizing. */
@@ -122,34 +106,6 @@ export const createTimeGridResizeBoundaries = <
         if (interval.start.date < event.start) return [];
         return [interval.end];
     }).sort((first, second) => first.date.getTime() - second.date.getTime())
-);
-
-/** Projects a resize proposal into every overlapping visible grid column. */
-export const createTimeGridResizePreviewSegments = <Resource>({
-    start,
-    end,
-    resourceId,
-    columns,
-    timeWindow
-}: CreateTimeGridResizePreviewSegmentsOptions<Resource>): TimeGridResizePreviewSegment[] => (
-    columns.flatMap((column, columnIndex) => {
-        if (column.resourceId !== resourceId) return [];
-
-        const windowStart = atDayMinute(column.day, timeWindow.startMinute);
-        const windowEnd = atDayMinute(column.day, timeWindow.endMinute);
-        const segmentStart = start > windowStart ? start : windowStart;
-        const segmentEnd = end < windowEnd ? end : windowEnd;
-        if (segmentStart >= segmentEnd) return [];
-
-        const { startRow, endRow } = getGridRows(
-            segmentStart,
-            segmentEnd,
-            column.day,
-            timeWindow.startMinute
-        );
-
-        return [{ columnIndex, startRow, endRow }];
-    })
 );
 
 /** Chooses the valid boundary nearest a pointer position in one column. */

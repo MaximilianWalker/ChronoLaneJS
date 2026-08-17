@@ -39,6 +39,8 @@ export type {
     CalendarEventInteractionContext,
     CalendarEventInteractions,
     CalendarEventMessageContext,
+    CalendarEventMoveHandleMessageContext,
+    CalendarEventMoveTargetMessageContext,
     CalendarEventOccurrence,
     CalendarEventResizeHandleMessageContext,
     CalendarFormatContext,

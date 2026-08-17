@@ -290,14 +290,14 @@ Resource IDs compare by JavaScript `Map`/`Set` equality. Strings and numbers
 are distinct, so `101` does not match `"101"`. Missing, empty, non-finite, or
 duplicate IDs throw during rendering.
 
-## Selection, opening, resizing, and dropping
+## Selection, opening, resizing, and moving
 
 Callback presence enables the associated semantic without changing its gesture:
 
 - `onEventSelect` enables selection by single click or Space.
 - `onEventOpen` enables opening by double-click, double-tap, or Enter.
 - `onSlotSelect` enables time-grid slot selection.
-- `onEventDrop` enables native time-grid dragging.
+- `onEventDrop` enables time-grid movement by pointer, touch, or keyboard.
 - `onEventResize` enables time-grid start/end resizing by pointer, touch, or
   keyboard. Targets follow `resizeStep`, which defaults to `slotDuration` but
   may provide finer precision than the visual slots.
@@ -305,7 +305,7 @@ Callback presence enables the associated semantic without changing its gesture:
 `eventInteractions` may add raw click, double-click, context-menu, and key-down
 callbacks. They are composed after the semantic behavior rather than replacing
 it. `canSelectEvent` and `canOpenEvent` restrict one semantic action for one
-rendered occurrence; view-specific predicates restrict drag and resize.
+rendered occurrence; view-specific predicates restrict movement and resize.
 
 State remains application-owned:
 
@@ -347,12 +347,12 @@ const [events, setEvents] = useState(meetings);
 />
 ```
 
-Keyboard resize handles use Arrow keys to preview the adjacent resize boundary,
-Enter or blur to commit, and Escape to cancel. Pointer, touch, and keyboard
-movement immediately previews the complete proposed interval, while the
-application callback still fires only once on commit. A no-op resize does not
-fire a callback. Native event dropping still requires an application-provided
-keyboard/touch alternative.
+Move handles use Arrow Up/Down for adjacent time slots and Arrow Left/Right for
+adjacent day/resource columns. Resize handles use Arrow keys for the adjacent
+`resizeStep` boundary. Both interactions preview the complete proposal, use
+Enter or blur to commit, and use Escape to cancel. Pointer, touch, and keyboard
+share the same targets and fire the application callback only once on commit.
+A no-op move or resize does not fire a callback.
 
 `selectedDate` and both `CalendarSelectionRange` boundaries accept the same
 `Date`, string, and timestamp inputs as events. The view clones and validates
@@ -377,8 +377,8 @@ duration. Invalid boundaries throw `TypeError`; equal or reversed boundaries
 throw `RangeError`. Selection remains controlled—the library never rewrites
 the supplied values.
 
-Dragging a clipped multi-day segment preserves the complete source duration.
-The drop payload includes concrete source and destination day/resource data.
+Moving a clipped multi-day segment preserves the complete source duration.
+The movement payload includes concrete source and destination day/resource data.
 
 ## Localization
 

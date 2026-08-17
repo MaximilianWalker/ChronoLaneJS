@@ -159,36 +159,26 @@ and Escape discard the preview; releasing the pointer, pressing Enter, or
 leaving the keyboard handle commits one proposal. No movement produces no
 callback. Background events never expose interaction or resize controls.
 
-## Drag and drop limitation
+## Event movement behavior
 
-Time-grid movement currently uses native HTML drag events. It is mouse-oriented
-and does not provide an equivalent keyboard or reliable touch interaction.
-This is an explicit `A11Y-02` roadmap item.
+Time-grid move controls are independent siblings of the event renderer, so
+operating one does not select, open, or resize the event. Pointer and touch
+movement target the slot under the pointer. Keyboard Arrow Up/Down selects the
+previous or next time slot; Arrow Left/Right selects the adjacent visible day
+or resource column. Each target immediately previews the complete event and is
+announced with its prepared date, time, and resource label.
 
-Applications must provide an alternative whenever `onEventDrop` is enabled.
-The recommended current fallback is an open action that exposes date, time,
-and resource controls in an accessible dialog:
-
-```tsx
-<Calendar
-    events={events}
-    onEventOpen={(event) => openMoveDialog(event)}
-    viewProps={{
-        onEventDrop: applyProposedMove
-    }}
-/>
-```
-
-The dialog should validate the same rules as a drag, announce errors, return
-focus to the invoking event, and update application state through the same
-move operation. Do not describe native dragging as keyboard- or touch-accessible.
+Pointer cancel and Escape discard the preview. Releasing the pointer, pressing
+Enter, or leaving the keyboard control commits one `onEventDrop` proposal. No
+movement produces no callback. Moving a clipped segment preserves the complete
+source duration, and background events never expose movement controls.
 
 ## Custom renderer responsibilities
 
 Custom renderers replace markup but must preserve library behavior.
 
 1. Spread `elementProps` onto the root element without dropping handlers,
-   styles, `className`, `aria-label`, `aria-keyshortcuts`, or drag attributes.
+   styles, `className`, `aria-label`, or `aria-keyshortcuts`.
 2. Keep event roots as event/content elements. ChronoLaneJS supplies explicit
    pointer and keyboard behavior; do not recast every event as a native button.
 3. Keep the supplied accessible name unless the replacement provides an
@@ -239,7 +229,7 @@ For every application integration and custom renderer, verify:
 - [ ] the schedule remains usable at 200% zoom and narrow widths;
 - [ ] high-contrast/forced-color modes retain boundaries and focus;
 - [ ] reduced-motion preference does not introduce unexpected animation;
-- [ ] touch users have an alternative to native drag-and-drop;
+- [ ] pointer, touch, and keyboard event movement reaches equivalent targets;
 - [ ] at least one target screen reader is included in release testing.
 
 The repository keeps automated Storybook accessibility checks, but automation

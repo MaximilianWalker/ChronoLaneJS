@@ -234,8 +234,8 @@ defaults to the week preset and `viewName="time-grid"`.
 | `labelInterval` | `number` | `slotDuration` | Label/divider cadence; must be an integer multiple of `slotDuration`. | `60` |
 | `slotSizing` | `TimeGridSlotSizing` | fluid width, fixed `50px` height | Fixed or minimum pixel dimension per slot axis. Fixed and minimum values on one axis are mutually exclusive. | `{ minWidth: 120, height: 48 }` |
 | `selectedRange` | `CalendarSelectionRange` | none | Validates and normalizes the controlled half-open range in `timeZone`, then marks every overlapping slot. The end must follow the start. | `{ start: "2026-09-14T09:00:00", end: "2026-09-14T10:00:00" }` |
-| `canDragEvent` | `(event, segment) => boolean` | allow all | Restricts native dragging by source event and visible segment. Evaluated only when `onEventDrop` exists. | `(_, segment) => segment.resourceId !== "locked"` |
-| `onEventDrop` | `(change: TimeGridEventDrop) => void` | none | Enables native dragging and reports the proposed complete move. It does not mutate events. | `({ event, start, end }) => update(event.id, { start, end })` |
+| `canDragEvent` | `(event, segment) => boolean` | allow all | Restricts the pointer, touch, and keyboard move control by source event and visible segment. Evaluated only when `onEventDrop` exists. | `(_, segment) => segment.resourceId !== "locked"` |
+| `onEventDrop` | `(change: TimeGridEventDrop) => void` | none | Enables live-preview pointer, touch, and keyboard movement and reports one committed proposal. It does not mutate events. | `({ event, start, end }) => update(event.id, { start, end })` |
 | `canResizeEvent` | `(event, segment, edge) => boolean` | allow all | Restricts a visible start or end resize handle. Evaluated only when `onEventResize` exists. | `(_, segment) => segment.resourceId !== "locked"` |
 | `onEventResize` | `(change: TimeGridEventResize) => void` | none | Enables live-preview pointer, touch, and keyboard resize handles and reports one committed proposal. | `({ event, start, end }) => update(event.id, { start, end })` |
 | `onSlotSelect` | `(slot, interaction) => void` | none | Enables slot buttons and reports the complete slot model. | `(slot) => setRange({ start: slot.start, end: slot.end })` |
@@ -466,8 +466,8 @@ are private; the library supplies their effect through `elementProps`.
 
 ### `TimeGridEventPosition<Resource>`
 
-A shared `{ day, resource, resourceId }` position describes where a drop or
-resize originates and, for drops, where it lands.
+A shared `{ day, resource, resourceId }` position describes where movement or
+resize originates and, for movement, where it lands.
 
 ### `TimeGridEventDrop<Event, Resource>`
 
@@ -505,8 +505,8 @@ resizing never changes that resource.
 
 Renderers receive prepared data and `elementProps`. Spread `elementProps` onto
 the semantic root unchanged before adding application props. It carries class,
-style, ARIA labeling, semantic/raw event handlers, drag handlers, and keyboard
-behavior owned by the library.
+style, ARIA labeling, semantic/raw event handlers, and keyboard behavior owned
+by the library.
 
 <!-- api:CalendarRendererElementProps CalendarComponents CalendarNavigationButton CalendarNavigationButtonProps TimeGridComponents TimeGridSlotProps TimeGridEventProps TimeGridBackgroundEventProps TimeGridDayHeaderProps TimeGridResourceHeaderProps -->
 <!-- props:CalendarRendererElementProps className style -->
@@ -527,8 +527,8 @@ behavior owned by the library.
 <!-- props:MonthEventProps event day timeLabel selected elementProps -->
 
 `CalendarRendererElementProps` always includes `className` and `style`, and may
-include native HTML attributes such as `aria-label`, `onClick`, `onKeyDown`,
-`draggable`, and drag handlers. For example, an interactive event may receive
+include native HTML attributes such as `aria-label`, `onClick`, and `onKeyDown`.
+For example, an interactive event may receive
 `{ className: "calendar-event is-selected", style: { "--color": "#2563eb" },
 "aria-label": "Planning, Monday, 9:00 AM to 10:00 AM", onClick }`.
 
@@ -568,17 +568,19 @@ replacing interactive renderers.
 
 ## Localization contracts
 
-<!-- api:CalendarLocale DEFAULT_CALENDAR_LOCALE calendarLocaleNames CalendarFormatContext CalendarFormatters defaultCalendarFormatters CalendarMessageContext CalendarNavigationMessageContext CalendarSlotMessageContext CalendarEventMessageContext CalendarEventResizeHandleMessageContext CalendarTimeRangeMessageContext CalendarMoreEventsMessageContext CalendarMessages defaultCalendarMessages -->
+<!-- api:CalendarLocale DEFAULT_CALENDAR_LOCALE calendarLocaleNames CalendarFormatContext CalendarFormatters defaultCalendarFormatters CalendarMessageContext CalendarNavigationMessageContext CalendarSlotMessageContext CalendarEventMessageContext CalendarEventMoveHandleMessageContext CalendarEventMoveTargetMessageContext CalendarEventResizeHandleMessageContext CalendarTimeRangeMessageContext CalendarMoreEventsMessageContext CalendarMessages defaultCalendarMessages -->
 <!-- props:CalendarFormatContext locale view -->
 <!-- props:CalendarFormatters time date weekday dayHeader rangeHeader -->
 <!-- props:CalendarMessageContext view -->
 <!-- props:CalendarNavigationMessageContext range -->
 <!-- props:CalendarSlotMessageContext date time -->
 <!-- props:CalendarEventMessageContext title description startDate startTime endDate endTime -->
+<!-- props:CalendarEventMoveHandleMessageContext title -->
+<!-- props:CalendarEventMoveTargetMessageContext date time resource -->
 <!-- props:CalendarEventResizeHandleMessageContext edge title date time -->
 <!-- props:CalendarTimeRangeMessageContext startTime endTime -->
 <!-- props:CalendarMoreEventsMessageContext count date -->
-<!-- props:CalendarMessages previous next timeGridLabel monthGridLabel slotLabel eventLabel eventResizeHandle timeRange agendaEmpty moreEvents -->
+<!-- props:CalendarMessages previous next timeGridLabel monthGridLabel slotLabel eventLabel eventMoveHandle eventMoveTarget eventResizeHandle timeRange agendaEmpty moreEvents -->
 
 `CalendarLocale` is a supported name or date-fns `Locale`. The constant
 `DEFAULT_CALENDAR_LOCALE` is `"en-US"`. `calendarLocaleNames` is the frozen,
@@ -614,6 +616,8 @@ const formatters = {
 | `timeGridLabel`, `monthGridLabel` | `view` | Scrollable grid accessible name | `"Week calendar"` |
 | `slotLabel` | `view`, prepared `date`, prepared `time` | Selectable slot label | `"Monday, September 14 at 9:00 AM"` |
 | `eventLabel` | `view`, optional title/description, prepared start/end date/time | Interactive event label | `"Planning, Monday, 9:00 AM to 10:00 AM"` |
+| `eventMoveHandle` | `view`, optional title | Accessible move-control label | `"Move Planning"` |
+| `eventMoveTarget` | `view`, optional title/resource, prepared date/time | Live movement destination announcement | `"Move Planning to Tuesday, 10:00 AM, Studio"` |
 | `eventResizeHandle` | `view`, edge, optional title, prepared date/time | Accessible resize-handle label | `"Resize end of Planning, Monday at 10:00 AM"` |
 | `timeRange` | `view`, prepared start/end time | Visible event time text | `"9:00 AM – 10:00 AM"` |
 | `agendaEmpty` | `view`, `range` | Agenda empty state | `"No events in this range."` |

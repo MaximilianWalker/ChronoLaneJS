@@ -266,6 +266,20 @@ export interface CalendarEventMessageContext extends CalendarMessageContext {
     endTime: string;
 }
 
+/** Prepared values used to label an event movement control. */
+export interface CalendarEventMoveHandleMessageContext
+    extends CalendarMessageContext {
+    title?: string;
+}
+
+/** Prepared values used to announce an event movement destination. */
+export interface CalendarEventMoveTargetMessageContext
+    extends CalendarEventMoveHandleMessageContext {
+    date: string;
+    time: string;
+    resource?: string;
+}
+
 /** Prepared values used to label an event resize boundary. */
 export interface CalendarEventResizeHandleMessageContext
     extends CalendarMessageContext {
@@ -295,6 +309,12 @@ export interface CalendarMessages {
     monthGridLabel: (context: CalendarMessageContext) => string;
     slotLabel: (context: CalendarSlotMessageContext) => string;
     eventLabel: (context: CalendarEventMessageContext) => string;
+    eventMoveHandle: (
+        context: CalendarEventMoveHandleMessageContext
+    ) => string;
+    eventMoveTarget: (
+        context: CalendarEventMoveTargetMessageContext
+    ) => string;
     eventResizeHandle: (
         context: CalendarEventResizeHandleMessageContext
     ) => string;

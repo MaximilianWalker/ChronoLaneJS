@@ -137,7 +137,7 @@ export function InteractionHarness({
             const handleEventDrop: NonNullable<
                 TimeGridViewProps<StoryEvent, StoryResource>["onEventDrop"]
             > = (change) => {
-                setLastAction(`Dropped ${change.event.title ?? "event"} at ${format(change.start, "HH:mm")}`);
+                setLastAction(`Moved ${change.event.title ?? "event"} to ${format(change.start, "HH:mm")}`);
                 onEventDrop?.(change);
             };
             const handleEventResize: NonNullable<

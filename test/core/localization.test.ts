@@ -53,6 +53,17 @@ test("default messages compose prepared values without formatting dates", () => 
         endDate: "Monday",
         endTime: "2:05 PM"
     }), "Planning, Monday, 1:05 PM to Monday, 2:05 PM");
+    assert.equal(defaultCalendarMessages.eventMoveHandle({
+        view: "day",
+        title: "Planning"
+    }), "Move Planning");
+    assert.equal(defaultCalendarMessages.eventMoveTarget({
+        view: "day",
+        title: "Planning",
+        date: "Tuesday, September 15th, 2026",
+        time: "10:00 AM",
+        resource: "Studio"
+    }), "Move Planning to Tuesday, September 15th, 2026, 10:00 AM, Studio");
     assert.equal(defaultCalendarMessages.eventResizeHandle({
         view: "day",
         edge: "end",

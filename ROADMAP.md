@@ -66,12 +66,12 @@ Last reviewed: 2026-08-16
     boundaries, plus the rendered day/resource occurrence.
   - Renderers receive the source event and visible segment separately.
 - [x] **[P0][TG-02] Return a complete event-drop payload.**
-  - Drops return the source event, proposed start and end, and explicit source
+  - Moves return the source event, proposed start and end, and explicit source
     and destination day/resource positions.
-  - Cross-resource drops retain the concrete destination resource.
-  - Dragging a clipped segment preserves the source event's full duration.
+  - Cross-resource moves retain the concrete destination resource.
+  - Moving a clipped segment preserves the source event's full duration.
 - [x] **[P0][TG-03] Decouple slot interaction from grid visibility.**
-  - Slots remain selectable and droppable regardless of visual grid-line
+  - Slots remain selectable and valid movement targets regardless of grid-line
     styling.
   - The redundant `showGrid` prop is removed; the interaction layer is always
     mounted and grid-line presentation is owned by CSS.
@@ -231,11 +231,11 @@ Last reviewed: 2026-08-16
   - Add appropriate grid, row, column-header, and grid-cell semantics where
     they improve assistive-technology behavior.
   - Test the behavior with keyboard-only interaction.
-- [ ] **[P1][A11Y-02] Replace native-only drag and drop.**
-  - Native HTML drag events do not provide a complete touch or keyboard
-    experience.
-  - Support pointer, touch, and keyboard movement with equivalent callbacks
-    and announcements.
+- [x] **[P1][A11Y-02] Replace native-only drag and drop.**
+  - Independent move controls use one slot-target model for pointer, touch,
+    and keyboard input without changing event select/open gestures.
+  - Complete proposals preview immediately, announce their date, time, and
+    resource, and invoke `onEventDrop` once when committed.
 - [ ] **[P1][A11Y-03] Audit every built-in view with assistive technology.**
   - Keep automated axe checks.
   - Add a documented manual pass for screen-reader names, focus visibility,
@@ -251,9 +251,10 @@ Last reviewed: 2026-08-16
     multi-resource event callbacks.
   - Selection and opening assertions verify source boundaries and occurrence
     resource data rather than visible layout-segment values.
-- [x] **[P0][TEST-02] Test drag and drop across days and resources.**
+- [x] **[P0][TEST-02] Test event movement across days and resources.**
   - Unit tests cover duration preservation and cross-resource destinations.
-  - Browser stories cover successful, cancelled, and invalid-target drops.
+  - Browser stories cover pointer, touch, keyboard, cancelled, and
+    cross-resource moves.
 - [x] **[P0][TEST-03] Add compile-time public API tests.**
   - Assert accepted prop combinations for every built-in view.
   - Assert that typos, wrong callback payloads, and view-incompatible props
@@ -294,7 +295,7 @@ Last reviewed: 2026-08-16
   - [Getting started](./docs/getting-started.md) and the
     [API reference](./docs/api.md) use the current names and document event
     identity, controlled state, time zones, ranges, resources, renderer
-    contracts, and drop payloads with concrete data.
+    contracts, and movement payloads with concrete data.
 - [x] **[P1][DOC-02] Publish a complete API reference.**
   - The [API reference](./docs/api.md) covers every public export and interface
     property, including callback payloads, defaults, examples, and thrown
@@ -310,8 +311,8 @@ Last reviewed: 2026-08-16
     production-built by `npm run examples:check` in CI.
 - [x] **[P1][DOC-05] Document accessibility behavior.**
   - [Accessibility](./docs/accessibility.md) documents current keyboard and
-    focus behavior, messages, drag alternatives and limitations, and
-    custom-renderer responsibilities without claiming open A11Y work is done.
+    focus behavior, messages, equivalent movement inputs and announcements,
+    and custom-renderer responsibilities without claiming open A11Y work is done.
 - [ ] **[P2][DOC-06] Document deliberate non-goals.**
   - Decide and document ownership of recurrence expansion, persistence,
     fetching, application state, and design-system styling.

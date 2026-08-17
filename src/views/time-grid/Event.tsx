@@ -3,8 +3,8 @@ import type { TimeGridEventProps } from "./types.js";
 /**
  * Renders the default positioned time-grid event.
  *
- * Layout styles and interactions are supplied by the grid while the root
- * remains an event element and retains native drag support when enabled.
+ * Layout styles and event-root interactions are supplied by the grid. Move
+ * and resize controls remain independent siblings owned by the view.
  */
 export default function Event({
     event,

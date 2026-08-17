@@ -228,8 +228,7 @@ export const InteractionsWithoutGridLines: Story = {
             ".time-grid-view_header-cell"
         );
         const selectedSlot = canvas.getByRole("button", { name: /Calendar slot.*10:00/i });
-        const dropSlot = canvas.getByRole("button", { name: /Calendar slot.*1:00 PM/i });
-        const event = getEventElement(canvasElement, "Planning");
+        const moveHandle = canvas.getByRole("button", { name: "Move Planning" });
 
         if (!slot || !header || !headerCell) {
             throw new Error("The time-grid presentation did not render.");
@@ -243,8 +242,8 @@ export const InteractionsWithoutGridLines: Story = {
         await userEvent.click(selectedSlot);
         await expect(getTimeGridViewProps(args)?.onSlotSelect).toHaveBeenCalledOnce();
 
-        await fireEvent.dragStart(event);
-        await fireEvent.drop(dropSlot);
+        moveHandle.focus();
+        await userEvent.keyboard("{ArrowDown}{Enter}");
         await expect(getTimeGridViewProps(args)?.onEventDrop).toHaveBeenCalledOnce();
     }
 };
@@ -456,13 +455,19 @@ export const EventSpecificPermissions: Story = {
         const planning = getEventElement(canvasElement, "Planning");
         const designReview = getEventElement(canvasElement, "Design review");
 
-        await expect(planning).not.toHaveAttribute("draggable", "true");
+        await expect(planning).not.toHaveAttribute("draggable");
+        await expect(canvasElement.querySelector(
+            '[data-event-id="planning"].time-grid-view_event-move-handle'
+        )).toBeNull();
         await userEvent.click(planning);
         await expect(args.onEventSelect).not.toHaveBeenCalled();
         await userEvent.dblClick(planning);
         await expect(args.onEventOpen).not.toHaveBeenCalled();
 
-        await expect(designReview).toHaveAttribute("draggable", "true");
+        await expect(designReview).not.toHaveAttribute("draggable");
+        await expect(canvasElement.querySelector(
+            '[data-event-id="design-review"].time-grid-view_event-move-handle'
+        )).toBeVisible();
         await userEvent.click(designReview);
         await expect(args.onEventSelect).toHaveBeenCalledOnce();
         await userEvent.dblClick(designReview);
@@ -531,6 +536,9 @@ export const CustomRendererSelection: Story = {
         await expect(canvas.getByRole("slider", {
             name: /Resize end of Planning/i
         })).toBeVisible();
+        await expect(canvas.getByRole("button", {
+            name: "Move Planning"
+        })).toBeVisible();
         await userEvent.click(event);
         await expect(args.onEventSelect).toHaveBeenCalledOnce();
 
@@ -541,37 +549,146 @@ export const CustomRendererSelection: Story = {
     }
 };
 
-export const DragToSlot: Story = {
+export const PointerMoveToSlot: Story = {
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
-        const event = getEventElement(canvasElement, "Planning");
+        const handle = canvas.getByRole("button", { name: "Move Planning" });
         const slot = canvas.getByRole("button", { name: /Calendar slot.*1:00 PM/i });
-        await fireEvent.dragStart(event);
-        await fireEvent.drop(slot);
-        await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Dropped Planning at 13:00");
+        const handleBounds = handle.getBoundingClientRect();
+        const destinationBounds = slot.getBoundingClientRect();
+        const pointer = {
+            pointerId: 10,
+            pointerType: "mouse",
+            isPrimary: true,
+            clientX: destinationBounds.left + (destinationBounds.width / 2),
+            clientY: destinationBounds.top + (destinationBounds.height / 2)
+        };
+
+        await fireEvent.pointerDown(handle, {
+            ...pointer,
+            clientX: handleBounds.left + (handleBounds.width / 2),
+            clientY: handleBounds.top + (handleBounds.height / 2)
+        });
+        await fireEvent.pointerMove(handle, pointer);
+        await expect(
+            canvasElement.querySelector(".time-grid-view_move-preview")
+        ).toBeVisible();
+        await fireEvent.pointerUp(handle, pointer);
+
+        await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Moved Planning to 13:00");
         await expect(getTimeGridViewProps(args)?.onEventDrop).toHaveBeenCalledOnce();
     }
 };
 
-export const CancelledDrag: Story = {
+export const TouchMoveToSlot: Story = {
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
-        const event = getEventElement(canvasElement, "Planning");
+        const handle = canvas.getByRole("button", { name: "Move Planning" });
         const slot = canvas.getByRole("button", { name: /Calendar slot.*1:00 PM/i });
-        await fireEvent.dragStart(event);
-        await fireEvent.dragEnd(event);
-        await fireEvent.drop(slot);
+        const handleBounds = handle.getBoundingClientRect();
+        const destinationBounds = slot.getBoundingClientRect();
+        const pointer = {
+            pointerId: 11,
+            pointerType: "touch",
+            isPrimary: true,
+            clientX: destinationBounds.left + (destinationBounds.width / 2),
+            clientY: destinationBounds.top + (destinationBounds.height / 2)
+        };
+
+        await fireEvent.pointerDown(handle, {
+            ...pointer,
+            clientX: handleBounds.left + (handleBounds.width / 2),
+            clientY: handleBounds.top + (handleBounds.height / 2)
+        });
+        await fireEvent.pointerMove(handle, pointer);
+        await fireEvent.pointerUp(handle, pointer);
+
+        await expect(getTimeGridViewProps(args)?.onEventDrop).toHaveBeenCalledOnce();
+    }
+};
+
+export const KeyboardMove: Story = {
+    args: {
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            slotDuration: 30,
+            labelInterval: 60
+        }
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const handle = canvas.getByRole("button", { name: "Move Planning" });
+
+        handle.focus();
+        await userEvent.keyboard("{ArrowDown}");
+        await expect(canvas.getByRole("status")).toHaveTextContent(
+            /Move Planning to Monday, September 14th, 2026, 9:30 AM/i
+        );
+        await userEvent.keyboard("{Enter}");
+
+        await expect(getTimeGridViewProps(args)?.onEventDrop).toHaveBeenCalledWith(
+            expect.objectContaining({
+                start: asCalendarDate("2026-09-14T09:30:00", "Europe/Lisbon"),
+                end: asCalendarDate("2026-09-14T10:45:00", "Europe/Lisbon")
+            })
+        );
+    }
+};
+
+export const KeyboardMoveAcrossResources: Story = {
+    args: {
+        events: resourceEvents.filter(({ id }) => id === "studio-session"),
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            resources: resourceConfig
+        }
+    },
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const handle = canvas.getByRole("button", { name: "Move Recording session" });
+
+        handle.focus();
+        await userEvent.keyboard("{ArrowRight}");
+        await expect(canvas.getByRole("status")).toHaveTextContent(/Workshop/i);
+        await userEvent.keyboard("{Enter}");
+
+        await expect(getTimeGridViewProps(args)?.onEventDrop).toHaveBeenCalledOnce();
+    }
+};
+
+export const CancelKeyboardMove: Story = {
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const handle = canvas.getByRole("button", { name: "Move Planning" });
+
+        handle.focus();
+        await userEvent.keyboard("{ArrowDown}{Escape}");
+
         await expect(getTimeGridViewProps(args)?.onEventDrop).not.toHaveBeenCalled();
     }
 };
 
-export const IgnoreDropOutsideSlot: Story = {
+export const CancelPointerMove: Story = {
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
-        const event = getEventElement(canvasElement, "Planning");
-        const grid = canvas.getByLabelText("Calendar grid");
-        await fireEvent.dragStart(event);
-        await fireEvent.drop(grid);
+        const handle = canvas.getByRole("button", { name: "Move Planning" });
+        const slot = canvas.getByRole("button", { name: /Calendar slot.*1:00 PM/i });
+        const destinationBounds = slot.getBoundingClientRect();
+        const pointer = {
+            pointerId: 12,
+            pointerType: "touch",
+            isPrimary: true,
+            clientX: destinationBounds.left + (destinationBounds.width / 2),
+            clientY: destinationBounds.top + (destinationBounds.height / 2)
+        };
+
+        await fireEvent.pointerDown(handle, pointer);
+        await fireEvent.pointerMove(handle, pointer);
+        await fireEvent.pointerCancel(handle, pointer);
+
+        await expect(
+            canvasElement.querySelector(".time-grid-view_move-preview")
+        ).toBeNull();
         await expect(getTimeGridViewProps(args)?.onEventDrop).not.toHaveBeenCalled();
     }
 };

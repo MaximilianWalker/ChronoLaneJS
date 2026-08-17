@@ -83,6 +83,11 @@ export const defaultCalendarMessages = /* @__PURE__ */ Object.freeze<CalendarMes
         `${startDate}, ${startTime} to ${endDate}, ${endTime}`,
         description
     ].filter(Boolean).join(", "),
+    eventMoveHandle: ({ title }) => `Move ${title ?? "calendar event"}`,
+    eventMoveTarget: ({ title, date, time, resource }) => [
+        `Move ${title ?? "calendar event"} to ${date}, ${time}`,
+        resource
+    ].filter(Boolean).join(", "),
     eventResizeHandle: ({ edge, title, date, time }) => (
         `Resize ${edge} of ${title ?? "calendar event"}, ${date}, ${time}`
     ),
