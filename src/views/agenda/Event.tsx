@@ -1,13 +1,11 @@
-import type { ElementType } from "react";
-
 import type { CalendarEvent } from "../../types.js";
 import type { AgendaEventProps } from "./types.js";
 
 /**
  * Renders the default agenda event with its time, title, and description.
  *
- * The root element becomes a button only when an interaction handler is
- * supplied, preserving non-interactive semantics for read-only agendas.
+ * The root remains an event element while supplied handlers add pointer and
+ * keyboard behavior without presenting events as buttons.
  */
 export default function Event<EventType extends CalendarEvent = CalendarEvent>({
     event,
@@ -15,14 +13,18 @@ export default function Event<EventType extends CalendarEvent = CalendarEvent>({
     selected,
     elementProps
 }: AgendaEventProps<EventType>) {
-    const isInteractive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Component: ElementType = isInteractive ? "button" : "div";
+    const isInteractive = Boolean(
+        elementProps.onClick
+        || elementProps.onDoubleClick
+        || elementProps.onContextMenu
+        || elementProps.onKeyDown
+    );
 
     return (
-        <Component
+        <div
             {...elementProps}
-            type={isInteractive ? "button" : undefined}
             className={`${elementProps.className}${selected ? " is-selected" : ""}`}
+            data-interactive={isInteractive || undefined}
             data-event-id={event.id}
         >
             <time className="agenda-view_event-time">
@@ -32,6 +34,6 @@ export default function Event<EventType extends CalendarEvent = CalendarEvent>({
                 <strong>{event.title}</strong>
                 {event.description && <span>{event.description}</span>}
             </span>
-        </Component>
+        </div>
     );
 }

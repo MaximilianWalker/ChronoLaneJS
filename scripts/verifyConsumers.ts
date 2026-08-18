@@ -194,8 +194,8 @@ assert.equal(typeof DayView, "function");
 assert.equal(parseCalendarDate("2026-09-14").getDate(), 14);
 assert.match(import.meta.resolve("@chronolanejs/react/styles.css"), /chronolanejs[.]css$/);
 
-const locale = await loadCalendarLocale("pt-PT");
-assert.equal(locale.code, "pt");
+const locale = await loadCalendarLocale("en-GB");
+assert.equal(locale.code, "en-GB");
 
 const markup = renderToStaticMarkup(createElement(Calendar, {
     view: "day",

@@ -35,7 +35,7 @@ export interface AgendaComponents<Event extends CalendarEvent = CalendarEvent>
 }
 
 export interface AgendaViewProps<Event extends CalendarEvent = CalendarEvent>
-    extends SharedViewProps<Event> {
+    extends SharedViewProps<Event, never> {
     range?: CalendarRangeDefinition;
     weekStart?: CalendarWeekStart;
     components?: AgendaComponents<Event>;

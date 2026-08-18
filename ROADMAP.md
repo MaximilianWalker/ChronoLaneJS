@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-16
+Last reviewed: 2026-08-17
 
 ## Tracking rules
 
@@ -62,16 +62,16 @@ Last reviewed: 2026-08-16
 
 - [x] **[P0][TG-01] Preserve original event identity in time-grid callbacks.**
   - Layout segments retain their normalized source event.
-  - Selection and editing callbacks receive the source with its unclipped
-    boundaries and original resource data.
+  - Selection and opening callbacks receive the source with its unclipped
+    boundaries, plus the rendered day/resource occurrence.
   - Renderers receive the source event and visible segment separately.
 - [x] **[P0][TG-02] Return a complete event-drop payload.**
-  - Drops return the source event, proposed start and end, and explicit source
+  - Moves return the source event, proposed start and end, and explicit source
     and destination day/resource positions.
-  - Cross-resource drops retain the concrete destination resource.
-  - Dragging a clipped segment preserves the source event's full duration.
+  - Cross-resource moves retain the concrete destination resource.
+  - Moving a clipped segment preserves the source event's full duration.
 - [x] **[P0][TG-03] Decouple slot interaction from grid visibility.**
-  - Slots remain selectable and droppable regardless of visual grid-line
+  - Slots remain selectable and valid movement targets regardless of grid-line
     styling.
   - The redundant `showGrid` prop is removed; the interaction layer is always
     mounted and grid-line presentation is owned by CSS.
@@ -126,13 +126,17 @@ Last reviewed: 2026-08-16
     directly.
   - Uncontrolled view state is never updated during render.
 - [x] **[P0][API-03] Keep one callback for each user action.**
-  - Event selection uses `onEventSelect(event, interaction)`.
+  - Event selection and opening use separate semantic callbacks with one shared
+    `(event, interaction, context)` shape.
+  - Raw event-root interactions are additive through `eventInteractions` and
+    never replace selection or opening behavior.
   - Slot selection uses `onSlotSelect(slot, interaction)`.
   - Callback naming and argument order are consistent across views.
 - [x] **[P0][API-04] Make callback presence enable interactions.**
-  - `onEventEdit` enables editing and `onEventDrop` enables dragging.
-  - Optional `canEditEvent` and `canDragEvent` predicates restrict individual
-    source events or visible drag segments.
+  - `onEventSelect`, `onEventOpen`, `onEventDrop`, and `onEventResize` enable
+    only their corresponding behavior without remapping gestures.
+  - Optional `canSelectEvent`, `canOpenEvent`, `canDragEvent`, and
+    `canResizeEvent` predicates restrict individual occurrences or segments.
 - [x] **[P1][API-05] Replace flat renderer props with a `components` contract.**
   - Group event, slot, background, day-header, resource-header, empty-state,
     and navigation renderers by view.
@@ -160,8 +164,8 @@ Last reviewed: 2026-08-16
 - [x] **[P1][API-08] Keep time-grid scale configuration independently overridable.**
   - Flat primitive props avoid configuration-object merge rules and unstable
     object identities when callers override one value.
-  - `slotDuration` and `labelInterval` replace the ambiguous `step` and
-    presentation-oriented `dividerInterval` names.
+  - `slotDuration`, `resizeStep`, and `labelInterval` independently own slot
+    selection, resize precision, and label cadence.
 - [x] **[P1][API-09] Group resource configuration.**
   - Keep resource items and their ID, title, and event-assignment accessors in
     one typed resource contract.
@@ -202,7 +206,7 @@ Last reviewed: 2026-08-16
   - Event interaction predicates are evaluated where their behavior is owned.
   - Drop construction is a focused, independently tested domain operation.
 - [x] **[P1][ARCH-03] Share event interaction semantics across views.**
-  - One tested policy owns selection, editing, keyboard, and shortcut behavior
+  - One tested policy owns selection, opening, raw interactions, keyboard, and shortcut behavior
     for month, agenda, and time-grid renderers.
   - View-specific markup remains separate and receives cohesive standard React
     interaction props.
@@ -222,15 +226,16 @@ Last reviewed: 2026-08-16
     and month overflow text.
   - Do not require replacing a renderer solely to translate a string.
 - [ ] **[P1][A11Y-01] Define time-grid keyboard semantics.**
-  - Document focus order and selection/edit shortcuts.
+  - Event selection/opening and resize-handle focus/keyboard behavior are
+    documented and tested; complete grid navigation remains open.
   - Add appropriate grid, row, column-header, and grid-cell semantics where
     they improve assistive-technology behavior.
   - Test the behavior with keyboard-only interaction.
-- [ ] **[P1][A11Y-02] Replace native-only drag and drop.**
-  - Native HTML drag events do not provide a complete touch or keyboard
-    experience.
-  - Support pointer, touch, and keyboard movement with equivalent callbacks
-    and announcements.
+- [x] **[P1][A11Y-02] Replace native-only drag and drop.**
+  - Independent move controls use one slot-target model for pointer, touch,
+    and keyboard input without changing event select/open gestures.
+  - Complete proposals preview immediately, announce their date, time, and
+    resource, and invoke `onEventDrop` once when committed.
 - [ ] **[P1][A11Y-03] Audit every built-in view with assistive technology.**
   - Keep automated axe checks.
   - Add a documented manual pass for screen-reader names, focus visibility,
@@ -244,11 +249,12 @@ Last reviewed: 2026-08-16
 - [x] **[P0][TEST-01] Test public callback identity and payloads.**
   - Browser stories cover ordinary, clipped multi-day, overnight, and
     multi-resource event callbacks.
-  - Selection and editing assertions verify source boundaries and resource
-    data rather than visible layout-segment values.
-- [x] **[P0][TEST-02] Test drag and drop across days and resources.**
+  - Selection and opening assertions verify source boundaries and occurrence
+    resource data rather than visible layout-segment values.
+- [x] **[P0][TEST-02] Test event movement across days and resources.**
   - Unit tests cover duration preservation and cross-resource destinations.
-  - Browser stories cover successful, cancelled, and invalid-target drops.
+  - Browser stories cover pointer, touch, keyboard, cancelled, and
+    cross-resource moves.
 - [x] **[P0][TEST-03] Add compile-time public API tests.**
   - Assert accepted prop combinations for every built-in view.
   - Assert that typos, wrong callback payloads, and view-incompatible props
@@ -262,7 +268,7 @@ Last reviewed: 2026-08-16
     ranges, and custom range-owned navigation.
 - [x] **[P1][TEST-05] Cover interaction enablement and renderer contracts.**
   - Callback-presence defaults and event-specific predicates.
-  - Selection, editing, and slot interaction with customized renderers.
+  - Selection, opening, resize, and slot interaction with customized renderers.
   - Interaction remains available when grid lines are visually hidden.
 - [x] **[P1][TEST-06] Test supported dependency combinations.**
   - The CI compatibility matrix installs matching React and React DOM 18.2
@@ -289,7 +295,7 @@ Last reviewed: 2026-08-16
   - [Getting started](./docs/getting-started.md) and the
     [API reference](./docs/api.md) use the current names and document event
     identity, controlled state, time zones, ranges, resources, renderer
-    contracts, and drop payloads with concrete data.
+    contracts, and movement payloads with concrete data.
 - [x] **[P1][DOC-02] Publish a complete API reference.**
   - The [API reference](./docs/api.md) covers every public export and interface
     property, including callback payloads, defaults, examples, and thrown
@@ -305,24 +311,34 @@ Last reviewed: 2026-08-16
     production-built by `npm run examples:check` in CI.
 - [x] **[P1][DOC-05] Document accessibility behavior.**
   - [Accessibility](./docs/accessibility.md) documents current keyboard and
-    focus behavior, messages, drag alternatives and limitations, and
-    custom-renderer responsibilities without claiming open A11Y work is done.
+    focus behavior, messages, equivalent movement inputs and announcements,
+    and custom-renderer responsibilities without claiming open A11Y work is done.
 - [ ] **[P2][DOC-06] Document deliberate non-goals.**
   - Decide and document ownership of recurrence expansion, persistence,
     fetching, application state, and design-system styling.
 
 ## Repository and maintenance
 
-- [ ] **[P1][REPO-01] Add issue and pull-request templates.**
-  - Include reproduction, browser/time-zone/locale information, accessibility
-    impact, tests, stories, and the relevant roadmap identifier.
-- [ ] **[P1][REPO-02] Automate dependency maintenance.**
-  - Configure grouped dependency updates with CI validation and controlled
-    major-version review.
-- [ ] **[P1][REPO-03] Verify the security-reporting path.**
-  - Confirm private vulnerability reporting is enabled and matches
-    `SECURITY.md`.
-  - Define how supported versions receive security fixes after releases exist.
+- [x] **[P1][REPO-01] Add issue and pull-request templates.**
+  - Structured bug and feature forms capture reproduction or use-case details,
+    browser/time-zone/locale considerations, accessibility impact, verification
+    expectations, and the relevant roadmap identifier.
+  - The pull-request template records issue and roadmap tracking, compatibility
+    impact, tests, Storybook coverage, and validation results. Security reports
+    are directed to the private vulnerability-reporting form.
+- [x] **[P1][REPO-02] Automate dependency maintenance.**
+  - Weekly Dependabot updates cover the root package, locked Vite and Next.js
+    consumers, and pinned GitHub Actions; routine minor/patch updates are
+    grouped and every pull request runs the full CI matrix.
+  - Major updates, including major-version security fixes, stay in separate
+    reviewer-requested pull requests; security alerts and routine security
+    groups remain enabled independently.
+- [x] **[P1][REPO-03] Verify the security-reporting path.**
+  - Private vulnerability reporting is enabled and `SECURITY.md` links
+    directly to the repository's private advisory form.
+  - Only npm's `latest` stable release is supported. Confirmed issues use a
+    draft advisory and temporary private fork, publish a validated patch from
+    `main`, and merge the released fix back into `dev`.
 - [ ] **[P2][REPO-04] Track package size.**
   - Record an initial ESM and CSS budget and fail CI on unexplained material
     regressions.
@@ -332,13 +348,22 @@ Last reviewed: 2026-08-16
 
 ## Product decisions
 
-- [ ] **[P1][DEC-01] Decide whether event resizing is in scope.**
-  - If included, define mouse, touch, keyboard, minimum-duration, and
-    cross-boundary behavior before exposing an API.
-  - If excluded, clarify that `onEventEdit` launches application-owned editing.
-- [ ] **[P1][DEC-02] Decide how all-day events appear in time-grid views.**
-  - Either define a dedicated all-day region or document that consumers should
-    use month/agenda views or a custom renderer.
+- [x] **[P1][DEC-01] Include precise time-grid event resizing.**
+  - `onEventResize` and `canResizeEvent` cover start/end edges with pointer,
+    touch, and keyboard handles independent from event selection/opening.
+  - `resizeStep` owns target precision independently from visible slot size;
+    movement previews the complete interval immediately.
+  - Resizing may cross visible days while retaining the resource.
+  - Commit emits one complete proposal; Escape, pointer cancel, and no movement
+    emit nothing. Background events remain non-interactive.
+- [x] **[P1][DEC-02] Decide how multi-day events appear in time-grid views.**
+  - `multiDayEventLayout` selects the backward-compatible `"timed"` layout or
+    a `"dedicated"` region aligned with visible day/resource columns.
+  - Multi-day placement is derived from positive half-open event intervals; no
+    redundant all-day event flag is introduced.
+  - Dedicated foreground events retain selection, opening, day/resource
+    movement, whole-day resizing, accessible labels, and DST-stable wall times.
+    Background events remain in the hourly grid.
 - [ ] **[P2][DEC-03] Decide the large-resource strategy.**
   - Define practical limits and whether horizontal virtualization, grouped
     resources, or consumer-owned pagination belongs in the library.

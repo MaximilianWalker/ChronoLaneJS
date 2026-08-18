@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { ElementType } from "react";
 
 import Calendar, {
     defaultCalendarMessages,
@@ -62,20 +61,16 @@ function MeetingRenderer({
     selected,
     elementProps
 }: TimeGridEventProps<Meeting, Room>) {
-    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Root: ElementType = interactive ? "button" : "div";
-
     return (
-        <Root
+        <div
             {...elementProps}
-            type={interactive ? "button" : undefined}
             className={`${elementProps.className} example-event`}
-            aria-pressed={interactive ? selected : undefined}
+            data-selected={selected || undefined}
             data-resource-id={segment.resourceId ?? undefined}
         >
             <strong>{event.title}</strong>
             <span>{event.owner}</span>
-        </Root>
+        </div>
     );
 }
 
@@ -100,19 +95,20 @@ export default function App() {
                 locale="en-GB"
                 localeFallback={<p role="status">Loading locale…</p>}
                 messages={messages}
-                timeZone="Europe/Lisbon"
+                timeZone="UTC"
                 selectedEventIds={selectedEventIds}
                 onEventSelect={(event) => {
                     setSelectedEventIds([event.id]);
                     setStatus(`Selected ${event.title ?? "event"}.`);
                 }}
-                onEventEdit={(event) => setStatus(`Edit ${event.title ?? "event"}.`)}
+                onEventOpen={(event) => setStatus(`Open ${event.title ?? "event"}.`)}
                 viewProps={{
                     resources: roomConfig,
                     groupBy: "resource",
                     minTime: "08:00",
                     maxTime: "18:00",
                     slotDuration: 30,
+                    resizeStep: 15,
                     labelInterval: 60,
                     slotSizing: { minWidth: 140, height: 44 },
                     selectedRange,
@@ -131,6 +127,12 @@ export default function App() {
                             }
                             : item));
                         setStatus(`Moved ${event.title ?? "event"}.`);
+                    },
+                    onEventResize: ({ event, start, end }) => {
+                        setEvents((current) => current.map((item) => item.id === event.id
+                            ? { ...item, start, end }
+                            : item));
+                        setStatus(`Resized ${event.title ?? "event"}.`);
                     },
                     components: { event: MeetingRenderer }
                 }}

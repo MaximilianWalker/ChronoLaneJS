@@ -67,7 +67,7 @@ test("projects private slots to the semantic renderer contract", () => {
 });
 
 test("projects private event placement to the semantic renderer contract", () => {
-    const segment = toTimeGridEventSegment<TestEvent, TestResource>({
+    const layoutSegment = {
         ...event,
         event,
         day,
@@ -78,13 +78,30 @@ test("projects private event placement to the semantic renderer contract", () =>
         resourceIndex: 0,
         startRow: 61,
         endRow: 91
-    });
+    };
+    const segment = toTimeGridEventSegment<TestResource>(layoutSegment);
 
     assert.deepEqual(Object.keys(segment).sort(), [
         "day",
         "end",
+        "layout",
         "resource",
         "resourceId",
         "start"
     ]);
+    assert.equal(segment.layout, "timed");
+});
+
+test("identifies dedicated event segments for custom renderers", () => {
+    const segment = toTimeGridEventSegment<TestResource>({
+        start,
+        end: new Date(2026, 8, 16, 9, 30),
+        day,
+        resource,
+        resourceId: resource.id
+    }, "dedicated");
+
+    assert.equal(segment.layout, "dedicated");
+    assert.equal(segment.day, day);
+    assert.equal(segment.end.getDate(), 16);
 });

@@ -27,6 +27,9 @@ export type TimeOfDay = `${TimeHour}:${TimeMinute}`;
 /** Outer grouping dimension used when both days and resources are visible. */
 export type TimeGridGroupBy = "day" | "resource";
 
+/** Placement policy for events that cross a local calendar-day boundary. */
+export type TimeGridMultiDayEventLayout = "timed" | "dedicated";
+
 type TimeGridSlotWidth =
     | {
         /** Fixed positive pixel width of each day or resource slot. */
@@ -78,8 +81,9 @@ export interface TimeGridSlot<Resource = unknown> {
     resourceId: CalendarResourceId | null;
 }
 
-/** Visible, clipped portion of an event in one day and resource column. */
+/** Semantic event portion rendered by the timed grid or dedicated region. */
 export interface TimeGridEventSegment<Resource = unknown> {
+    layout: TimeGridMultiDayEventLayout;
     start: Date;
     end: Date;
     day: Date;
@@ -87,14 +91,14 @@ export interface TimeGridEventSegment<Resource = unknown> {
     resourceId: CalendarResourceId | null;
 }
 
-/** Calendar position occupied by an event before or after a drop. */
-export interface TimeGridEventDropPosition<Resource = unknown> {
+/** Calendar position occupied by an event interaction in the time grid. */
+export interface TimeGridEventPosition<Resource = unknown> {
     day: Date;
     resource: Resource | null;
     resourceId: CalendarResourceId | null;
 }
 
-/** Complete application-facing result of dropping a time-grid event. */
+/** Complete application-facing result of moving a time-grid event. */
 export interface TimeGridEventDrop<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
@@ -102,8 +106,23 @@ export interface TimeGridEventDrop<
     event: NormalizedCalendarEvent<Event>;
     start: Date;
     end: Date;
-    source: TimeGridEventDropPosition<Resource>;
-    destination: TimeGridEventDropPosition<Resource>;
+    source: TimeGridEventPosition<Resource>;
+    destination: TimeGridEventPosition<Resource>;
+}
+
+/** Event boundary changed by a time-grid resize interaction. */
+export type TimeGridEventResizeEdge = "start" | "end";
+
+/** Complete application-facing result of resizing a time-grid event. */
+export interface TimeGridEventResize<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> {
+    event: NormalizedCalendarEvent<Event>;
+    edge: TimeGridEventResizeEdge;
+    start: Date;
+    end: Date;
+    source: TimeGridEventPosition<Resource>;
 }
 
 export interface TimeGridSlotProps<Resource = unknown> {
@@ -159,23 +178,35 @@ export interface TimeGridComponents<
 export interface TimeGridViewProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
-> extends SharedViewProps<Event> {
+> extends SharedViewProps<Event, Resource> {
     resources?: CalendarResourceConfig<Event, Resource>;
     groupBy?: TimeGridGroupBy;
+    /** Places multi-day foreground events in timed slots or a dedicated region. */
+    multiDayEventLayout?: TimeGridMultiDayEventLayout;
     range?: CalendarRangeDefinition;
     weekStart?: CalendarWeekStart;
     minTime?: TimeOfDay;
     maxTime?: TimeOfDay | "24:00";
     slotDuration?: number;
+    /** Positive whole-minute increment used by pointer and keyboard resizing. */
+    resizeStep?: number;
     labelInterval?: number;
     /** Per-slot fixed or fluid-minimum dimensions. */
     slotSizing?: TimeGridSlotSizing;
     selectedRange?: CalendarSelectionRange;
+    /** Restricts movement controls for individual visible event segments. */
     canDragEvent?: (
         event: NormalizedCalendarEvent<Event>,
         segment: TimeGridEventSegment<Resource>
     ) => boolean;
+    /** Reports one complete movement proposal when the user commits it. */
     onEventDrop?: (change: TimeGridEventDrop<Event, Resource>) => void;
+    canResizeEvent?: (
+        event: NormalizedCalendarEvent<Event>,
+        segment: TimeGridEventSegment<Resource>,
+        edge: TimeGridEventResizeEdge
+    ) => boolean;
+    onEventResize?: (change: TimeGridEventResize<Event, Resource>) => void;
     onSlotSelect?: (
         slot: TimeGridSlot<Resource>,
         interaction: SyntheticEvent

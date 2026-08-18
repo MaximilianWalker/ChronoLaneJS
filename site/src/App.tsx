@@ -93,7 +93,7 @@ export default function App() {
                             <div className="schedule-caption">
                                 <span className="schedule-avatar">CL</span>
                                 <span><strong>Timezone-safe</strong> across every visible lane</span>
-                                <span className="schedule-zone">Europe/Lisbon</span>
+                                <span className="schedule-zone">UTC</span>
                             </div>
                         </div>
                     </div>

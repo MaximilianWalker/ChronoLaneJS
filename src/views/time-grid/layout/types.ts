@@ -7,6 +7,7 @@ import type {
     TimeGridColumn,
     TimeGridSlot
 } from "../types.js";
+import type { ResolvedTimeWindow } from "./timeScale.js";
 
 export interface LayoutColumn<Resource = unknown>
     extends TimeGridColumn<Resource> {
@@ -59,6 +60,7 @@ export interface TimeGridLayout<
     Resource = unknown
 > {
     columns: LayoutColumn<Resource>[];
+    timeWindow: ResolvedTimeWindow;
     slots: LayoutSlot<Resource>[];
     dividers: LayoutDivider[];
     events: LayoutEvent<Event, Resource>[];

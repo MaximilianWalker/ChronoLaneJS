@@ -46,7 +46,7 @@ const EMPTY_COMPONENTS = /* @__PURE__ */ Object.freeze({});
  *
  * @remarks
  * Each event is shown on every day it overlaps, up to `maxEventsPerDay`.
- * Background events decorate day cells while event, header, selection, editing,
+ * Background events decorate day cells while event, header, selection, opening,
  * and navigation behavior remain independently replaceable.
  */
 export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
@@ -69,12 +69,14 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
     timeZone,
     selectedDate,
     selectedEventIds = EMPTY_EVENTS,
-    canEditEvent,
+    canSelectEvent,
+    canOpenEvent,
     onDateChange,
     onRangeChange,
     onSelectDay,
     onEventSelect,
-    onEventEdit,
+    onEventOpen,
+    eventInteractions,
     onShowMore,
     components = EMPTY_COMPONENTS
 }: MonthViewProps<Event>) {
@@ -238,18 +240,31 @@ export default function MonthView<Event extends CalendarEvent = CalendarEvent>({
                                         {(!outsideMonth || showOutsideDays) && (
                                             <div className="month-view_events">
                                                 {visibleEvents.map((event) => {
+                                                    const interactionContext = {
+                                                        view: viewName,
+                                                        occurrence: {
+                                                            day,
+                                                            resource: null,
+                                                            resourceId: null
+                                                        }
+                                                    };
                                                     const interactionProps = createEventInteractionProps({
                                                         event,
+                                                        context: interactionContext,
+                                                        canSelectEvent,
+                                                        canOpenEvent,
                                                         onEventSelect,
-                                                        onEventEdit,
-                                                        canEditEvent
+                                                        onEventOpen,
+                                                        eventInteractions
                                                     });
                                                     const startDate = formatters.date(event.start, formatContext);
                                                     const startTime = formatters.time(event.start, formatContext);
                                                     const endDate = formatters.date(event.end, formatContext);
                                                     const endTime = formatters.time(event.end, formatContext);
                                                     const interactive = interactionProps.onClick != null
-                                                        || interactionProps.onDoubleClick != null;
+                                                        || interactionProps.onDoubleClick != null
+                                                        || interactionProps.onContextMenu != null
+                                                        || interactionProps.onKeyDown != null;
                                                     return (
                                                         <EventComponent
                                                             key={`${event.id ?? event.title}-${event.start.getTime()}-${day.getTime()}`}

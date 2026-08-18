@@ -148,9 +148,36 @@ continue from the published Git tags.
 before semantic-release. The workflow uses the default fail-closed step
 behavior, so any failed validation prevents the publication step.
 
+## Dependency maintenance
+
+Dependabot checks the root package, both locked consumer examples, and pinned
+GitHub Actions every Monday. Routine minor and patch updates are grouped by
+ecosystem. Major updates remain individual pull requests and require explicit
+compatibility review, including security fixes that cross a major version;
+they must not be folded into an update group.
+
+All Dependabot pull requests target the default `dev` branch and run the full
+pull-request CI matrix, including supported Node/React combinations, both
+consumer builds, browser stories, and the package checks. Dependabot security
+updates are enabled and grouped separately from scheduled version updates. Do
+not merge an automated update with failing checks or unresolved compatibility
+questions.
+
 Do not add an npm access token to the repository or workflow. Semantic-release
 publishes through npm trusted publishing with the workflow's short-lived OIDC
 identity.
+
+### Security releases
+
+The normal `dev`-to-`main` promotion path must not expose a confirmed
+vulnerability before a patched package is ready. Follow `SECURITY.md`: develop
+the remediation in the draft advisory's temporary private fork, validate it
+locally because CI cannot access that fork, and use the advisory merge control
+to land a release-bearing `fix:` commit based on `main`. Coordinate the gated
+npm release with publication of the advisory, then merge `main` back into
+`dev` immediately. Do not copy confidential advisory details into public
+branches, pull requests, workflow logs, or issues before the coordinated
+disclosure.
 
 The npm trusted publisher must match these values exactly:
 

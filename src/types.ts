@@ -5,6 +5,8 @@ import type {
     CSSProperties,
     ElementType,
     HTMLAttributes,
+    KeyboardEvent,
+    MouseEvent,
     ReactNode,
     SyntheticEvent
 } from "react";
@@ -66,6 +68,50 @@ export interface CalendarEvent {
 
 export type NormalizedCalendarEvent<Event extends CalendarEvent = CalendarEvent> =
     Omit<Event, "start" | "end"> & { start: Date; end: Date };
+
+/** Concrete day and resource occurrence that received an event interaction. */
+export interface CalendarEventOccurrence<Resource = unknown> {
+    day: Date;
+    resource: Resource | null;
+    resourceId: CalendarResourceId | null;
+}
+
+/** View and occurrence identity supplied with an event interaction. */
+export interface CalendarEventInteractionContext<Resource = unknown> {
+    view: string;
+    occurrence: CalendarEventOccurrence<Resource>;
+}
+
+/** Raw event handlers composed with the calendar's semantic interactions. */
+export interface CalendarEventInteractions<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> {
+    onClick?: (
+        event: NormalizedCalendarEvent<Event>,
+        interaction: MouseEvent<HTMLElement>,
+        context: CalendarEventInteractionContext<Resource>
+    ) => void;
+    onDoubleClick?: (
+        event: NormalizedCalendarEvent<Event>,
+        interaction: MouseEvent<HTMLElement>,
+        context: CalendarEventInteractionContext<Resource>
+    ) => void;
+    onContextMenu?: (
+        event: NormalizedCalendarEvent<Event>,
+        interaction: MouseEvent<HTMLElement>,
+        context: CalendarEventInteractionContext<Resource>
+    ) => void;
+    onKeyDown?: (
+        event: NormalizedCalendarEvent<Event>,
+        interaction: KeyboardEvent<HTMLElement>,
+        context: CalendarEventInteractionContext<Resource>
+    ) => void;
+    ariaKeyShortcuts?: string | ((
+        event: NormalizedCalendarEvent<Event>,
+        context: CalendarEventInteractionContext<Resource>
+    ) => string | undefined);
+}
 
 /** Resource columns and accessors supplied to a time-grid view. */
 export interface CalendarResourceConfig<
@@ -220,6 +266,29 @@ export interface CalendarEventMessageContext extends CalendarMessageContext {
     endTime: string;
 }
 
+/** Prepared values used to label an event movement control. */
+export interface CalendarEventMoveHandleMessageContext
+    extends CalendarMessageContext {
+    title?: string;
+}
+
+/** Prepared values used to announce an event movement destination. */
+export interface CalendarEventMoveTargetMessageContext
+    extends CalendarEventMoveHandleMessageContext {
+    date: string;
+    time: string;
+    resource?: string;
+}
+
+/** Prepared values used to label an event resize boundary. */
+export interface CalendarEventResizeHandleMessageContext
+    extends CalendarMessageContext {
+    edge: "start" | "end";
+    title?: string;
+    date: string;
+    time: string;
+}
+
 /** Prepared values available when formatting a visible event time range. */
 export interface CalendarTimeRangeMessageContext extends CalendarMessageContext {
     startTime: string;
@@ -237,9 +306,19 @@ export interface CalendarMessages {
     previous: (context: CalendarNavigationMessageContext) => string;
     next: (context: CalendarNavigationMessageContext) => string;
     timeGridLabel: (context: CalendarMessageContext) => string;
+    multiDayRegionLabel: (context: CalendarMessageContext) => string;
     monthGridLabel: (context: CalendarMessageContext) => string;
     slotLabel: (context: CalendarSlotMessageContext) => string;
     eventLabel: (context: CalendarEventMessageContext) => string;
+    eventMoveHandle: (
+        context: CalendarEventMoveHandleMessageContext
+    ) => string;
+    eventMoveTarget: (
+        context: CalendarEventMoveTargetMessageContext
+    ) => string;
+    eventResizeHandle: (
+        context: CalendarEventResizeHandleMessageContext
+    ) => string;
     timeRange: (context: CalendarTimeRangeMessageContext) => string;
     agendaEmpty: (context: CalendarNavigationMessageContext) => string;
     moreEvents: (context: CalendarMoreEventsMessageContext) => string;
@@ -262,7 +341,10 @@ export interface CalendarComponents {
     navigation?: CalendarNavigationButton;
 }
 
-export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
+export interface SharedViewProps<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> {
     className?: string;
     style?: CalendarStyle;
     events?: Event[];
@@ -278,15 +360,25 @@ export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
     maxDate?: CalendarDateInput | null;
     showControls?: boolean;
     selectedEventIds?: CalendarEventId[];
-    canEditEvent?: (event: NormalizedCalendarEvent<Event>) => boolean;
+    canSelectEvent?: (
+        event: NormalizedCalendarEvent<Event>,
+        context: CalendarEventInteractionContext<Resource>
+    ) => boolean;
+    canOpenEvent?: (
+        event: NormalizedCalendarEvent<Event>,
+        context: CalendarEventInteractionContext<Resource>
+    ) => boolean;
     onDateChange?: (date: Date) => void;
     onRangeChange?: (range: CalendarRange) => void;
     onEventSelect?: (
         event: NormalizedCalendarEvent<Event>,
-        interaction: SyntheticEvent
+        interaction: SyntheticEvent,
+        context: CalendarEventInteractionContext<Resource>
     ) => void;
-    onEventEdit?: (
+    onEventOpen?: (
         event: NormalizedCalendarEvent<Event>,
-        interaction: SyntheticEvent
+        interaction: SyntheticEvent,
+        context: CalendarEventInteractionContext<Resource>
     ) => void;
+    eventInteractions?: CalendarEventInteractions<Event, Resource>;
 }

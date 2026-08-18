@@ -54,8 +54,8 @@ keeping state management and persistence outside the component.
   date-fns locales, and explicit week-start behavior are built in.
 - **Flexible layout:** overlapping events, clipped multi-day events,
   background events, resources, and non-contiguous ranges are first-class.
-- **Flexible integration:** controlled or uncontrolled navigation,
-  selection, editing, and drag-and-drop integrate with your state layer.
+- **Flexible integration:** controlled or uncontrolled navigation, event
+  selection/opening, resizing, and event movement integrate with your state layer.
 - **Customizable presentation:** override the meaningful render boundaries or
   style the defaults without inheriting a design system.
 - **Typed and tested:** the ESM package emits declarations from source, and
@@ -72,7 +72,7 @@ every public customization point, including:
 - resources, background events, and custom ranges;
 - custom renderers and view registration;
 - locale, timezone, and daylight-saving transitions;
-- responsive layouts, selection, editing, and drag-and-drop.
+- responsive layouts, selection, opening, resizing, and event movement.
 
 Use Storybook's toolbar to change the locale, IANA timezone, and viewport. The
 website and full catalog are rebuilt and deployed together from `main`.
@@ -122,7 +122,7 @@ export default function Schedule() {
             view="week"
             events={events}
             locale="en-US"
-            timeZone="Europe/Lisbon"
+            timeZone="UTC"
         />
     );
 }
@@ -202,6 +202,7 @@ label cadence:
         minTime: "08:00",
         maxTime: "18:00",
         slotDuration: 30,
+        resizeStep: 15,
         labelInterval: 60
     }}
 />
@@ -209,9 +210,25 @@ label cadence:
 
 `minTime` is inclusive and `maxTime` is exclusive. Both use strict,
 zero-padded `HH:mm` values; `maxTime` also accepts `24:00`. `slotDuration`
-controls selectable granularity, while `labelInterval` controls time labels
-and major dividers. Invalid or reversed configurations throw rather than being
-silently adjusted.
+controls selectable granularity, `resizeStep` independently controls pointer,
+touch, and keyboard resize precision, and `labelInterval` controls time labels
+and major dividers. Invalid configurations throw rather than being silently
+adjusted.
+
+Multi-day foreground events can remain in those hourly slots or use a compact
+region aligned below the day/resource headers:
+
+```tsx
+<Calendar
+    view="week"
+    viewProps={{ multiDayEventLayout: "dedicated" }}
+/>
+```
+
+The default is `"timed"`, which preserves the original layout. `"dedicated"`
+derives placement from `start` and `end`: any event crossing local midnight is
+shown in the separate region, while background events stay in the hourly grid.
+No `allDay` event flag is required.
 
 ### Slot sizing
 
@@ -251,7 +268,7 @@ independent width, so custom header content cannot drift out of alignment.
 is the synchronous default; other named locales are loaded lazily and cached.
 
 ```tsx
-<Calendar locale="pt-PT" timeZone="Europe/Lisbon" />
+<Calendar locale="en-GB" timeZone="UTC" />
 ```
 
 Call `preloadCalendarLocale(name)` when a locale should be available before
@@ -351,7 +368,7 @@ normalized `event`, their prepared visible values, `selected`, and
 `elementProps`.
 
 Spread `elementProps` onto the renderer's root element to retain layout,
-accessibility, drag, selection, and editing behavior. ChronoLaneJS owns those
+accessibility, selection, opening, and raw event behavior. ChronoLaneJS owns those
 behaviors while the renderer owns markup and presentation.
 
 ### Styling
@@ -427,19 +444,36 @@ hidden end buttons can be enforced through the WebKit scrollbar API.
 
 ### Interactions
 
-Selection and editing callbacks receive the normalized source event, never a
-clipped time-grid segment. Event renderers receive that source as `event` and
-the visible positioned portion as `segment`.
+Selection and opening callbacks receive the normalized source event and a
+rendered-occurrence context, never a clipped source in place of the event.
+Single click and Space select; double-click, double-tap, and Enter open. These
+gestures never change meaning based on which callbacks are present.
 
-Providing the shared `onEventEdit` callback enables editing. Supplying
-`viewProps.onEventDrop` enables time-grid dragging. Use the shared
-`canEditEvent(event)` or view-specific `canDragEvent(event, segment)` predicates
-to restrict individual events or visible resource segments.
+`eventInteractions` adds raw click, double-click, context-menu, and key-down
+callbacks without replacing the semantic behavior. Use `canSelectEvent` and
+`canOpenEvent` to restrict those semantic actions per event occurrence.
+
+Supplying `viewProps.onEventDrop` exposes an event move handle with pointer,
+touch, and keyboard support. Movement previews the complete event, targets the
+visible `slotDuration` scale, and announces each proposed date, time, and
+resource. Arrow Up/Down changes time, Arrow Left/Right changes the visible
+column, Enter or blur commits, and Escape cancels. Supplying
+`viewProps.onEventResize` exposes equivalent start/end resize handles. Resizes
+snap by `resizeStep` independently from the visual slots and preserve the
+resource. Use `canDragEvent` and `canResizeEvent` for per-segment restrictions.
+
+In a dedicated multi-day region, Left/Right moves across visible day/resource
+columns and resizing uses whole calendar-day steps. Both operations preserve
+the event's wall-clock fields, including across daylight-saving transitions.
 
 `onEventDrop` receives the source event, proposed `start` and `end`, and
-explicit `source` and `destination` positions. Dropping a clipped multi-day
+explicit `source` and `destination` positions. Moving a clipped multi-day
 event preserves the source event's complete duration. Each position includes
 both the concrete `resource` value and its stable `resourceId`.
+
+`onEventResize` receives the source event, changed edge, proposed complete
+boundaries, and source day/resource position. ChronoLaneJS proposes changes;
+application state remains consumer-owned.
 
 ### Custom views
 

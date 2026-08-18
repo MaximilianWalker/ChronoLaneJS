@@ -55,10 +55,10 @@ const preview: Preview = {
             toolbar: {
                 icon: "time",
                 items: [
-                    "Europe/Lisbon",
+                    "UTC",
                     "America/New_York",
-                    "Asia/Tokyo",
-                    "UTC"
+                    "Europe/Lisbon",
+                    "Asia/Tokyo"
                 ],
                 dynamicTitle: true
             }
@@ -66,7 +66,7 @@ const preview: Preview = {
     },
     initialGlobals: {
         locale: "en-US",
-        timeZone: "Europe/Lisbon"
+        timeZone: "UTC"
     },
     parameters: {
         a11y: {

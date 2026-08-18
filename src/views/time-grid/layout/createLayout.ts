@@ -141,6 +141,7 @@ export const createLayout = <Event extends CalendarEvent, Resource>({
 
     return {
         columns,
+        timeWindow,
         ...timeScale,
         events: sortEvents(assignEventLanes(eventSegments, columns.length)),
         backgroundEvents: backgroundSegments

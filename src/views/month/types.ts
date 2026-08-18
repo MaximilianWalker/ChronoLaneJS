@@ -35,7 +35,7 @@ export interface MonthComponents<Event extends CalendarEvent = CalendarEvent>
 }
 
 export interface MonthViewProps<Event extends CalendarEvent = CalendarEvent>
-    extends SharedViewProps<Event> {
+    extends SharedViewProps<Event, never> {
     weekStart?: CalendarWeekStart;
     showOutsideDays?: boolean;
     maxEventsPerDay?: number;

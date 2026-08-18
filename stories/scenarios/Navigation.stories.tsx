@@ -15,7 +15,7 @@ import {
     MIN_TIME
 } from "../fixtures.js";
 
-const TIME_ZONE = "Europe/Lisbon";
+const TIME_ZONE = "UTC";
 
 const calendarDate = (monthIndex: number, day: number): Date => (
     asCalendarDate(

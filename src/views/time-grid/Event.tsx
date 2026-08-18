@@ -1,12 +1,10 @@
-import type { ElementType } from "react";
-
 import type { TimeGridEventProps } from "./types.js";
 
 /**
  * Renders the default positioned time-grid event.
  *
- * Layout styles are supplied by the grid. The root becomes a button when click
- * or edit behavior is available and retains native drag support when enabled.
+ * Layout styles and event-root interactions are supplied by the grid. Move
+ * and resize controls remain independent siblings owned by the view.
  */
 export default function Event({
     event,
@@ -14,14 +12,18 @@ export default function Event({
     selected,
     elementProps
 }: TimeGridEventProps) {
-    const isInteractive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Component: ElementType = isInteractive ? "button" : "div";
+    const isInteractive = Boolean(
+        elementProps.onClick
+        || elementProps.onDoubleClick
+        || elementProps.onContextMenu
+        || elementProps.onKeyDown
+    );
 
     return (
-        <Component
+        <div
             {...elementProps}
-            type={isInteractive ? "button" : undefined}
             className={`${elementProps.className}${selected ? " is-selected" : ""} ${event.variant ?? "default"}`}
+            data-interactive={isInteractive || undefined}
             data-event-id={event.id}
             data-resource-id={segment.resourceId ?? undefined}
         >
@@ -36,6 +38,6 @@ export default function Event({
                     </span>
                 )}
             </div>
-        </Component>
+        </div>
     );
 }

@@ -16,7 +16,8 @@ first. Agenda then exposes interactive events in day order. Month exposes its
 focusable scroll region followed by each enabled day control, that day's
 interactive events, and its overflow control. Time grid exposes its focusable
 scroll region, selectable slots in time/column construction order, then
-interactive events in column order.
+interactive events and any resize handles in column order. When enabled, the
+dedicated multi-day region appears before the timed slots in focus order.
 
 Disabled navigation directions retain layout space as native disabled buttons,
 receive `aria-hidden`, have no click handler, and are visually hidden. They
@@ -35,20 +36,27 @@ model is planned under `A11Y-01`; it is not implemented today.
 | Context | Command | Behavior |
 | --- | --- | --- |
 | Navigation | `Enter` or `Space` | Activates the focused previous/next button. |
-| Selectable event | `Enter` or `Space` | Activates the native button click and calls `onEventSelect`. |
-| Editable-only event | `Enter` | Calls `onEventEdit`. |
-| Selectable and editable event | `Shift+Enter` | Calls `onEventEdit`; ordinary activation remains selection. |
-| Mouse event | Double click | Calls `onEventEdit` when allowed. |
+| Selectable event | `Space` | Calls `onEventSelect`. |
+| Openable event | `Enter` | Calls `onEventOpen`. |
+| Pointer event | Single click | Calls `onEventSelect`; a double-click still selects only once. |
+| Pointer event | Double-click or double-tap | Calls `onEventOpen`. |
+| Event resize handle | Arrow keys | Previews the adjacent valid `resizeStep` boundary. |
+| Event resize handle | `Enter` or blur | Commits one `onEventResize` proposal after movement. |
+| Event resize handle | `Escape` | Cancels without calling `onEventResize`. |
+| Dedicated multi-day move handle | `ArrowLeft` or `ArrowRight` | Previews the adjacent visible day/resource column. |
+| Dedicated multi-day resize handle | `ArrowLeft` or `ArrowRight` | Previews the adjacent whole-calendar-day boundary. |
 | Selectable month day | `Enter` or `Space` | Calls `onSelectDay`. |
 | Month overflow | `Enter` or `Space` | Calls `onShowMore`. |
 | Selectable time slot | `Enter` or `Space` | Calls `onSlotSelect`. |
 | Focused scroll region | browser/platform scrolling keys | Scrolls the calendar surface. |
 
-Editable event roots receive `aria-keyshortcuts="Enter"` or
-`aria-keyshortcuts="Shift+Enter"` as appropriate. `canEditEvent` may remove
-editing behavior for one source event.
+Focusable event roots receive `aria-keyshortcuts="Space"`, `"Enter"`, or both
+according to their enabled semantics. `canSelectEvent` and `canOpenEvent` may
+remove one action for one rendered occurrence without remapping the remaining
+gesture. Consumer-provided `eventInteractions.ariaKeyShortcuts` is merged with
+the semantic shortcuts.
 
-## Selection and editing feedback
+## Selection and opening feedback
 
 Selection is controlled. Update `selectedEventIds`, `selectedDate`, or
 `selectedRange` after a callback to expose the resulting visual state:
@@ -71,12 +79,12 @@ const [announcement, setAnnouncement] = useState("No event selected.");
             if (event.id != null) setSelectedEventIds([event.id]);
             setAnnouncement(`Selected ${event.title ?? "calendar event"}.`);
         }}
-        onEventEdit={(event) => openAccessibleDialog(event)}
+        onEventOpen={(event) => openAccessibleDialog(event)}
     />
 </>
 ```
 
-ChronoLaneJS does not announce application outcomes such as a saved edit,
+ChronoLaneJS does not announce application outcomes such as a saved change,
 failed persistence request, or rejected move. Use an application live region
 and move focus intentionally when opening dialogs or changing views.
 
@@ -86,9 +94,11 @@ The `messages` registry owns all library-generated labels:
 
 - previous/next navigation labels;
 - month and time-grid names;
+- the dedicated multi-day region name;
 - selectable slot labels;
 - interactive event labels;
 - visible event time ranges;
+- event resize handles;
 - agenda empty state;
 - month overflow controls.
 
@@ -122,49 +132,67 @@ application text. Translate the complete `messages` registry explicitly.
 ### Time grid
 
 - The focusable scroll surface has the configured time-grid accessible name.
+- The optional dedicated multi-day section is a labelled region before the
+  hourly slots and is omitted when empty.
 - Selectable slots are native buttons with formatted date/time labels.
-- Interactive events are native buttons with complete event labels.
+- Interactive events are focusable event elements with complete labels and
+  explicit Space/Enter keyboard handlers; they are not represented as buttons.
+- Timed resize handles use vertical slider semantics; dedicated multi-day
+  handles use horizontal slider semantics. Both expose current, minimum,
+  maximum, and formatted boundary values.
 - Day and resource headers currently provide visible headings but do not yet
   implement the complete grid/row/column-header model planned in `A11Y-01`.
 
 ### Agenda
 
 - Each visible day is a section with a heading.
-- Interactive events are native buttons; non-interactive events are static.
+- Interactive events are focusable event elements; non-interactive events are
+  static.
 - The empty renderer receives application-configurable text.
 
-## Drag and drop limitation
+## Event resize behavior
 
-Time-grid movement currently uses native HTML drag events. It is mouse-oriented
-and does not provide an equivalent keyboard or reliable touch interaction.
-This is an explicit `A11Y-02` roadmap item.
+Time-grid resize handles are independent siblings of the event renderer, so
+operating a handle does not select, open, or drag the event. Pointer and touch
+movement snaps to the configured `resizeStep` boundaries. Keyboard Arrow keys
+move by the same boundaries even when visual slots are larger. The complete
+proposed interval is shown immediately. The event always contains at least one
+resize interval, including a shorter final interval when the configured time
+window is uneven.
 
-Applications must provide an alternative whenever `onEventDrop` is enabled.
-The recommended current fallback is an edit action that exposes date, time,
-and resource controls in an accessible dialog:
+Only the chosen start or end edge changes. Resizing may cross visible days on
+the same resource but never moves an event between resources. Pointer cancel
+and Escape discard the preview; releasing the pointer, pressing Enter, or
+leaving the keyboard handle commits one proposal. No movement produces no
+callback. Background events never expose interaction or resize controls.
 
-```tsx
-<Calendar
-    events={events}
-    onEventEdit={(event) => openMoveDialog(event)}
-    viewProps={{
-        onEventDrop: applyProposedMove
-    }}
-/>
-```
+## Event movement behavior
 
-The dialog should validate the same rules as a drag, announce errors, return
-focus to the invoking event, and update application state through the same
-move operation. Do not describe native dragging as keyboard- or touch-accessible.
+Time-grid move controls are independent siblings of the event renderer, so
+operating one does not select, open, or resize the event. Pointer and touch
+movement target the slot under the pointer. Keyboard Arrow Up/Down selects the
+previous or next time slot; Arrow Left/Right selects the adjacent visible day
+or resource column. Each target immediately previews the complete event and is
+announced with its prepared date, time, and resource label.
+
+Pointer cancel and Escape discard the preview. Releasing the pointer, pressing
+Enter, or leaving the keyboard control commits one `onEventDrop` proposal. No
+movement produces no callback. Moving a clipped segment preserves the complete
+source duration, and background events never expose movement controls.
+
+Dedicated multi-day controls follow the same commit and cancellation model.
+Movement targets adjacent visible day/resource columns. Resizing moves only the
+chosen edge in whole calendar-day steps, preserving wall-clock fields across
+DST. Exact formatted start/end values remain in event and handle labels.
 
 ## Custom renderer responsibilities
 
 Custom renderers replace markup but must preserve library behavior.
 
 1. Spread `elementProps` onto the root element without dropping handlers,
-   styles, `className`, `aria-label`, `aria-keyshortcuts`, or drag attributes.
-2. Use a native `button` when `elementProps` contains click or double-click
-   behavior. Set `type="button"` to avoid accidental form submission.
+   styles, `className`, `aria-label`, or `aria-keyshortcuts`.
+2. Keep event roots as event/content elements. ChronoLaneJS supplies explicit
+   pointer and keyboard behavior; do not recast every event as a native button.
 3. Keep the supplied accessible name unless the replacement provides an
    equivalent or better name.
 4. Preserve visible focus indication and selected-state contrast.
@@ -176,24 +204,19 @@ Custom renderers replace markup but must preserve library behavior.
 
 ```tsx
 function AccessibleEvent({ event, selected, elementProps }: TimeGridEventProps) {
-    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Root = interactive ? "button" : "div";
-
     return (
-        <Root
+        <div
             {...elementProps}
-            type={interactive ? "button" : undefined}
-            aria-pressed={interactive ? selected : undefined}
+            data-selected={selected || undefined}
         >
             <strong>{event.title ?? "Untitled event"}</strong>
-        </Root>
+        </div>
     );
 }
 ```
 
 `selected` is presentation state, not an instruction to override the supplied
-accessible label. Add `aria-pressed` only when the event behaves as a toggle or
-selection button in the application interaction model.
+accessible label or add button semantics.
 
 ## Visual accessibility
 
@@ -218,7 +241,7 @@ For every application integration and custom renderer, verify:
 - [ ] the schedule remains usable at 200% zoom and narrow widths;
 - [ ] high-contrast/forced-color modes retain boundaries and focus;
 - [ ] reduced-motion preference does not introduce unexpected animation;
-- [ ] touch users have an alternative to native drag-and-drop;
+- [ ] pointer, touch, and keyboard event movement reaches equivalent targets;
 - [ ] at least one target screen reader is included in release testing.
 
 The repository keeps automated Storybook accessibility checks, but automation

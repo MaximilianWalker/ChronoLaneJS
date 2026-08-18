@@ -12,15 +12,33 @@ import type { CalendarEvent, NormalizedCalendarEvent } from "../types.js";
  * @param timeZone - Optional IANA zone attached to each event's wall-clock fields.
  * @returns Normalized events in the same order as the input.
  * @throws TypeError if an event contains an invalid start or end value.
+ * @throws RangeError if an event has an empty or reversed interval.
  */
 export const normalizeEvents = <Event extends CalendarEvent>(
     events: Event[],
     timeZone?: string
-): NormalizedCalendarEvent<Event>[] => events.map((event) => ({
-    ...event,
-    start: asCalendarDate(event.start, timeZone),
-    end: asCalendarDate(event.end, timeZone)
-}));
+): NormalizedCalendarEvent<Event>[] => events.map((event, index) => {
+    let start: Date;
+    let end: Date;
+
+    try {
+        start = asCalendarDate(event.start, timeZone);
+    } catch {
+        throw new TypeError(`Calendar event at index ${index} start must be valid.`);
+    }
+    try {
+        end = asCalendarDate(event.end, timeZone);
+    } catch {
+        throw new TypeError(`Calendar event at index ${index} end must be valid.`);
+    }
+    if (end <= start) {
+        throw new RangeError(
+            `Calendar event at index ${index} end must be later than start.`
+        );
+    }
+
+    return { ...event, start, end };
+});
 
 /**
  * Returns a non-mutating chronological sort of normalized events.

@@ -69,6 +69,7 @@ export const defaultCalendarMessages = /* @__PURE__ */ Object.freeze<CalendarMes
     previous: (context) => `Previous ${navigationRangeName(context)}`,
     next: (context) => `Next ${navigationRangeName(context)}`,
     timeGridLabel: () => "Calendar grid",
+    multiDayRegionLabel: () => "Multi-day events",
     monthGridLabel: () => "Month calendar grid",
     slotLabel: ({ date, time }) => `Calendar slot, ${date}, ${time}`,
     eventLabel: ({
@@ -83,6 +84,14 @@ export const defaultCalendarMessages = /* @__PURE__ */ Object.freeze<CalendarMes
         `${startDate}, ${startTime} to ${endDate}, ${endTime}`,
         description
     ].filter(Boolean).join(", "),
+    eventMoveHandle: ({ title }) => `Move ${title ?? "calendar event"}`,
+    eventMoveTarget: ({ title, date, time, resource }) => [
+        `Move ${title ?? "calendar event"} to ${date}, ${time}`,
+        resource
+    ].filter(Boolean).join(", "),
+    eventResizeHandle: ({ edge, title, date, time }) => (
+        `Resize ${edge} of ${title ?? "calendar event"}, ${date}, ${time}`
+    ),
     timeRange: ({ startTime, endTime }) => `${startTime}–${endTime}`,
     agendaEmpty: () => "No events in this range.",
     moreEvents: ({ count }) => `+${count} more`

@@ -203,7 +203,7 @@ export default function Playground() {
         defaultDate: ANCHOR_DATE,
         events: visibleEvents,
         locale: "en-US",
-        timeZone: "Europe/Lisbon",
+        timeZone: "UTC",
         selectedEventIds,
         onEventSelect: selectEvent
     } as const;
