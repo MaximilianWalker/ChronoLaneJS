@@ -62,6 +62,7 @@ export interface TimeGridLayout<
     columns: LayoutColumn<Resource>[];
     timeWindow: ResolvedTimeWindow;
     slots: LayoutSlot<Resource>[];
+    slotRows: LayoutSlot<Resource>[][];
     dividers: LayoutDivider[];
     events: LayoutEvent<Event, Resource>[];
     backgroundEvents: LayoutEventSegment<Event, Resource>[];

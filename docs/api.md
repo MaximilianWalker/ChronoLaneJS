@@ -238,7 +238,7 @@ defaults to the week preset and `viewName="time-grid"`.
 | `onEventDrop` | `(change: TimeGridEventDrop) => void` | none | Enables live-preview pointer, touch, and keyboard movement and reports one committed proposal. It does not mutate events. | `({ event, start, end }) => update(event.id, { start, end })` |
 | `canResizeEvent` | `(event, segment, edge) => boolean` | allow all | Restricts a visible start or end resize handle. Evaluated only when `onEventResize` exists. | `(_, segment) => segment.resourceId !== "locked"` |
 | `onEventResize` | `(change: TimeGridEventResize) => void` | none | Enables live-preview pointer, touch, and keyboard resize handles and reports one committed proposal. | `({ event, start, end }) => update(event.id, { start, end })` |
-| `onSlotSelect` | `(slot, interaction) => void` | none | Enables slot buttons and reports the complete slot model. | `(slot) => setRange({ start: slot.start, end: slot.end })` |
+| `onSlotSelect` | `(slot, interaction) => void` | none | Enables slot buttons, roving grid focus, and Arrow/Home/End/Page navigation, then reports the complete slot model on activation. | `(slot) => setRange({ start: slot.start, end: slot.end })` |
 | `components` | `TimeGridComponents<Event, Resource>` | default renderers | Replaces event, slot, background, day header, resource header, or navigation renderers. | `{ event: ScheduleEvent }` |
 
 `TimeOfDay` is strict zero-padded `HH:mm`. `minTime="24:00"` is invalid.

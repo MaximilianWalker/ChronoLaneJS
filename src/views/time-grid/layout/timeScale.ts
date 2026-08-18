@@ -113,6 +113,7 @@ interface CreateTimeScaleOptions<Resource> {
 
 interface TimeScale<Resource> {
     slots: LayoutSlot<Resource>[];
+    slotRows: LayoutSlot<Resource>[][];
     dividers: LayoutDivider[];
     totalMinutes: number;
 }
@@ -150,7 +151,7 @@ export const createTimeScale = <Resource>({
     const { startMinute, endMinute, totalMinutes } = timeWindow;
     const slotCount = Math.ceil(totalMinutes / slotDuration);
     const dividerCount = Math.ceil(totalMinutes / labelInterval);
-    const slots = Array.from({ length: slotCount }, (_, timeIndex) => {
+    const slotRows = Array.from({ length: slotCount }, (_, timeIndex) => {
         const slotStartMinute = startMinute + (timeIndex * slotDuration);
         const slotEndMinute = Math.min(slotStartMinute + slotDuration, endMinute);
 
@@ -168,7 +169,8 @@ export const createTimeScale = <Resource>({
             isDividerBoundary: slotEndMinute !== endMinute
                 && (slotEndMinute - startMinute) % labelInterval === 0
         }));
-    }).flat();
+    });
+    const slots = slotRows.flat();
     const dividers = Array.from({ length: dividerCount }, (_, index) => {
         const minute = startMinute + (index * labelInterval);
 
@@ -185,6 +187,7 @@ export const createTimeScale = <Resource>({
 
     return {
         slots,
+        slotRows,
         dividers,
         totalMinutes
     };

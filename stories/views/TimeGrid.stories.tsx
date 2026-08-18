@@ -72,6 +72,33 @@ export const TwoDayRange: Story = {
     }
 };
 
+export const PassiveScheduleRegion: Story = {
+    args: {
+        range: "day"
+    },
+    play: async ({ canvasElement }) => {
+        const wrapper = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_grid-wrapper"
+        );
+        const grid = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_grid"
+        );
+        const slot = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_slot"
+        );
+
+        if (!wrapper || !grid || !slot) {
+            throw new Error("The passive time-grid example did not render.");
+        }
+
+        await expect(wrapper).toHaveAttribute("aria-label", "Calendar grid");
+        await expect(wrapper).toHaveAttribute("tabindex", "0");
+        await expect(grid).not.toHaveAttribute("role");
+        await expect(slot.tagName).toBe("DIV");
+        await expect(slot).not.toHaveAttribute("tabindex");
+    }
+};
+
 export const FifteenMinuteScale: Story = {
     args: {
         range: "day",

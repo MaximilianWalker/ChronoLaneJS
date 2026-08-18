@@ -183,7 +183,9 @@ styles may change.
 - `.time-grid-view_multi-day-region`, `.time-grid-view_multi-day-label`,
   `.time-grid-view_multi-day-grid`, `.time-grid-view_multi-day-event`
 - `.time-grid-view_body`, `.time-grid-view_time-labels`, `.time-grid-view_time-label`
-- `.time-grid-view_grid`, `.time-grid-view_slot`
+- `.time-grid-view_grid-stage`, `.time-grid-view_grid`
+- `.time-grid-view_slot-row`, `.time-grid-view_slot-cell`, `.time-grid-view_slot`
+- `.time-grid-view_event-layer`
 - `.time-grid-view_background-events`, `.time-grid-view_background-event`
 - `.time-grid-view_column-events`, `.time-grid-view_event`
 - `.time-grid-view_event-color-bar`, `.time-grid-view_event-content`

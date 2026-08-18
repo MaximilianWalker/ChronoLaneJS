@@ -11,25 +11,31 @@ the [roadmap](../ROADMAP.md#localization-and-accessibility).
 
 ## Focus order
 
-With default renderers, browser tab order follows the DOM. Navigation comes
-first. Agenda then exposes interactive events in day order. Month exposes its
+With default renderers, browser tab order follows the DOM except inside the
+selectable time-slot grid, which uses roving focus. Navigation comes first.
+Agenda then exposes interactive events in day order. Month exposes its
 focusable scroll region followed by each enabled day control, that day's
-interactive events, and its overflow control. Time grid exposes its focusable
-scroll region, selectable slots in time/column construction order, then
-interactive events and any resize handles in column order. When enabled, the
-dedicated multi-day region appears before the timed slots in focus order.
+interactive events, and its overflow control.
+
+A passive time grid exposes its labelled scroll region, dedicated multi-day
+events when present, and timed events and controls in column order. When
+`onSlotSelect` is enabled, the scroll region leaves the Tab sequence and the
+slot grid contributes one active slot button. Dedicated multi-day events come
+before that button; timed events and their controls follow it. `Shift+Tab`
+returns to the slot that most recently held focus.
 
 Disabled navigation directions retain layout space as native disabled buttons,
 receive `aria-hidden`, have no click handler, and are visually hidden. They
 cannot receive focus or be activated, including through a custom navigation
 renderer that spreads the supplied button props. If `showControls={false}`,
 navigation controls are omitted.
-Month and time-grid scroll regions use `tabIndex={0}` so keyboard users can
-focus and scroll them without first reaching a child action.
+Month and passive time-grid scroll regions use `tabIndex={0}` so keyboard users
+can focus and scroll them without first reaching a child action. Selectable
+time grids scroll the focused slot into view instead.
 
-The exact order of events and slots follows visual day/resource construction,
-not chronological order across all columns. A complete roving-grid keyboard
-model is planned under `A11Y-01`; it is not implemented today.
+The exact event order follows visual day/resource construction, not
+chronological order across all columns. Slot Arrow-key movement follows the
+visible row and column structure without changing the controlled selection.
 
 ## Keyboard commands
 
@@ -47,8 +53,12 @@ model is planned under `A11Y-01`; it is not implemented today.
 | Dedicated multi-day resize handle | `ArrowLeft` or `ArrowRight` | Previews the adjacent whole-calendar-day boundary. |
 | Selectable month day | `Enter` or `Space` | Calls `onSelectDay`. |
 | Month overflow | `Enter` or `Space` | Calls `onShowMore`. |
+| Selectable time grid | Arrow keys | Moves one slot in the corresponding time or day/resource direction without wrapping. |
+| Selectable time grid | `Home` or `End` | Moves to the first or last slot in the current time row. |
+| Selectable time grid | `Control+Home` or `Control+End` | Moves to the first or last slot in the complete grid. |
+| Selectable time grid | `PageUp` or `PageDown` | Moves approximately one visible page while retaining the current column. |
 | Selectable time slot | `Enter` or `Space` | Calls `onSlotSelect`. |
-| Focused scroll region | browser/platform scrolling keys | Scrolls the calendar surface. |
+| Focused passive scroll region | browser/platform scrolling keys | Scrolls the calendar surface. |
 
 Focusable event roots receive `aria-keyshortcuts="Space"`, `"Enter"`, or both
 according to their enabled semantics. `canSelectEvent` and `canOpenEvent` may
@@ -131,17 +141,28 @@ application text. Translate the complete `messages` registry explicitly.
 
 ### Time grid
 
-- The focusable scroll surface has the configured time-grid accessible name.
+- Without `onSlotSelect`, the focusable scroll surface has the configured
+  time-grid accessible name and slots remain passive presentation elements.
+- With `onSlotSelect`, the slot surface is a labelled composite grid. Time
+  intervals are rows, each day/resource position is a grid cell, and one
+  concrete header per column combines the visible hierarchical header labels.
+- Exactly one selectable slot button participates in page Tab order. Arrow,
+  Home, End, and Page keys move focus without selecting; native Enter and Space
+  activation call `onSlotSelect`.
+- The first selected visible slot initially receives the roving Tab stop;
+  otherwise the first slot does. Focusing or activating another slot remembers
+  it for subsequent Tab entry while it remains visible.
 - The optional dedicated multi-day section is a labelled region before the
   hourly slots and is omitted when empty.
-- Selectable slots are native buttons with formatted date/time labels.
+- The event layer is a sibling of the slot grid because timed events can span
+  and overlap several slots. Events therefore retain their independent labels,
+  focus order, and interaction semantics instead of being misrepresented as
+  grid-cell content.
 - Interactive events are focusable event elements with complete labels and
   explicit Space/Enter keyboard handlers; they are not represented as buttons.
 - Timed resize handles use vertical slider semantics; dedicated multi-day
   handles use horizontal slider semantics. Both expose current, minimum,
   maximum, and formatted boundary values.
-- Day and resource headers currently provide visible headings but do not yet
-  implement the complete grid/row/column-header model planned in `A11Y-01`.
 
 ### Agenda
 
@@ -190,7 +211,7 @@ DST. Exact formatted start/end values remain in event and handle labels.
 Custom renderers replace markup but must preserve library behavior.
 
 1. Spread `elementProps` onto the root element without dropping handlers,
-   styles, `className`, `aria-label`, or `aria-keyshortcuts`.
+   styles, `className`, `tabIndex`, `aria-label`, or `aria-keyshortcuts`.
 2. Keep event roots as event/content elements. ChronoLaneJS supplies explicit
    pointer and keyboard behavior; do not recast every event as a native button.
 3. Keep the supplied accessible name unless the replacement provides an
@@ -201,6 +222,9 @@ Custom renderers replace markup but must preserve library behavior.
    distinguish day/resource groups.
 7. If a renderer introduces controls inside an event, define an intentional
    focus and event-propagation policy.
+8. Keep a slot renderer's supplied root as its only focus target. Nested slot
+   controls would conflict with the grid's one-widget-per-cell navigation
+   contract.
 
 ```tsx
 function AccessibleEvent({ event, selected, elementProps }: TimeGridEventProps) {

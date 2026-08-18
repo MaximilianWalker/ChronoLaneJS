@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-17
+Last reviewed: 2026-08-18
 
 ## Tracking rules
 
@@ -225,12 +225,13 @@ Last reviewed: 2026-08-17
   - Cover navigation, grid labels, slot labels, event ranges, empty states,
     and month overflow text.
   - Do not require replacing a renderer solely to translate a string.
-- [ ] **[P1][A11Y-01] Define time-grid keyboard semantics.**
-  - Event selection/opening and resize-handle focus/keyboard behavior are
-    documented and tested; complete grid navigation remains open.
-  - Add appropriate grid, row, column-header, and grid-cell semantics where
-    they improve assistive-technology behavior.
-  - Test the behavior with keyboard-only interaction.
+- [x] **[P1][A11Y-01] Define time-grid keyboard semantics.**
+  - Selectable slots form a labelled composite grid with real rows, cells,
+    concrete day/resource column headers, and one roving Tab stop.
+  - Arrow, Home, End, and Page keys navigate without changing selection;
+    native Enter and Space activation retain the slot callback contract.
+  - Passive schedules remain labelled scroll regions, while timed events and
+    edit controls stay in an independent overlay with unchanged interactions.
 - [x] **[P1][A11Y-02] Replace native-only drag and drop.**
   - Independent move controls use one slot-target model for pointer, touch,
     and keyboard input without changing event select/open gestures.

@@ -83,9 +83,22 @@ type Story = StoryObj<typeof meta>;
 export const SelectEvent: Story = {
     play: async ({ args, canvasElement }) => {
         const canvas = within(canvasElement);
-        await userEvent.click(getEventElement(canvasElement, "Planning"));
+        const event = getEventElement(canvasElement, "Planning");
+        await userEvent.click(event);
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent("Selected Planning");
         await expect(args.onEventSelect).toHaveBeenCalledOnce();
+
+        const coveredSlot = canvas.getByRole("button", {
+            name: "Calendar slot, Monday, September 14th, 2026, 9:00 AM"
+        });
+        coveredSlot.focus();
+        await expect(coveredSlot).toHaveFocus();
+        const eventBounds = event.getBoundingClientRect();
+        const topElement = canvasElement.ownerDocument.elementFromPoint(
+            eventBounds.left + (eventBounds.width / 2),
+            eventBounds.top + (eventBounds.height / 2)
+        );
+        await expect(topElement?.closest(".time-grid-view_event-layer")).not.toBeNull();
     }
 };
 
@@ -379,6 +392,70 @@ export const SelectSlot: Story = {
     }
 };
 
+export const KeyboardSlotNavigation: Story = {
+    args: {
+        events: [],
+        viewProps: {
+            ...TIME_GRID_VIEW_PROPS,
+            resources: resourceConfig,
+            slotDuration: 30,
+            labelInterval: 60
+        }
+    },
+    render: (args) => (
+        <>
+            <InteractionHarness {...args} />
+            <button type="button" data-testid="after-calendar">
+                After calendar
+            </button>
+        </>
+    ),
+    play: async ({ args, canvasElement }) => {
+        const canvas = within(canvasElement);
+        const grid = canvas.getByRole("grid", { name: "Calendar grid" });
+        const slots = within(grid).getAllByRole("button");
+        const cells = within(grid).getAllByRole("gridcell");
+        const rows = within(grid).getAllByRole("row");
+        const headers = within(grid).getAllByRole("columnheader");
+        const wrapper = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_grid-wrapper"
+        );
+
+        await expect(wrapper).not.toHaveAttribute("tabindex");
+        await expect(headers).toHaveLength(3);
+        await expect(headers[0]).toHaveAccessibleName(/Monday.*Studio/i);
+        await expect(headers[1]).toHaveAccessibleName(/Monday.*Workshop/i);
+        await expect(headers[2]).toHaveAccessibleName(/Monday.*Terrace/i);
+        await expect(rows).toHaveLength(21);
+        await expect(cells).toHaveLength(60);
+        await expect(slots.filter(({ tabIndex }) => tabIndex === 0)).toEqual([
+            slots[0]
+        ]);
+
+        slots[0]?.focus();
+        await userEvent.keyboard("{ArrowRight}");
+        await expect(slots[1]).toHaveFocus();
+        await userEvent.keyboard("{ArrowDown}");
+        await expect(slots[4]).toHaveFocus();
+        await userEvent.keyboard("{Home}");
+        await expect(slots[3]).toHaveFocus();
+        await userEvent.keyboard("{End}");
+        await expect(slots[5]).toHaveFocus();
+        await userEvent.keyboard("{Control>}{Home}{/Control}");
+        await expect(slots[0]).toHaveFocus();
+        await userEvent.keyboard("{Control>}{End}{/Control}");
+        await expect(slots.at(-1)).toHaveFocus();
+        await userEvent.keyboard("{Enter}");
+        await expect(getTimeGridViewProps(args)?.onSlotSelect).toHaveBeenCalledOnce();
+        await expect(cells.at(-1)).toHaveAttribute("aria-selected", "true");
+
+        await userEvent.tab();
+        await expect(canvas.getByTestId("after-calendar")).toHaveFocus();
+        await userEvent.tab({ shift: true });
+        await expect(slots.at(-1)).toHaveFocus();
+    }
+};
+
 export const InteractionsWithoutGridLines: Story = {
     args: {
         style: {
@@ -389,8 +466,10 @@ export const InteractionsWithoutGridLines: Story = {
         const canvas = within(canvasElement);
         const grid = canvas.getByLabelText("Calendar grid");
         const slot = grid.querySelector<HTMLElement>(".time-grid-view_slot");
-        const header = grid.querySelector<HTMLElement>(".time-grid-view_header");
-        const headerCell = grid.querySelector<HTMLElement>(
+        const header = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_header"
+        );
+        const headerCell = canvasElement.querySelector<HTMLElement>(
             ".time-grid-view_header-cell"
         );
         const selectedSlot = canvas.getByRole("button", { name: /Calendar slot.*10:00/i });
@@ -712,6 +791,14 @@ export const CustomRendererSelection: Story = {
         await expect(slot).toHaveAttribute("data-story-day", "2026-09-14");
         await userEvent.click(slot);
         await expect(getTimeGridViewProps(args)?.onSlotSelect).toHaveBeenCalledOnce();
+
+        await userEvent.keyboard("{ArrowDown}");
+        const nextSlot = canvas.getByRole("button", {
+            name: /Calendar slot.*11:00 AM/i
+        });
+        await expect(nextSlot).toHaveFocus();
+        await userEvent.keyboard(" ");
+        await expect(getTimeGridViewProps(args)?.onSlotSelect).toHaveBeenCalledTimes(2);
     }
 };
 

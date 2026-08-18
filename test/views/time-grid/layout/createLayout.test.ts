@@ -215,6 +215,8 @@ test("creates slots and dividers from one validated time scale", () => {
 
     assert.equal(layout.totalMinutes, 600);
     assert.equal(layout.slots.length, 20);
+    assert.equal(layout.slotRows.length, 20);
+    assert.ok(layout.slotRows.every((row) => row.length === 1));
     assert.equal(layout.dividers.length, 10);
     assert.equal(format(layout.slots[0]!.start, "HH:mm"), "08:00");
     assert.equal(format(layout.slots.at(-1)!.end, "HH:mm"), "18:00");
