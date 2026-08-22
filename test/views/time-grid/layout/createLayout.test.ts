@@ -490,6 +490,23 @@ test("uses wall-clock rows across Lisbon daylight-saving changes", () => {
     ]);
 });
 
+test("keeps spring-forward divider labels on the requested wall-clock scale", () => {
+    const timeZone = "Europe/Lisbon";
+    const day = new TZDate(2026, 2, 29, 0, 0, 0, 0, timeZone);
+    const layout = createLayout({
+        days: [day],
+        minTime: "00:00",
+        maxTime: "05:00",
+        slotDuration: 30,
+        labelInterval: 60
+    });
+
+    assert.deepEqual(
+        layout.dividers.map(({ time }) => format(time, "HH:mm")),
+        ["00:00", "01:00", "02:00", "03:00", "04:00"]
+    );
+});
+
 test("rejects invalid time scales", () => {
     assert.throws(
         () => createLayout({ minTime: "18:00", maxTime: "08:00" }),

@@ -180,5 +180,18 @@ export const DaylightSavingChange: Story = {
             timeZone: "Europe/Lisbon"
         }
     },
-    render: (args) => <DstTransition {...args} />
+    render: (args) => <DstTransition {...args} />,
+    play: async ({ canvasElement }) => {
+        const labels = [...canvasElement.querySelectorAll(
+            ".time-grid-view_time-label time"
+        )].map((label) => label.textContent);
+
+        await expect(labels).toEqual([
+            "00:00",
+            "01:00",
+            "02:00",
+            "03:00",
+            "04:00"
+        ]);
+    }
 };

@@ -72,6 +72,21 @@ export const atDayMinute = (day: Date, minute: number): Date => {
     );
 };
 
+const atRepresentableLabelMinute = (day: Date, minute: number): Date => {
+    const expectedHour = Math.floor(minute / 60);
+    const expectedMinute = minute % 60;
+
+    for (let dayOffset = 0; dayOffset <= 7; dayOffset += 1) {
+        const time = atDayMinute(addDays(day, dayOffset), minute);
+        if (
+            time.getHours() === expectedHour
+            && time.getMinutes() === expectedMinute
+        ) return time;
+    }
+
+    throw new RangeError("Calendar time label could not be represented.");
+};
+
 /** Converts a date to its wall-clock minute offset relative to a calendar day. */
 const relativeWallClockMinute = (day: Date, date: Date): number => (
     (
@@ -176,7 +191,7 @@ export const createTimeScale = <Resource>({
 
         return {
             key: `${firstDay.getTime()}-${minute}`,
-            time: atDayMinute(firstDay, minute),
+            time: atRepresentableLabelMinute(firstDay, minute),
             startRow: (index * labelInterval) + 1,
             rowSpan: Math.min(
                 labelInterval,
