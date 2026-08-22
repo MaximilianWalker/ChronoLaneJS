@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, fn, within } from "storybook/test";
+import { expect, fn, waitFor, within } from "storybook/test";
 
 import {
     AgendaView,
@@ -182,16 +182,18 @@ export const DaylightSavingChange: Story = {
     },
     render: (args) => <DstTransition {...args} />,
     play: async ({ canvasElement }) => {
-        const labels = [...canvasElement.querySelectorAll(
-            ".time-grid-view_time-label time"
-        )].map((label) => label.textContent);
+        await waitFor(async () => {
+            const labels = [...canvasElement.querySelectorAll(
+                ".time-grid-view_time-label time"
+            )].map((label) => label.textContent);
 
-        await expect(labels).toEqual([
-            "00:00",
-            "01:00",
-            "02:00",
-            "03:00",
-            "04:00"
-        ]);
+            await expect(labels).toEqual([
+                "00:00",
+                "01:00",
+                "02:00",
+                "03:00",
+                "04:00"
+            ]);
+        });
     }
 };
