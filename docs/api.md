@@ -214,8 +214,10 @@ agenda and time-grid ranges.
 All three accept `TimeGridViewProps<Event, Resource>`. `DayView` defaults to
 `range="day"` and `viewName="day"`; the day preset moves one day. `WeekView`
 defaults to `range="week"` and `viewName="week"`; the week preset moves seven
-days. Explicit `range` values carry their own navigation. `TimeGridView`
-defaults to the week preset and `viewName="time-grid"`.
+days. It also keeps day columns fluid down to `96px`, then scrolls horizontally.
+An explicit `slotSizing.width` or `slotSizing.minWidth` overrides that minimum.
+Explicit `range` values carry their own navigation. `TimeGridView` defaults to
+the week preset and `viewName="time-grid"` without applying a column minimum.
 
 <!-- api:TimeGridViewProps TimeGridGroupBy TimeGridMultiDayEventLayout TimeOfDay TimeGridSlotSizing -->
 <!-- props:TimeGridViewProps resources groupBy multiDayEventLayout range weekStart minTime maxTime slotDuration resizeStep labelInterval slotSizing selectedRange canDragEvent onEventDrop canResizeEvent onEventResize onSlotSelect components -->
@@ -232,7 +234,7 @@ defaults to the week preset and `viewName="time-grid"`.
 | `slotDuration` | `number` | `60` | Positive integer minutes represented by one selectable slot. | `30` |
 | `resizeStep` | `number` | `slotDuration` | Positive integer minutes between pointer, touch, and keyboard resize targets. Independent from visual slot size. | `15` |
 | `labelInterval` | `number` | `slotDuration` | Label/divider cadence; must be an integer multiple of `slotDuration`. | `60` |
-| `slotSizing` | `TimeGridSlotSizing` | fluid width, fixed `50px` height | Fixed or minimum pixel dimension per slot axis. Fixed and minimum values on one axis are mutually exclusive. | `{ minWidth: 120, height: 48 }` |
+| `slotSizing` | `TimeGridSlotSizing` | fluid width (`WeekView`: `96px` minimum), fixed `50px` height | Fixed or minimum pixel dimension per slot axis. Fixed and minimum values on one axis are mutually exclusive. | `{ minWidth: 120, height: 48 }` |
 | `selectedRange` | `CalendarSelectionRange` | none | Validates and normalizes the controlled half-open range in `timeZone`, then marks every overlapping slot. The end must follow the start. | `{ start: "2026-09-14T09:00:00", end: "2026-09-14T10:00:00" }` |
 | `canDragEvent` | `(event, segment) => boolean` | allow all | Restricts the pointer, touch, and keyboard move control by source event and visible segment. Evaluated only when `onEventDrop` exists. | `(_, segment) => segment.resourceId !== "locked"` |
 | `onEventDrop` | `(change: TimeGridEventDrop) => void` | none | Enables live-preview pointer, touch, and keyboard movement and reports one committed proposal. It does not mutate events. | `({ event, start, end }) => update(event.id, { start, end })` |

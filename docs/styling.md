@@ -108,7 +108,7 @@ Time-grid slot dimensions are component behavior, so they use the typed
 | --- | --- |
 | `width` | Fixed positive pixel width for each day/resource track; the grid shrink-wraps until constrained and then scrolls. |
 | `minWidth` | Fluid equal-width tracks down to a non-negative pixel minimum, then horizontal scrolling. |
-| neither width property | Fully fluid columns with no minimum. |
+| neither width property | Fully fluid columns with no minimum. `WeekView` supplies a `96px` minimum unless either width property is explicit. |
 | `height` | Fixed positive pixel height for each `slotDuration`; the grid uses intrinsic total height. |
 | `minHeight` | Fluid rows down to a non-negative pixel minimum, then vertical scrolling. Use `0` for fully fluid rows. |
 | neither height property | Fixed `50px` slots. |

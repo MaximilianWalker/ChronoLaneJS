@@ -58,9 +58,10 @@ type TimeGridSlotHeight =
  * Mutually exclusive fixed or minimum dimensions for each time-grid slot axis.
  *
  * @remarks
- * Omitting both width properties makes columns fully fluid. Omitting both
- * height properties uses a fixed 50px slot height. Set `minHeight` to `0` for
- * fully fluid rows.
+ * Omitting both width properties makes columns fully fluid in `TimeGridView`
+ * and `DayView`; `WeekView` supplies a 96px minimum. Omitting both height
+ * properties uses a fixed 50px slot height. Set `minHeight` to `0` for fully
+ * fluid rows.
  */
 export type TimeGridSlotSizing = TimeGridSlotWidth & TimeGridSlotHeight;
 
