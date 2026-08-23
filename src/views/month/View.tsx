@@ -18,7 +18,7 @@ import type {
     EventBehavior,
     ViewText
 } from "../../components/eventPresentation.js";
-import { normalizeEvents } from "../../core/events.js";
+import { normalizeEventCollection } from "../../core/events.js";
 import {
     DEFAULT_CALENDAR_LOCALE,
     readCalendarLocale,
@@ -39,7 +39,10 @@ import type { CalendarEvent } from "../../types.js";
 import DefaultDayHeader from "./DefaultDayHeader.js";
 import DefaultEvent from "./DefaultEvent.js";
 import Grid from "./Grid.js";
-import { createWeeks } from "./layout.js";
+import {
+    createWeeks,
+    resolveMaxEvents
+} from "./layout.js";
 import type { ViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
@@ -105,12 +108,12 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
         start: rangeStart,
         end: rangeEnd
     }), [rangeEnd, rangeStart]);
-    const calendarEvents = useMemo(
-        () => normalizeEvents(events, timeZone),
+    const eventCollection = useMemo(
+        () => normalizeEventCollection(events, timeZone),
         [events, timeZone]
     );
-    const calendarBackgroundEvents = useMemo(
-        () => normalizeEvents(backgroundEvents, timeZone),
+    const backgroundEventCollection = useMemo(
+        () => normalizeEventCollection(backgroundEvents, timeZone),
         [backgroundEvents, timeZone]
     );
     const calendarSelectedDate = useMemo(
@@ -119,11 +122,12 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
             : normalizeCalendarSelectedDate(selectedDate, timeZone),
         [selectedDate, timeZone]
     );
+    const maxEvents = resolveMaxEvents(maxEventsPerDay);
     const weeks = useMemo(() => createWeeks({
         days,
-        events: calendarEvents,
-        backgroundEvents: calendarBackgroundEvents
-    }), [calendarBackgroundEvents, calendarEvents, days]);
+        events: eventCollection,
+        backgroundEvents: backgroundEventCollection
+    }), [backgroundEventCollection, days, eventCollection]);
     const navigationBoundaries = useMemo(
         () => normalizeCalendarNavigationBoundaries(minDate, maxDate, timeZone),
         [maxDate, minDate, timeZone]
@@ -195,7 +199,7 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
                 anchorDate={anchorDate}
                 selectedDate={calendarSelectedDate}
                 showOutsideDays={showOutsideDays}
-                maxEvents={maxEventsPerDay}
+                maxEvents={maxEvents}
                 onSelectDay={onSelectDay}
                 onShowMore={onShowMore}
                 eventRenderer={EventRenderer}

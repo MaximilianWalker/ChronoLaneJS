@@ -23,6 +23,7 @@ export interface EventRendering<
     Resource
 > {
     renderer: ComponentType<EventProps<Event, Resource>>;
+    getEventKey: (event: NormalizedCalendarEvent<Event>) => string;
     behavior: EventBehavior<Event, Resource>;
     text: ViewText;
     moveEnabled: boolean;

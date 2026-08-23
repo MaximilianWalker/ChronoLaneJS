@@ -170,16 +170,21 @@ export default function MultiDayEvents<
                         } as CalendarStyle}
                     />
                 ))}
-                {layout.events.map((segment) => (
-                    <MultiDayEvent
-                        key={`${segment.event.id ?? segment.event.title ?? "event"}-${segment.event.start.getTime()}-${segment.event.end.getTime()}-${segment.columnIndex}-multi-day`}
-                        segment={segment}
-                        columns={columns}
-                        rendering={rendering}
-                        interactions={interactions}
-                        gridRef={gridRef}
-                    />
-                ))}
+                {layout.events.map((segment) => {
+                    const occurrenceKey = `${rendering.getEventKey(segment.event)}:dedicated:${segment.columnIndex}`;
+
+                    return (
+                        <MultiDayEvent
+                            key={occurrenceKey}
+                            occurrenceKey={occurrenceKey}
+                            segment={segment}
+                            columns={columns}
+                            rendering={rendering}
+                            interactions={interactions}
+                            gridRef={gridRef}
+                        />
+                    );
+                })}
             </div>
         </section>
     );

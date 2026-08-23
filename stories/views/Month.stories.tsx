@@ -59,6 +59,31 @@ export const Overflow: Story = {
         const showMore = canvas.getByRole("button", { name: /more/i });
         await userEvent.click(showMore);
         await expect(args.onShowMore).toHaveBeenCalledOnce();
+        await expect(args.onShowMore).toHaveBeenCalledWith(
+            expect.objectContaining({
+                events: expect.arrayContaining([
+                    expect.objectContaining({ id: "month-one" }),
+                    expect.objectContaining({ id: "month-five" })
+                ]) as unknown
+            }),
+            expect.anything()
+        );
+    }
+};
+
+export const OverflowWithoutHandler: Story = {
+    args: {
+        maxEventsPerDay: 1,
+        onShowMore: undefined
+    },
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await expect(
+            canvas.queryByRole("button", { name: /more/i })
+        ).toBeNull();
+        await expect(
+            canvasElement.querySelectorAll("[data-event-id]").length
+        ).toBeGreaterThan(1);
     }
 };
 

@@ -47,8 +47,12 @@ export default function Day<Event extends CalendarEvent>({
 }: DayProps<Event>) {
     const { day, events, backgroundEvents } = entry;
     const outsideMonth = !isSameMonth(day, anchorDate);
-    const visibleEvents = events.slice(0, maxEvents);
-    const hiddenEventCount = Math.max(0, events.length - maxEvents);
+    const overflowEnabled = onShowMore != null && events.length > maxEvents;
+    const visibleEvents = overflowEnabled
+        ? events.slice(0, maxEvents)
+        : events;
+    const hiddenEventCount = overflowEnabled ? events.length - maxEvents : 0;
+    const dayEvents = events.map((item) => item.event);
     const selected = selectedDate != null && isSameDay(day, selectedDate);
     const className = [
         "month-view_day",
@@ -62,9 +66,9 @@ export default function Day<Event extends CalendarEvent>({
             role="gridcell"
             aria-label={text.formatters.date(day, text.context)}
         >
-            {backgroundEvents.map((event) => (
+            {backgroundEvents.map(({ key, event }) => (
                 <div
-                    key={`${event.id ?? "background"}-${day.getTime()}`}
+                    key={key}
                     className="month-view_background-event"
                     style={{ "--color": event.color } as CalendarStyle}
                 />
@@ -85,9 +89,9 @@ export default function Day<Event extends CalendarEvent>({
             </button>
             {(!outsideMonth || showOutsideDays) && (
                 <div className="month-view_events">
-                    {visibleEvents.map((event) => (
+                    {visibleEvents.map(({ key, event }) => (
                         <Occurrence
-                            key={`${event.id ?? event.title}-${event.start.getTime()}-${day.getTime()}`}
+                            key={key}
                             event={event}
                             day={day}
                             renderer={eventRenderer}
@@ -101,7 +105,7 @@ export default function Day<Event extends CalendarEvent>({
                             className="month-view_more"
                             onClick={(interaction) => onShowMore?.({
                                 day,
-                                events
+                                events: dayEvents
                             }, interaction)}
                         >
                             {text.messages.moreEvents({

@@ -227,6 +227,7 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
 }
 
 interface MultiDayEventProps<Event extends CalendarEvent, Resource> {
+    occurrenceKey: string;
     segment: LayoutMultiDayEvent<Event, Resource>;
     columns: LayoutColumn<Resource>[];
     rendering: EventRendering<Event, Resource>;
@@ -238,6 +239,7 @@ export default function MultiDayEvent<
     Event extends CalendarEvent,
     Resource
 >({
+    occurrenceKey,
     segment,
     columns,
     rendering,
@@ -251,7 +253,6 @@ export default function MultiDayEvent<
         layout: "dedicated",
         rendering
     });
-    const eventKey = `${event.id ?? event.title ?? "event"}-${event.start.getTime()}-${event.end.getTime()}-${segment.columnIndex}-multi-day`;
     const eventStyle: CalendarStyle = {
         "--color": event.color,
         gridColumn: `${segment.columnIndex + 1} / span ${segment.columnSpan}`,
@@ -262,7 +263,7 @@ export default function MultiDayEvent<
     const controls = {
         segment,
         rendererSegment: model.segment,
-        eventKey,
+        eventKey: occurrenceKey,
         columns,
         rendering,
         interactions

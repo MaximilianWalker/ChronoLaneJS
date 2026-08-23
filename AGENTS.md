@@ -32,6 +32,13 @@ project-specific constraints are defined here.
 - Keep one occurrence owner between a collection and an injected renderer.
   That owner may own cohesive pointer, keyboard, selection, and resize
   behavior; do not wrap it in additional same-domain component layers.
+- Keep traversal of purely structural collection hierarchies in their
+  collection owner until a genuine occurrence owner or injected renderer.
+  Do not extract generic row, cell, or item components merely to continue
+  mapping, wrap styled elements, or conceal collection-owned behavior.
+- Keep time-grid row and cell iteration, structure, selection/navigation
+  wiring, and slot-renderer invocation in `Slots`. Prepare complex behavior in
+  a focused model or hook instead of private `Row` or `Cell` components.
 - Extract structural components only when they own concrete layout,
   accessibility, navigation, or interaction semantics.
 - Split hooks when their concerns can change independently. Compose focused

@@ -201,13 +201,13 @@ every day it overlaps.
 | `maxEventsPerDay` | `number` | `4` | Maximum visible event rows before the overflow control. | `3` |
 | `selectedDate` | `CalendarDateInput` | none | Visually marks one day after validation and wall-clock normalization in `timeZone`. State is application-owned. | `"2026-09-14"` |
 | `onSelectDay` | `(day, interaction) => void` | none | Enables day-heading buttons and reports the normalized day. | `(day) => setSelectedDate(day)` |
-| `onShowMore` | `({ day, events }, interaction) => void` | none | Handles the overflow control with all hidden normalized events for that day. | `({ events }) => openList(events)` |
+| `onShowMore` | `({ day, events }, interaction) => void` | none | Enables the overflow limit and handles its control with all normalized events for that day. | `({ events }) => openList(events)` |
 | `components` | `MonthComponents<Event>` | default renderers | Replaces event, day-header, or navigation renderers. | `{ dayHeader: MonthDay }` |
 
-`maxEventsPerDay` is used as an array slice boundary; use a non-negative integer
-for deterministic results. Month navigation always resolves the previous or
-next displayed month; custom range navigation belongs only to configurable
-agenda and time-grid ranges.
+`maxEventsPerDay` must be a non-negative integer. It limits visible rows only
+when `onShowMore` is provided; otherwise every event remains visible. Month
+navigation always resolves the previous or next displayed month; custom range
+navigation belongs only to configurable agenda and time-grid ranges.
 
 ## `DayView`, `WeekView`, and `TimeGridView`
 

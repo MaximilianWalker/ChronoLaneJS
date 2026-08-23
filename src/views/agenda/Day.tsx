@@ -36,9 +36,9 @@ export default function Day<Event extends CalendarEvent>({
                 />
             </h3>
             <div className="agenda-view_day-events">
-                {group.events.map((event) => (
+                {group.events.map(({ key, event }) => (
                     <Occurrence
-                        key={`${event.id ?? event.title}-${event.start.getTime()}`}
+                        key={key}
                         event={event}
                         day={group.day}
                         renderer={eventRenderer}

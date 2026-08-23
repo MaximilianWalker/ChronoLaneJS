@@ -141,6 +141,7 @@ export const PortugueseEmptyAndOverflowText: Story = {
                     maxEventsPerDay={0}
                     locale="pt-PT"
                     messages={portugueseMessages}
+                    onShowMore={fn()}
                 />
             </section>
         </div>

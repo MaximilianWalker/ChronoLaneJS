@@ -128,6 +128,20 @@ layering, the occurrence owns presentation plus its cohesive pointer, keyboard,
 selection, and resize controls, and the injected renderer owns replaceable
 markup. Do not add more same-domain wrappers around that chain.
 
+A collection owner must retain traversal of its purely structural hierarchy
+until it reaches a genuine occurrence owner or injected renderer. Do not
+extract generic `Row`, `Cell`, `Item`, or similar components merely to wrap
+styled elements, continue mapping a parent-owned collection, or conceal
+collection-owned behavior. When direct traversal would make JSX complex,
+prepare layout and interaction models in a focused domain module or hook
+instead of hiding them behind structural components.
+
+The time-grid `Slots` component owns row and cell iteration, cell structure,
+selection and navigation wiring, and invocation of the injected slot renderer.
+Extract a slot occurrence component only if it gains independent state,
+lifecycle, reuse, or another concrete boundary beyond the collection
+controller.
+
 Structural components such as headers, rows, slots, and cells are useful only
 when they own concrete layout, accessibility, navigation, or interaction
 semantics. Do not extract a structural component that merely forwards parent

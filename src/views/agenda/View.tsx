@@ -11,7 +11,7 @@ import type {
     EventBehavior,
     ViewText
 } from "../../components/eventPresentation.js";
-import { normalizeEvents } from "../../core/events.js";
+import { normalizeEventCollection } from "../../core/events.js";
 import {
     DEFAULT_CALENDAR_LOCALE,
     readCalendarLocale,
@@ -92,13 +92,13 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
         defaultRange: 30
     }), [anchorDate, range, weekStart]);
     const { days, start: rangeStart, end: rangeEnd } = resolvedRange;
-    const calendarEvents = useMemo(
-        () => normalizeEvents(events, timeZone),
+    const eventCollection = useMemo(
+        () => normalizeEventCollection(events, timeZone),
         [events, timeZone]
     );
     const groups = useMemo(
-        () => createGroups(days, calendarEvents),
-        [calendarEvents, days]
+        () => createGroups(days, eventCollection),
+        [days, eventCollection]
     );
     const navigationBoundaries = useMemo(
         () => normalizeCalendarNavigationBoundaries(minDate, maxDate, timeZone),

@@ -4,7 +4,8 @@ import type { ComponentType } from "react";
 import type {
     CalendarEvent,
     CalendarResourceConfig,
-    CalendarStyle
+    CalendarStyle,
+    NormalizedCalendarEvent
 } from "../../types.js";
 import { toEventSegment } from "./contracts.js";
 import DefaultBackground from "./DefaultBackground.js";
@@ -61,6 +62,9 @@ interface TimedEventsProps<Event extends CalendarEvent, Resource> {
     eventsByColumn: LayoutEvent<Event, Resource>[][];
     backgroundEventsByColumn: LayoutEventSegment<Event, Resource>[][];
     backgroundRenderer?: ComponentType<BackgroundEventProps<Event, Resource>>;
+    getBackgroundEventKey: (
+        event: NormalizedCalendarEvent<Event>
+    ) => string;
     resizeIntervals: ResizeInterval<Resource>[];
     resources?: CalendarResourceConfig<Event, Resource>;
     rendering: EventRendering<Event, Resource>;
@@ -75,6 +79,7 @@ export default function TimedEvents<
     eventsByColumn,
     backgroundEventsByColumn,
     backgroundRenderer: BackgroundRenderer = DefaultBackground,
+    getBackgroundEventKey,
     resizeIntervals,
     resources,
     rendering,
@@ -197,13 +202,17 @@ export default function TimedEvents<
                         gridTemplateRows: gridRows
                     }}
                 >
-                    {(backgroundEventsByColumn[columnIndex] ?? []).map((segment) => (
-                        <BackgroundOccurrence
-                            key={`${segment.id ?? "background"}-${segment.start.getTime()}-${columnIndex}`}
-                            segment={segment}
-                            renderer={BackgroundRenderer}
-                        />
-                    ))}
+                    {(backgroundEventsByColumn[columnIndex] ?? []).map((segment) => {
+                        const occurrenceKey = `${getBackgroundEventKey(segment.event)}:background:${columnIndex}`;
+
+                        return (
+                            <BackgroundOccurrence
+                                key={occurrenceKey}
+                                segment={segment}
+                                renderer={BackgroundRenderer}
+                            />
+                        );
+                    })}
                 </div>
             ))}
             {columns.map((column, columnIndex) => (
@@ -219,16 +228,21 @@ export default function TimedEvents<
                         gridTemplateRows: gridRows
                     }}
                 >
-                    {(eventsByColumn[columnIndex] ?? []).map((segment) => (
-                        <TimedEvent
-                            key={`${segment.event.id ?? segment.event.title ?? "event"}-${segment.event.start.getTime()}-${segment.event.end.getTime()}-${segment.columnIndex}`}
-                            segment={segment}
-                            slots={slots}
-                            resizeIntervals={resizeIntervals}
-                            rendering={rendering}
-                            interactions={interactions}
-                        />
-                    ))}
+                    {(eventsByColumn[columnIndex] ?? []).map((segment) => {
+                        const occurrenceKey = `${rendering.getEventKey(segment.event)}:timed:${segment.columnIndex}`;
+
+                        return (
+                            <TimedEvent
+                                key={occurrenceKey}
+                                occurrenceKey={occurrenceKey}
+                                segment={segment}
+                                slots={slots}
+                                resizeIntervals={resizeIntervals}
+                                rendering={rendering}
+                                interactions={interactions}
+                            />
+                        );
+                    })}
                 </div>
             ))}
         </div>

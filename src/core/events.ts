@@ -4,6 +4,23 @@ import { startOfDay } from "date-fns/startOfDay";
 import { asCalendarDate } from "./date.js";
 import type { CalendarEvent, NormalizedCalendarEvent } from "../types.js";
 
+/** Normalized events paired with stable internal source identities. */
+export interface NormalizedEventCollection<Event extends CalendarEvent> {
+    events: NormalizedCalendarEvent<Event>[];
+    getKey: (event: NormalizedCalendarEvent<Event>) => string;
+}
+
+const createEventBaseKey = (
+    event: NormalizedCalendarEvent
+): string => event.id == null
+    ? JSON.stringify([
+        "event",
+        event.start.getTime(),
+        event.end.getTime(),
+        event.title ?? ""
+    ])
+    : JSON.stringify(["id", typeof event.id, event.id]);
+
 /**
  * Shallow-copies events and converts their start and end values to validated
  * calendar dates.
@@ -39,6 +56,41 @@ export const normalizeEvents = <Event extends CalendarEvent>(
 
     return { ...event, start, end };
 });
+
+/**
+ * Normalizes events and assigns a unique internal identity to every source item.
+ *
+ * @remarks
+ * Public event IDs are preferred when present. A deterministic boundary-and-title
+ * identity supports id-less events, while an occurrence ordinal distinguishes
+ * duplicate IDs and otherwise identical source events.
+ */
+export const normalizeEventCollection = <Event extends CalendarEvent>(
+    events: Event[],
+    timeZone?: string
+): NormalizedEventCollection<Event> => {
+    const normalizedEvents = normalizeEvents(events, timeZone);
+    const occurrences = new Map<string, number>();
+    const keys = new WeakMap<NormalizedCalendarEvent<Event>, string>();
+
+    normalizedEvents.forEach((event) => {
+        const baseKey = createEventBaseKey(event);
+        const occurrence = occurrences.get(baseKey) ?? 0;
+        occurrences.set(baseKey, occurrence + 1);
+        keys.set(event, `${baseKey}:${occurrence}`);
+    });
+
+    return {
+        events: normalizedEvents,
+        getKey: (event) => {
+            const key = keys.get(event);
+            if (key == null) {
+                throw new Error("Event does not belong to this normalized collection.");
+            }
+            return key;
+        }
+    };
+};
 
 /**
  * Returns a non-mutating chronological sort of normalized events.

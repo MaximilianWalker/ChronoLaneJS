@@ -9,13 +9,12 @@ import type {
     CalendarEvent,
     CalendarSelectionRange
 } from "../../types.js";
-import Row from "./Row.js";
 import type { Layout } from "./layout/types.js";
 import type {
     Slot,
     SlotProps
 } from "./types.js";
-import { useSlotNavigation } from "./useSlotNavigation.js";
+import { useSlotGrid } from "./useSlotGrid.js";
 
 interface SlotsProps<Event extends CalendarEvent, Resource> {
     layout: Pick<Layout<Event, Resource>,
@@ -35,25 +34,22 @@ export default function Slots<Event extends CalendarEvent, Resource>({
     slotDuration,
     selectedRange,
     columnLabels,
-    renderer,
+    renderer: SlotRenderer,
     onSelect,
     wrapperRef,
     stageRef,
     text
 }: SlotsProps<Event, Resource>) {
-    const selectedIndex = selectedRange == null
-        ? -1
-        : slots.findIndex((slot) => (
-            selectedRange.start < slot.end
-            && selectedRange.end > slot.start
-        ));
-    const navigation = useSlotNavigation({
+    const rows = useSlotGrid({
         slots,
         columnCount: columns.length,
-        selectedIndex,
-        selectable: onSelect != null,
+        slotRows,
+        slotDuration,
+        selectedRange,
+        onSelect,
         wrapperRef,
-        stageRef
+        stageRef,
+        text
     });
     const rowTemplate = `repeat(${totalMinutes}, minmax(0, 1fr))`;
 
@@ -82,19 +78,35 @@ export default function Slots<Event extends CalendarEvent, Resource>({
                     ))}
                 </div>
             )}
-            {slotRows.map((row, rowIndex) => (
-                <Row
-                    key={`${row[0]?.key ?? rowIndex}-row`}
-                    slots={row}
-                    rowIndex={rowIndex}
-                    columnCount={columns.length}
-                    slotDuration={slotDuration}
-                    selectedRange={selectedRange}
-                    renderer={renderer}
-                    onSelect={onSelect}
-                    navigation={navigation}
-                    text={text}
-                />
+            {rows.map((row) => (
+                <div
+                    key={row.key}
+                    role={onSelect ? "row" : undefined}
+                    className="time-grid-view_slot-row"
+                    style={{
+                        gridColumn: "1 / -1",
+                        gridRow: row.gridRow
+                    }}
+                >
+                    {row.cells.map((cell) => (
+                        <div
+                            key={cell.key}
+                            ref={cell.register}
+                            role={onSelect ? "gridcell" : undefined}
+                            aria-selected={onSelect
+                                ? cell.selected
+                                : undefined}
+                            className="time-grid-view_slot-cell"
+                            style={{ gridColumn: cell.columnIndex + 1 }}
+                        >
+                            <SlotRenderer
+                                slot={cell.slot}
+                                selected={cell.selected}
+                                elementProps={cell.elementProps}
+                            />
+                        </div>
+                    ))}
+                </div>
             ))}
         </div>
     );

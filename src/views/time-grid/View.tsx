@@ -12,7 +12,7 @@ import type {
     EventBehavior,
     ViewText
 } from "../../components/eventPresentation.js";
-import { normalizeEvents } from "../../core/events.js";
+import { normalizeEventCollection } from "../../core/events.js";
 import {
     DEFAULT_CALENDAR_LOCALE,
     readCalendarLocale,
@@ -172,10 +172,11 @@ export default function View<
         () => normalizeCalendarNavigationBoundaries(minDate, maxDate, timeZone),
         [maxDate, minDate, timeZone]
     );
-    const calendarEvents = useMemo(
-        () => normalizeEvents(events, timeZone),
+    const eventCollection = useMemo(
+        () => normalizeEventCollection(events, timeZone),
         [events, timeZone]
     );
+    const calendarEvents = eventCollection.events;
     if (multiDayEventLayout !== "timed" && multiDayEventLayout !== "dedicated") {
         throw new TypeError(
             'multiDayEventLayout must be either "timed" or "dedicated".'
@@ -191,10 +192,11 @@ export default function View<
             dedicatedEvents: calendarEvents.filter(isMultiDayEvent)
         };
     }, [calendarEvents, multiDayEventLayout]);
-    const calendarBackgroundEvents = useMemo(
-        () => normalizeEvents(backgroundEvents, timeZone),
+    const backgroundEventCollection = useMemo(
+        () => normalizeEventCollection(backgroundEvents, timeZone),
         [backgroundEvents, timeZone]
     );
+    const calendarBackgroundEvents = backgroundEventCollection.events;
     const calendarSelectedRange = useMemo(
         () => selectedRange == null
             ? null
@@ -301,6 +303,7 @@ export default function View<
     } = interaction;
     const eventRendering = useMemo<EventRendering<Event, Resource>>(() => ({
         renderer: EventRenderer,
+        getEventKey: eventCollection.getKey,
         behavior: eventBehavior,
         text,
         moveEnabled: canMoveEvents,
@@ -313,6 +316,7 @@ export default function View<
         canMoveEvents,
         canResizeEvent,
         canResizeEvents,
+        eventCollection,
         eventBehavior,
         text
     ]);
@@ -416,6 +420,7 @@ export default function View<
                             eventsByColumn={eventsByColumn}
                             backgroundEventsByColumn={backgroundEventsByColumn}
                             backgroundRenderer={BackgroundRenderer}
+                            getBackgroundEventKey={backgroundEventCollection.getKey}
                             resizeIntervals={resizeIntervals}
                             resources={resources}
                             rendering={eventRendering}

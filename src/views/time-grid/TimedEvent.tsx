@@ -199,6 +199,7 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
 }
 
 interface TimedEventProps<Event extends CalendarEvent, Resource> {
+    occurrenceKey: string;
     segment: LayoutEvent<Event, Resource>;
     slots: LayoutSlot<Resource>[];
     resizeIntervals: ResizeInterval<Resource>[];
@@ -210,6 +211,7 @@ export default function TimedEvent<
     Event extends CalendarEvent,
     Resource
 >({
+    occurrenceKey,
     segment,
     slots,
     resizeIntervals,
@@ -218,12 +220,11 @@ export default function TimedEvent<
 }: TimedEventProps<Event, Resource>) {
     const { event } = segment;
     const model = createEventModel({ event, segment, rendering });
-    const eventKey = `${event.id ?? event.title ?? "event"}-${event.start.getTime()}-${event.end.getTime()}-${segment.columnIndex}`;
     const EventRenderer = rendering.renderer;
     const controls = {
         segment,
         rendererSegment: model.segment,
-        eventKey,
+        eventKey: occurrenceKey,
         rendering,
         interactions
     };
