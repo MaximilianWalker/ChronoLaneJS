@@ -75,10 +75,10 @@ export function asCalendarDate(value: CalendarDateInput, timeZone?: string): Dat
 function Calendar<Event extends CalendarEvent = CalendarEvent, Resource = unknown, Views extends CalendarViewRegistry | undefined = undefined>(input: CalendarProps<Event, Resource, Views>): ReactElement;
 export default Calendar;
 
-// Warning: (ae-forgotten-export) The symbol "CalendarBuiltInViewProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "BuiltInViewProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type CalendarBuiltInView = keyof CalendarBuiltInViewProps;
+export type CalendarBuiltInView = keyof BuiltInViewProps;
 
 // @public
 export interface CalendarComponents {
@@ -321,11 +321,11 @@ export interface CalendarNavigationMessageContext extends CalendarMessageContext
 export type CalendarPixelSize = `${number}px`;
 
 // Warning: (ae-forgotten-export) The symbol "StrictUnion" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "CalendarBuiltInProps" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "CalendarCustomProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "BuiltInProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "CustomProps" needs to be exported by the entry point index.d.ts
 //
 // @public
-export type CalendarProps<Event extends CalendarEvent = CalendarEvent, Resource = unknown, Views extends CalendarViewRegistry | undefined = undefined> = StrictUnion<CalendarBuiltInProps<Event, Resource>> | (Views extends CalendarViewRegistry ? StrictUnion<CalendarCustomProps<Event, Resource, Views>> : never);
+export type CalendarProps<Event extends CalendarEvent = CalendarEvent, Resource = unknown, Views extends CalendarViewRegistry | undefined = undefined> = StrictUnion<BuiltInProps<Event, Resource>> | (Views extends CalendarViewRegistry ? StrictUnion<CustomProps<Event, Resource, Views>> : never);
 
 // @public (undocumented)
 export interface CalendarRange {
@@ -431,7 +431,7 @@ export interface CalendarViewDefinition<Component extends ElementType = ElementT
 // Warning: (ae-forgotten-export) The symbol "ViewProps" needs to be exported by the entry point index.d.ts
 //
 // @public
-export type CalendarViewProps<View extends CalendarBuiltInView, Event extends CalendarEvent = CalendarEvent, Resource = unknown> = ViewProps<CalendarBuiltInViewProps<Event, Resource>[View]>;
+export type CalendarViewProps<View extends CalendarBuiltInView, Event extends CalendarEvent = CalendarEvent, Resource = unknown> = ViewProps<BuiltInViewProps<Event, Resource>[View]>;
 
 // @public
 export type CalendarViewRegistration = ElementType | CalendarViewDefinition;
