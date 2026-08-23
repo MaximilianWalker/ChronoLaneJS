@@ -68,7 +68,7 @@ interface CreateEventModelOptions<
     rendering: EventRendering<Event, Resource>;
 }
 
-export interface EventModel<Resource> {
+interface EventModel<Resource> {
     segment: EventSegment<Resource>;
     selected: boolean;
     movable: boolean;
