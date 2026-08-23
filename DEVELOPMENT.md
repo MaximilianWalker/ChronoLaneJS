@@ -80,6 +80,13 @@ already owned by its parent and only forwards them into markup. That adds a
 private API without reducing coupling. Keep the render body in the owner, or
 first create a cohesive model or hook that materially shrinks the boundary.
 
+Do not create a React component merely to give a styled DOM element a name.
+Keep simple structural elements inline and use semantic HTML, clear stable
+class names, or named presentation models or style functions for readability.
+Create a component only when the name corresponds to a real layout,
+accessibility, behavior, occurrence, renderer, lifecycle, reuse, or performance
+boundary.
+
 Before extracting a component, verify that:
 
 - its purpose can be described without referring to the parent file;

@@ -8,6 +8,11 @@ project-specific constraints are defined here.
 - Follow the component-boundary rules in `DEVELOPMENT.md`.
 - Never introduce a same-file pass-through component solely to shorten a
   parent component or move its JSX.
+- Do not create a React component merely to give a styled DOM element a name.
+  Keep simple structural elements inline and use semantic HTML, clear stable
+  class names, or named presentation models or style functions for readability.
+  Create a component only for a real layout, accessibility, behavior,
+  occurrence, renderer, lifecycle, reuse, or performance boundary.
 - Treat a long list of parent-owned props as evidence that the proposed child
   does not own a real boundary. Inline it or first design a cohesive model,
   hook, or feature module with a materially smaller contract.
