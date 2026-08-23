@@ -287,7 +287,7 @@ export default function View<
         multiDay: multiDayInteractions
     } = interaction;
     const eventRendering = useMemo<EventRendering<Event, Resource>>(() => ({
-        renderer: EventRenderer,
+        eventRenderer: EventRenderer,
         getEventKey: eventCollection.getKey,
         behavior: eventBehavior,
         text,
@@ -360,8 +360,8 @@ export default function View<
             >
                 <Header
                     model={headerModel}
-                    dayRenderer={DayHeaderRenderer}
-                    resourceRenderer={ResourceHeaderRenderer}
+                    dayHeaderRenderer={DayHeaderRenderer}
+                    resourceHeaderRenderer={ResourceHeaderRenderer}
                 />
                 <MultiDayEvents
                     layout={dedicatedLayout}
@@ -392,7 +392,7 @@ export default function View<
                             slotDuration={slotDuration}
                             selectedRange={calendarSelectedRange}
                             columnLabels={headerModel.columnLabels}
-                            renderer={SlotRenderer}
+                            slotRenderer={SlotRenderer}
                             onSelect={onSlotSelect}
                             wrapperRef={gridWrapperRef}
                             stageRef={gridStageRef}

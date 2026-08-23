@@ -227,7 +227,7 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
                                     onSelect={onSelectDay}
                                     onShowMore={onShowMore}
                                     eventRenderer={EventRenderer}
-                                    headerRenderer={DayHeaderRenderer}
+                                    dayHeaderRenderer={DayHeaderRenderer}
                                     behavior={behavior}
                                     text={text}
                                 />

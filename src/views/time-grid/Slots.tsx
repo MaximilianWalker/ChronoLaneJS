@@ -22,7 +22,7 @@ interface SlotsProps<Event extends CalendarEvent, Resource> {
     slotDuration: number;
     selectedRange: CalendarSelectionRange | null;
     columnLabels: string[];
-    renderer: ComponentType<SlotProps<Resource>>;
+    slotRenderer: ComponentType<SlotProps<Resource>>;
     onSelect?: (slot: Slot<Resource>, interaction: SyntheticEvent) => void;
     wrapperRef: RefObject<HTMLDivElement | null>;
     stageRef: RefObject<HTMLDivElement | null>;
@@ -34,7 +34,7 @@ export default function Slots<Event extends CalendarEvent, Resource>({
     slotDuration,
     selectedRange,
     columnLabels,
-    renderer: SlotRenderer,
+    slotRenderer: SlotRenderer,
     onSelect,
     wrapperRef,
     stageRef,

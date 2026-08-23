@@ -48,7 +48,7 @@ export interface EventRendering<
     Event extends CalendarEvent,
     Resource
 > {
-    renderer: ComponentType<EventProps<Event, Resource>>;
+    eventRenderer: ComponentType<EventProps<Event, Resource>>;
     getEventKey: (event: NormalizedCalendarEvent<Event>) => string;
     behavior: EventBehavior<Event, Resource>;
     text: ViewText;

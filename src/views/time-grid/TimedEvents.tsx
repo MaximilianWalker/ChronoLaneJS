@@ -28,15 +28,15 @@ interface BackgroundOccurrenceProps<
     Resource
 > {
     segment: LayoutEventSegment<Event, Resource>;
-    renderer: ComponentType<BackgroundEventProps<Event, Resource>>;
+    backgroundRenderer: ComponentType<BackgroundEventProps<Event, Resource>>;
 }
 
 function BackgroundOccurrence<Event extends CalendarEvent, Resource>({
     segment,
-    renderer: Renderer
+    backgroundRenderer: BackgroundRenderer
 }: BackgroundOccurrenceProps<Event, Resource>) {
     return (
-        <Renderer
+        <BackgroundRenderer
             event={segment.event}
             segment={toEventSegment<Resource>(segment)}
             elementProps={{
@@ -145,7 +145,7 @@ export default function TimedEvents<
                             <BackgroundOccurrence
                                 key={occurrenceKey}
                                 segment={segment}
-                                renderer={BackgroundRenderer}
+                                backgroundRenderer={BackgroundRenderer}
                             />
                         );
                     })}

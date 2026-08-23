@@ -259,7 +259,7 @@ export default function MultiDayEvent<
         gridRow: segment.laneIndex + 1,
         overflow: "hidden"
     };
-    const EventRenderer = rendering.renderer;
+    const EventRenderer = rendering.eventRenderer;
     const controls = {
         segment,
         rendererSegment: model.segment,

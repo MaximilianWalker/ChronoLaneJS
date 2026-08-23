@@ -15,7 +15,7 @@ import type {
 interface DayProps<Event extends CalendarEvent> {
     group: DayGroup<Event>;
     eventRenderer: ComponentType<EventProps<Event>>;
-    headerRenderer: ComponentType<DayHeaderProps>;
+    dayHeaderRenderer: ComponentType<DayHeaderProps>;
     behavior: EventBehavior<Event, never>;
     text: ViewText;
 }
@@ -23,7 +23,7 @@ interface DayProps<Event extends CalendarEvent> {
 export default function Day<Event extends CalendarEvent>({
     group,
     eventRenderer,
-    headerRenderer: DayHeaderRenderer,
+    dayHeaderRenderer: DayHeaderRenderer,
     behavior,
     text
 }: DayProps<Event>) {
@@ -41,7 +41,7 @@ export default function Day<Event extends CalendarEvent>({
                         key={key}
                         event={event}
                         day={group.day}
-                        renderer={eventRenderer}
+                        eventRenderer={eventRenderer}
                         behavior={behavior}
                         text={text}
                     />

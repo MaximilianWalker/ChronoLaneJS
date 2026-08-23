@@ -11,14 +11,14 @@ import type {
 
 interface HeaderGroupProps<Resource> {
     occurrence: HeaderOccurrence<Resource>;
-    dayRenderer: ComponentType<DayHeaderProps<Resource>>;
-    resourceRenderer: ComponentType<ResourceHeaderProps<Resource>>;
+    dayHeaderRenderer: ComponentType<DayHeaderProps<Resource>>;
+    resourceHeaderRenderer: ComponentType<ResourceHeaderProps<Resource>>;
 }
 
 function HeaderGroup<Resource>({
     occurrence,
-    dayRenderer: DayHeaderRenderer,
-    resourceRenderer: ResourceHeaderRenderer
+    dayHeaderRenderer: DayHeaderRenderer,
+    resourceHeaderRenderer: ResourceHeaderRenderer
 }: HeaderGroupProps<Resource>) {
     const content = occurrence.kind === "day"
         ? <DayHeaderRenderer {...occurrence.rendererProps} />
@@ -33,14 +33,14 @@ function HeaderGroup<Resource>({
 
 interface HeaderProps<Resource> {
     model: HeaderModel<Resource>;
-    dayRenderer: ComponentType<DayHeaderProps<Resource>>;
-    resourceRenderer: ComponentType<ResourceHeaderProps<Resource>>;
+    dayHeaderRenderer: ComponentType<DayHeaderProps<Resource>>;
+    resourceHeaderRenderer: ComponentType<ResourceHeaderProps<Resource>>;
 }
 
 export default function Header<Resource>({
     model,
-    dayRenderer,
-    resourceRenderer
+    dayHeaderRenderer,
+    resourceHeaderRenderer
 }: HeaderProps<Resource>) {
     return (
         <div className={model.className}>
@@ -48,8 +48,8 @@ export default function Header<Resource>({
                 <HeaderGroup
                     key={occurrence.key}
                     occurrence={occurrence}
-                    dayRenderer={dayRenderer}
-                    resourceRenderer={resourceRenderer}
+                    dayHeaderRenderer={dayHeaderRenderer}
+                    resourceHeaderRenderer={resourceHeaderRenderer}
                 />
             ))}
         </div>

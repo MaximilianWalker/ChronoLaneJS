@@ -14,7 +14,7 @@ import type { EventProps } from "./types.js";
 interface OccurrenceProps<Event extends CalendarEvent> {
     event: NormalizedCalendarEvent<Event>;
     day: Date;
-    renderer: ComponentType<EventProps<Event>>;
+    eventRenderer: ComponentType<EventProps<Event>>;
     behavior: EventBehavior<Event, never>;
     text: ViewText;
 }
@@ -22,7 +22,7 @@ interface OccurrenceProps<Event extends CalendarEvent> {
 export default function Occurrence<Event extends CalendarEvent>({
     event,
     day,
-    renderer: EventRenderer,
+    eventRenderer: EventRenderer,
     behavior,
     text
 }: OccurrenceProps<Event>) {

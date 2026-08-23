@@ -220,7 +220,7 @@ export default function TimedEvent<
 }: TimedEventProps<Event, Resource>) {
     const { event } = segment;
     const model = createEventModel({ event, segment, rendering });
-    const EventRenderer = rendering.renderer;
+    const EventRenderer = rendering.eventRenderer;
     const controls = {
         segment,
         rendererSegment: model.segment,

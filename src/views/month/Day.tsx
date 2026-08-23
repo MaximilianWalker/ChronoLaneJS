@@ -21,7 +21,7 @@ interface DayProps<Event extends CalendarEvent> {
     onSelect?: ViewProps<Event>["onSelectDay"];
     onShowMore?: ViewProps<Event>["onShowMore"];
     eventRenderer: ComponentType<EventProps<Event>>;
-    headerRenderer: ComponentType<DayHeaderProps>;
+    dayHeaderRenderer: ComponentType<DayHeaderProps>;
     behavior: EventBehavior<Event, never>;
     text: ViewText;
 }
@@ -31,7 +31,7 @@ export default function Day<Event extends CalendarEvent>({
     onSelect,
     onShowMore,
     eventRenderer,
-    headerRenderer: DayHeaderRenderer,
+    dayHeaderRenderer: DayHeaderRenderer,
     behavior,
     text
 }: DayProps<Event>) {
@@ -80,7 +80,7 @@ export default function Day<Event extends CalendarEvent>({
                             key={key}
                             event={event}
                             day={day}
-                            renderer={eventRenderer}
+                            eventRenderer={eventRenderer}
                             behavior={behavior}
                             text={text}
                         />
