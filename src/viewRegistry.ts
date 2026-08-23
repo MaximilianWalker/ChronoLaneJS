@@ -2,7 +2,7 @@ import AgendaView from "./views/agenda/AgendaView.js";
 import MonthView from "./views/month/MonthView.js";
 import DayView from "./views/time-grid/presets/DayView.js";
 import WeekView from "./views/time-grid/presets/WeekView.js";
-import TimeGridView from "./views/time-grid/TimeGridView.js";
+import TimeGridView from "./views/time-grid/View.js";
 
 import type { ElementType } from "react";
 

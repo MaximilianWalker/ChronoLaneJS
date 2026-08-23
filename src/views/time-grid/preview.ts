@@ -6,13 +6,13 @@ import {
 import type { ResolvedTimeWindow } from "./layout/timeScale.js";
 import type { LayoutColumn } from "./layout/types.js";
 
-export interface TimeGridEventPreviewSegment {
+export interface EventPreviewSegment {
     columnIndex: number;
     startRow: number;
     endRow: number;
 }
 
-interface CreateTimeGridEventPreviewSegmentsOptions<Resource> {
+interface CreateEventPreviewSegmentsOptions<Resource> {
     start: Date;
     end: Date;
     resourceId: CalendarResourceId | null;
@@ -21,13 +21,13 @@ interface CreateTimeGridEventPreviewSegmentsOptions<Resource> {
 }
 
 /** Projects a complete event proposal into its overlapping visible columns. */
-export const createTimeGridEventPreviewSegments = <Resource>({
+export const createEventPreviewSegments = <Resource>({
     start,
     end,
     resourceId,
     columns,
     timeWindow
-}: CreateTimeGridEventPreviewSegmentsOptions<Resource>): TimeGridEventPreviewSegment[] => (
+}: CreateEventPreviewSegmentsOptions<Resource>): EventPreviewSegment[] => (
     columns.flatMap((column, columnIndex) => {
         if (column.resourceId !== resourceId) return [];
 

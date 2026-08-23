@@ -1,15 +1,15 @@
 import type { CalendarEvent } from "../../../types.js";
 import type {
-    TimeGridSlotSizing,
-    TimeGridViewProps
+    SlotSizing,
+    ViewProps
 } from "../types.js";
-import TimeGridView from "../TimeGridView.js";
+import View from "../View.js";
 
 const DEFAULT_WEEK_COLUMN_MIN_WIDTH = 96;
 
 const resolveWeekSlotSizing = (
-    slotSizing: TimeGridSlotSizing | undefined
-): TimeGridSlotSizing => {
+    slotSizing: SlotSizing | undefined
+): SlotSizing => {
     if (slotSizing?.width !== undefined || slotSizing?.minWidth !== undefined) {
         return slotSizing;
     }
@@ -17,7 +17,7 @@ const resolveWeekSlotSizing = (
     return {
         ...slotSizing,
         minWidth: DEFAULT_WEEK_COLUMN_MIN_WIDTH
-    } as TimeGridSlotSizing;
+    } as SlotSizing;
 };
 
 /**
@@ -34,9 +34,9 @@ export default function WeekView<
     slotSizing,
     viewName = "week",
     ...props
-}: TimeGridViewProps<Event, Resource>) {
+}: ViewProps<Event, Resource>) {
     return (
-        <TimeGridView
+        <View
             {...props}
             range={range}
             slotSizing={resolveWeekSlotSizing(slotSizing)}

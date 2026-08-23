@@ -231,6 +231,7 @@
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     flex-grow: 1;
     min-width: 0;
 }
@@ -240,6 +241,7 @@
     grid-area: 1 / 1;
     grid-template-columns: var(--_time-grid-slot-columns);
     min-width: 0;
+    min-height: 0;
 }
 
 .time-grid-view_accessible-header-row {
@@ -287,6 +289,7 @@
     grid-area: 1 / 1;
     grid-template-columns: var(--_time-grid-slot-columns);
     min-width: 0;
+    min-height: 0;
     pointer-events: none;
 }
 
@@ -324,6 +327,7 @@ button.time-grid-view_slot {
 .time-grid-view_column-events {
     display: grid;
     min-width: 0;
+    min-height: 0;
     pointer-events: none;
 }
 

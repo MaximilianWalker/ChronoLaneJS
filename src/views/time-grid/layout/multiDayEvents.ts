@@ -11,10 +11,10 @@ import type {
 } from "../../../types.js";
 import { resolveCalendarEventResourceIds } from "../resources.js";
 import type {
-    TimeGridEventDrop,
-    TimeGridEventPosition,
-    TimeGridEventResize,
-    TimeGridEventResizeEdge
+    EventDrop,
+    EventPosition,
+    EventResize,
+    EventResizeEdge
 } from "../types.js";
 import type { LayoutColumn } from "./types.js";
 
@@ -70,9 +70,9 @@ interface MultiDayEventResizeOptions<
     Resource
 > {
     event: NormalizedCalendarEvent<Event>;
-    edge: TimeGridEventResizeEdge;
+    edge: EventResizeEdge;
     dayOffset: number;
-    source: TimeGridEventPosition<Resource>;
+    source: EventPosition<Resource>;
 }
 
 /** Resolves a pointer coordinate to one visible dedicated-region column. */
@@ -238,7 +238,7 @@ export const createMultiDayEventDrop = <
 >(
     segment: LayoutMultiDayEvent<Event, Resource>,
     destination: LayoutColumn<Resource>
-): TimeGridEventDrop<Event, Resource> => {
+): EventDrop<Event, Resource> => {
     const dayOffset = differenceInCalendarDays(destination.day, segment.day);
 
     return {
@@ -267,7 +267,7 @@ export const createMultiDayEventResize = <
     edge,
     dayOffset,
     source
-}: MultiDayEventResizeOptions<Event, Resource>): TimeGridEventResize<Event, Resource> => ({
+}: MultiDayEventResizeOptions<Event, Resource>): EventResize<Event, Resource> => ({
     event,
     edge,
     start: edge === "start" ? addDays(event.start, dayOffset) : event.start,
@@ -278,7 +278,7 @@ export const createMultiDayEventResize = <
 /** Returns the visible day offset represented by a dedicated resize handle. */
 export const getMultiDayResizeOffset = (
     event: NormalizedCalendarEvent,
-    edge: TimeGridEventResizeEdge,
+    edge: EventResizeEdge,
     day: Date
 ): number => {
     const boundaryDay = edge === "start"

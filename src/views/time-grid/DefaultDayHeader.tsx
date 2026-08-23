@@ -1,10 +1,10 @@
 import { format } from "date-fns/format";
-import type { TimeGridDayHeaderProps } from "./types.js";
+import type { DayHeaderProps } from "./types.js";
 
 /** Renders the prepared label for one visible day header group. */
-export default function DayHeader<Resource>({
+export default function DefaultDayHeader<Resource>({
     day,
     title
-}: TimeGridDayHeaderProps<Resource>) {
+}: DayHeaderProps<Resource>) {
     return <time dateTime={format(day, "yyyy-MM-dd")}>{title}</time>;
 }

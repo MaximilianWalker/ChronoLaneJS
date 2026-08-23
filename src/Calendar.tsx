@@ -27,7 +27,7 @@ import type {
 } from "./types.js";
 import type { AgendaViewProps } from "./views/agenda/types.js";
 import type { MonthViewProps } from "./views/month/types.js";
-import type { TimeGridViewProps } from "./views/time-grid/types.js";
+import type { ViewProps as TimeGridViewProps } from "./views/time-grid/types.js";
 
 const EMPTY_EVENTS: never[] = [];
 const EMPTY_PROPS = /* @__PURE__ */ Object.freeze({});

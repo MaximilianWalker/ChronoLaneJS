@@ -1,4 +1,4 @@
-import type { TimeGridSlotSizing } from "./types.js";
+import type { SlotSizing } from "./types.js";
 
 export type ResolvedSlotDimension =
     | { size: number; minSize?: never }
@@ -6,7 +6,7 @@ export type ResolvedSlotDimension =
 
 /** Resolves and validates one public time-grid slot dimension. */
 export const resolveSlotDimension = (
-    sizing: TimeGridSlotSizing | undefined,
+    sizing: SlotSizing | undefined,
     axis: "width" | "height",
     fallbackSize?: number
 ): ResolvedSlotDimension => {

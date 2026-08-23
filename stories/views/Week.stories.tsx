@@ -64,23 +64,59 @@ export const NarrowViewport: Story = {
         const grid = canvasElement.querySelector<HTMLElement>(
             ".time-grid-view_grid"
         );
+        const eventLayer = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_event-layer"
+        );
+        const timeLabels = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_time-labels"
+        );
         const header = canvasElement.querySelector<HTMLElement>(
             ".time-grid-view_day-header.is-primary"
         );
-        const firstSlot = canvasElement.querySelector<HTMLElement>(
+        const hourLabels = [...canvasElement.querySelectorAll<HTMLElement>(
+            ".time-grid-view_time-label"
+        )];
+        const firstColumnSlots = [...canvasElement.querySelectorAll<HTMLElement>(
             ".time-grid-view_slot.is-first-column"
-        );
+        )];
+        const firstSlot = firstColumnSlots[0];
 
-        if (!wrapper || !grid || !header || !firstSlot) {
+        if (
+            !wrapper
+            || !grid
+            || !eventLayer
+            || !timeLabels
+            || !header
+            || !firstSlot
+        ) {
             throw new Error("The narrow week grid did not render.");
         }
 
         const columnWidths = window.getComputedStyle(grid).gridTemplateColumns
             .split(" ")
             .map(Number.parseFloat);
+        const labelOffsets = hourLabels.map((label, index) => {
+            const slot = firstColumnSlots[index];
+            if (!slot) return Number.POSITIVE_INFINITY;
+
+            return Math.abs(
+                label.getBoundingClientRect().top
+                - slot.getBoundingClientRect().top
+            );
+        });
 
         await expect(wrapper.scrollWidth).toBeGreaterThan(wrapper.clientWidth);
         await expect(Math.min(...columnWidths)).toBeGreaterThanOrEqual(96);
+        await expect(hourLabels).toHaveLength(firstColumnSlots.length);
+        await expect(grid.getBoundingClientRect().height).toBeCloseTo(
+            timeLabels.getBoundingClientRect().height,
+            0
+        );
+        await expect(eventLayer.getBoundingClientRect().height).toBeCloseTo(
+            timeLabels.getBoundingClientRect().height,
+            0
+        );
+        await expect(Math.max(...labelOffsets)).toBeLessThan(1);
 
         wrapper.scrollLeft = 240;
         await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));

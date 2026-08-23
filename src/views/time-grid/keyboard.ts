@@ -1,4 +1,4 @@
-export type TimeGridNavigationKey =
+export type NavigationKey =
     | "ArrowDown"
     | "ArrowLeft"
     | "ArrowRight"
@@ -8,7 +8,7 @@ export type TimeGridNavigationKey =
     | "PageDown"
     | "PageUp";
 
-interface TimeGridNavigationOptions {
+interface NavigationOptions {
     currentIndex: number;
     itemCount: number;
     columnCount: number;
@@ -28,18 +28,18 @@ const navigationKeys = new Set<string>([
 ]);
 
 /** Identifies keys owned by time-grid slot navigation. */
-export const isTimeGridNavigationKey = (
+export const isNavigationKey = (
     key: string
-): key is TimeGridNavigationKey => navigationKeys.has(key);
+): key is NavigationKey => navigationKeys.has(key);
 
 /** Resolves the row-major slot index targeted by one grid navigation key. */
-export const getTimeGridNavigationTarget = ({
+export const getNavigationTarget = ({
     currentIndex,
     itemCount,
     columnCount,
     pageRowCount,
     controlKey
-}: TimeGridNavigationOptions, key: TimeGridNavigationKey): number | undefined => {
+}: NavigationOptions, key: NavigationKey): number | undefined => {
     if (
         itemCount < 1
         || columnCount < 1

@@ -9,19 +9,19 @@ import {
     resolveCalendarResources
 } from "../resources.js";
 import type { ResolvedCalendarResource } from "../resources.js";
-import type { TimeGridGroupBy, TimeOfDay } from "../types.js";
+import type { GroupBy, TimeOfDay } from "../types.js";
 import { assignEventLanes, createEventSegments } from "./events.js";
 import {
     createTimeScale,
     resolveTimeWindow
 } from "./timeScale.js";
-import type { LayoutColumn, TimeGridLayout } from "./types.js";
+import type { LayoutColumn, Layout } from "./types.js";
 
 /** Builds one column per day, or an ordered day-resource cross product. */
 const createColumns = <Resource>(
     days: Date[],
     resources: ResolvedCalendarResource<Resource>[],
-    groupBy: TimeGridGroupBy
+    groupBy: GroupBy
 ): LayoutColumn<Resource>[] => {
     if (resources.length === 0) {
         return days.map((day, dayIndex) => ({
@@ -76,7 +76,7 @@ export interface CreateLayoutOptions<
     events: NormalizedCalendarEvent<Event>[];
     backgroundEvents: NormalizedCalendarEvent<Event>[];
     resources?: CalendarResourceConfig<Event, Resource>;
-    groupBy?: TimeGridGroupBy;
+    groupBy?: GroupBy;
     minTime: TimeOfDay;
     maxTime: TimeOfDay | "24:00";
     slotDuration: number;
@@ -101,7 +101,7 @@ export const createLayout = <Event extends CalendarEvent, Resource>({
     maxTime,
     slotDuration,
     labelInterval
-}: CreateLayoutOptions<Event, Resource>): TimeGridLayout<Event, Resource> => {
+}: CreateLayoutOptions<Event, Resource>): Layout<Event, Resource> => {
     const firstDay = days[0];
     if (!firstDay) {
         throw new RangeError("A time-grid layout requires at least one day.");

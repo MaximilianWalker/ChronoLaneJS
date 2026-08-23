@@ -19,6 +19,9 @@ behavioral changes, and avoid application-specific dependencies or styling.
 Use PascalCase filenames for React components and camelCase filenames for
 hooks, pure modules, scripts, and tests. Keep private component names scoped to
 their feature, and reserve domain prefixes for public or cross-feature symbols.
+Within a feature folder, rely on that folder for domain context instead of
+repeating its name in private files, components, functions, or types. Add the
+domain prefix only at an export boundary where the symbol leaves the feature.
 Shared types belong in `src/types.ts`; feature types stay beside their feature.
 Declarations are emitted from source, so do not maintain a separate declaration
 file.
@@ -84,6 +87,18 @@ Before extracting a component, verify that:
   props and local variables;
 - it is independently reusable, testable, stateful, or performance-relevant;
 - removing the boundary would lose a concrete architectural benefit.
+
+Do not stack private components around the same domain concept with names such
+as `EventLayer`, `EventItem`, and `EventComponent`. A reader should be able to
+identify one clear owner and distinguish injected renderers from library-owned
+behavior immediately. Keep repeated occurrence markup in that owner unless an
+occurrence has independent state, lifecycle, reuse, or a measured performance
+boundary.
+
+Do not introduce `config`, `context`, `options`, or similarly broad prop objects
+solely to conceal a long dependency list. Such an object must model a cohesive
+domain contract or be shared by multiple real boundaries; otherwise, redesign
+the ownership or keep the logic with its existing owner.
 
 Pure calculations should live in focused domain modules when independently
 testable. Default renderer components may remain separate because they are

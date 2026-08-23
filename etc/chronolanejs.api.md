@@ -747,11 +747,20 @@ export interface TimeGridSlotProps<Resource = unknown> {
     slot: TimeGridSlot<Resource>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "TimeGridSlotWidth" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "TimeGridSlotHeight" needs to be exported by the entry point index.d.ts
-//
 // @public
-export type TimeGridSlotSizing = TimeGridSlotWidth & TimeGridSlotHeight;
+export type TimeGridSlotSizing = ({
+    width?: number;
+    minWidth?: never;
+} | {
+    width?: never;
+    minWidth?: number;
+}) & ({
+    height?: number;
+    minHeight?: never;
+} | {
+    height?: never;
+    minHeight?: number;
+});
 
 // @public
 export function TimeGridView<Event extends CalendarEvent = CalendarEvent, Resource = unknown>(input: TimeGridViewProps<Event, Resource>): JSX.Element;

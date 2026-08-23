@@ -7,15 +7,15 @@ import {
     format
 } from "date-fns";
 
-import { createLayout as buildTimeGridLayout } from "../../../../src/views/time-grid/layout/createLayout.js";
-import { createTimeGridHeaderRows } from "../../../../src/views/time-grid/layout/headers.js";
+import { createLayout as buildLayout } from "../../../../src/views/time-grid/layout/createLayout.js";
+import { createHeaderRows } from "../../../../src/views/time-grid/layout/headers.js";
 import type {
     CalendarEvent,
     CalendarResourceConfig,
     CalendarResourceId
 } from "../../../../src/types.js";
 import type {
-    TimeGridGroupBy,
+    GroupBy,
     TimeOfDay
 } from "../../../../src/views/time-grid/types.js";
 
@@ -38,7 +38,7 @@ interface CreateLayoutOptions {
     backgroundEvents?: TestEvent[];
     days?: Date[];
     resources?: CalendarResourceConfig<TestEvent, TestResource>;
-    groupBy?: TimeGridGroupBy;
+    groupBy?: GroupBy;
     minTime?: TimeOfDay;
     maxTime?: TimeOfDay | "24:00";
     slotDuration?: number;
@@ -59,7 +59,7 @@ const createLayout = ({
     slotDuration = 60,
     labelInterval = slotDuration,
     ...options
-}: CreateLayoutOptions = {}) => buildTimeGridLayout<TestEvent, TestResource>({
+}: CreateLayoutOptions = {}) => buildLayout<TestEvent, TestResource>({
     days,
     events,
     backgroundEvents,
@@ -144,7 +144,7 @@ test("builds aligned day-first and resource-first header rows", () => {
             ]
         }
     });
-    const dayHeaders = createTimeGridHeaderRows(dayFirst.columns, "day");
+    const dayHeaders = createHeaderRows(dayFirst.columns, "day");
 
     assert.deepEqual(
         dayHeaders.primary.map(({ kind, columnIndex, columns }) => ({
@@ -181,7 +181,7 @@ test("builds aligned day-first and resource-first header rows", () => {
         },
         groupBy: "resource"
     });
-    const resourceHeaders = createTimeGridHeaderRows(
+    const resourceHeaders = createHeaderRows(
         resourceFirst.columns,
         "resource"
     );
@@ -203,7 +203,7 @@ test("builds aligned day-first and resource-first header rows", () => {
 
 test("omits resource headers when resources are not configured", () => {
     const layout = createLayout({ days: [date(1), date(2)] });
-    const headers = createTimeGridHeaderRows(layout.columns, "resource");
+    const headers = createHeaderRows(layout.columns, "resource");
 
     assert.equal(headers.primary.length, 2);
     assert.ok(headers.primary.every(({ kind }) => kind === "day"));
@@ -526,7 +526,7 @@ test("rejects invalid time scales", () => {
         /integer multiple of slotDuration/
     );
     assert.throws(
-        () => createLayout({ groupBy: "team" as TimeGridGroupBy }),
+        () => createLayout({ groupBy: "team" as GroupBy }),
         /groupBy must be either "day" or "resource"/
     );
 });

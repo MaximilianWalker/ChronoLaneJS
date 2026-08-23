@@ -4,20 +4,20 @@ import type {
     NormalizedCalendarEvent
 } from "../../../types.js";
 import type {
-    TimeGridColumn,
-    TimeGridSlot
+    Column,
+    Slot
 } from "../types.js";
 import type { ResolvedTimeWindow } from "./timeScale.js";
 
 export interface LayoutColumn<Resource = unknown>
-    extends TimeGridColumn<Resource> {
+    extends Column<Resource> {
     key: string;
     dayIndex: number;
     resourceIndex: number | null;
 }
 
 export interface LayoutSlot<Resource = unknown>
-    extends TimeGridSlot<Resource> {
+    extends Slot<Resource> {
     key: string;
     timeIndex: number;
     dayIndex: number;
@@ -55,7 +55,7 @@ export interface LayoutDivider {
     rowSpan: number;
 }
 
-export interface TimeGridLayout<
+export interface Layout<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > {

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { resolveSlotDimension } from "../../../src/views/time-grid/sizing.js";
-import type { TimeGridSlotSizing } from "../../../src/views/time-grid/types.js";
+import type { SlotSizing } from "../../../src/views/time-grid/types.js";
 
 test("resolves fixed, fluid, and minimum slot dimensions", () => {
     assert.deepEqual(
@@ -33,14 +33,14 @@ test("uses the dimension fallback only when the axis is omitted", () => {
 test("rejects fixed and minimum values on the same axis", () => {
     assert.throws(
         () => resolveSlotDimension(
-            { width: 92, minWidth: 80 } as unknown as TimeGridSlotSizing,
+            { width: 92, minWidth: 80 } as unknown as SlotSizing,
             "width"
         ),
         /slotSizing\.width and slotSizing\.minWidth are mutually exclusive/
     );
     assert.throws(
         () => resolveSlotDimension(
-            { height: 40, minHeight: 20 } as unknown as TimeGridSlotSizing,
+            { height: 40, minHeight: 20 } as unknown as SlotSizing,
             "height",
             50
         ),
@@ -51,7 +51,7 @@ test("rejects fixed and minimum values on the same axis", () => {
 test("rejects removed slot-sizing forms at runtime", () => {
     assert.throws(
         () => resolveSlotDimension(
-            { height: "fluid" } as unknown as TimeGridSlotSizing,
+            { height: "fluid" } as unknown as SlotSizing,
             "height",
             50
         ),
@@ -59,7 +59,7 @@ test("rejects removed slot-sizing forms at runtime", () => {
     );
     assert.throws(
         () => resolveSlotDimension(
-            { width: { min: 92 } } as unknown as TimeGridSlotSizing,
+            { width: { min: 92 } } as unknown as SlotSizing,
             "width"
         ),
         /slotSizing\.width must be a positive finite number/

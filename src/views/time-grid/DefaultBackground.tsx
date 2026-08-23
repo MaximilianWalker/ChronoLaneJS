@@ -1,10 +1,10 @@
-import type { TimeGridBackgroundEventProps } from "./types.js";
+import type { BackgroundEventProps } from "./types.js";
 
 /** Renders the default non-interactive background event region. */
-export default function Background({
+export default function DefaultBackground({
     event,
     elementProps
-}: TimeGridBackgroundEventProps) {
+}: BackgroundEventProps) {
     return (
         <div
             {...elementProps}

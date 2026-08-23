@@ -1,32 +1,32 @@
 import type {
-    TimeGridColumn,
-    TimeGridEventSegment,
-    TimeGridMultiDayEventLayout,
-    TimeGridSlot
+    Column,
+    EventSegment,
+    MultiDayEventLayout,
+    Slot
 } from "./types.js";
 import type {
     LayoutColumn,
     LayoutSlot
 } from "./layout/types.js";
 
-export const toTimeGridColumn = <Resource>({
+export const toColumn = <Resource>({
     day,
     resource,
     resourceId
-}: LayoutColumn<Resource>): TimeGridColumn<Resource> => ({
+}: LayoutColumn<Resource>): Column<Resource> => ({
     day,
     resource,
     resourceId
 });
 
-export const toTimeGridSlot = <Resource>({
+export const toSlot = <Resource>({
     start,
     end,
     duration,
     day,
     resource,
     resourceId
-}: LayoutSlot<Resource>): TimeGridSlot<Resource> => ({
+}: LayoutSlot<Resource>): Slot<Resource> => ({
     start,
     end,
     duration,
@@ -35,10 +35,10 @@ export const toTimeGridSlot = <Resource>({
     resourceId
 });
 
-export const toTimeGridEventSegment = <Resource>(
-    segment: Omit<TimeGridEventSegment<Resource>, "layout">,
-    layout: TimeGridMultiDayEventLayout = "timed"
-): TimeGridEventSegment<Resource> => {
+export const toEventSegment = <Resource>(
+    segment: Omit<EventSegment<Resource>, "layout">,
+    layout: MultiDayEventLayout = "timed"
+): EventSegment<Resource> => {
     const { start, end, day, resource, resourceId } = segment;
 
     return {

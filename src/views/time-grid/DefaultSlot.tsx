@@ -1,14 +1,14 @@
 import type { ElementType } from "react";
 
-import type { TimeGridSlotProps } from "./types.js";
+import type { SlotProps } from "./types.js";
 
 /**
  * Renders the default time slot as an interactive button or passive grid cell.
  */
-export default function Slot({
+export default function DefaultSlot({
     selected,
     elementProps
-}: TimeGridSlotProps) {
+}: SlotProps) {
     const interactive = elementProps.onClick != null;
     const Component: ElementType = interactive ? "button" : "div";
 

@@ -4,13 +4,13 @@ import test from "node:test";
 import type { NormalizedCalendarEvent } from "../../../src/types.js";
 import {
     createEventResize,
-    createTimeGridResizeBoundaries,
-    createTimeGridResizeIntervals,
+    createResizeBoundaries,
+    createResizeIntervals,
     findAdjacentResizeBoundary,
     findClosestResizeBoundary,
-    resolveTimeGridResizeStep
+    resolveResizeStep
 } from "../../../src/views/time-grid/resize.js";
-import { createTimeGridEventPreviewSegments } from "../../../src/views/time-grid/preview.js";
+import { createEventPreviewSegments } from "../../../src/views/time-grid/preview.js";
 import type { LayoutColumn } from "../../../src/views/time-grid/layout/types.js";
 
 const at = (hour: number, minute = 0) => new Date(2026, 8, 14, hour, minute);
@@ -28,7 +28,7 @@ const timeWindow = {
     endMinute: (10 * 60) + 15,
     totalMinutes: 75
 };
-const intervals = createTimeGridResizeIntervals({
+const intervals = createResizeIntervals({
     columns,
     timeWindow,
     resizeStep: 30
@@ -40,13 +40,13 @@ const event: NormalizedCalendarEvent = {
 };
 
 test("resize boundaries leave at least one complete resize interval", () => {
-    const startBoundaries = createTimeGridResizeBoundaries({
+    const startBoundaries = createResizeBoundaries({
         event,
         edge: "start",
         resourceId: "studio",
         intervals
     });
-    const endBoundaries = createTimeGridResizeBoundaries({
+    const endBoundaries = createResizeBoundaries({
         event,
         edge: "end",
         resourceId: "studio",
@@ -63,7 +63,7 @@ test("a partial final resize interval remains valid", () => {
         start: at(10),
         end: at(10, 5)
     };
-    const boundaries = createTimeGridResizeBoundaries({
+    const boundaries = createResizeBoundaries({
         event: partialEvent,
         edge: "end",
         resourceId: "studio",
@@ -74,7 +74,7 @@ test("a partial final resize interval remains valid", () => {
 });
 
 test("pointer and keyboard resolution use configured resize boundaries", () => {
-    const boundaries = createTimeGridResizeBoundaries({
+    const boundaries = createResizeBoundaries({
         event,
         edge: "start",
         resourceId: "studio",
@@ -87,7 +87,7 @@ test("pointer and keyboard resolution use configured resize boundaries", () => {
 });
 
 test("resize results preserve source identity and the opposite boundary", () => {
-    const [boundary] = createTimeGridResizeBoundaries({
+    const [boundary] = createResizeBoundaries({
         event,
         edge: "start",
         resourceId: "studio",
@@ -130,11 +130,11 @@ test("resize boundaries may cross visible days but never resources", () => {
         end: new Date(2026, 8, 15, 9, 10)
     };
 
-    const boundaries = createTimeGridResizeBoundaries({
+    const boundaries = createResizeBoundaries({
         event: multiDayEvent,
         edge: "end",
         resourceId: "studio",
-        intervals: createTimeGridResizeIntervals({
+        intervals: createResizeIntervals({
             columns: [...columns, nextDayColumn, otherResourceColumn],
             timeWindow,
             resizeStep: 30
@@ -149,12 +149,12 @@ test("resize boundaries may cross visible days but never resources", () => {
 });
 
 test("resize precision is independent of visual slot duration", () => {
-    const fineIntervals = createTimeGridResizeIntervals({
+    const fineIntervals = createResizeIntervals({
         columns,
         timeWindow,
         resizeStep: 10
     });
-    const boundaries = createTimeGridResizeBoundaries({
+    const boundaries = createResizeBoundaries({
         event,
         edge: "start",
         resourceId: "studio",
@@ -183,7 +183,7 @@ test("resize previews project the complete proposal into visible columns", () =>
         resourceIndex: 1
     };
 
-    assert.deepEqual(createTimeGridEventPreviewSegments({
+    assert.deepEqual(createEventPreviewSegments({
         start: at(10),
         end: new Date(2026, 8, 15, 9, 30),
         resourceId: "studio",
@@ -204,7 +204,7 @@ test("resize previews project the complete proposal into visible columns", () =>
 });
 
 test("resize steps must be positive whole minutes", () => {
-    assert.equal(resolveTimeGridResizeStep(1), 1);
-    assert.throws(() => resolveTimeGridResizeStep(0), /positive integer/);
-    assert.throws(() => resolveTimeGridResizeStep(1.5), /positive integer/);
+    assert.equal(resolveResizeStep(1), 1);
+    assert.throws(() => resolveResizeStep(0), /positive integer/);
+    assert.throws(() => resolveResizeStep(1.5), /positive integer/);
 });

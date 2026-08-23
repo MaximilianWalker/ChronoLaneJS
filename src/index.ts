@@ -22,7 +22,7 @@ export { default as AgendaView } from "./views/agenda/AgendaView.js";
 export { default as MonthView } from "./views/month/MonthView.js";
 export { default as DayView } from "./views/time-grid/presets/DayView.js";
 export { default as WeekView } from "./views/time-grid/presets/WeekView.js";
-export { default as TimeGridView } from "./views/time-grid/TimeGridView.js";
+export { default as TimeGridView } from "./views/time-grid/View.js";
 export type {
     CalendarBuiltInView,
     CalendarProps,
@@ -85,22 +85,22 @@ export type {
     MonthViewProps
 } from "./views/month/types.js";
 export type {
-    TimeGridBackgroundEventProps,
-    TimeGridColumn,
-    TimeGridComponents,
-    TimeGridDayHeaderProps,
-    TimeGridEventDrop,
-    TimeGridEventPosition,
-    TimeGridEventProps,
-    TimeGridEventResize,
-    TimeGridEventResizeEdge,
-    TimeGridEventSegment,
-    TimeGridGroupBy,
-    TimeGridMultiDayEventLayout,
-    TimeGridResourceHeaderProps,
-    TimeGridSlot,
-    TimeGridSlotProps,
-    TimeGridSlotSizing,
-    TimeGridViewProps,
+    BackgroundEventProps as TimeGridBackgroundEventProps,
+    Column as TimeGridColumn,
+    Components as TimeGridComponents,
+    DayHeaderProps as TimeGridDayHeaderProps,
+    EventDrop as TimeGridEventDrop,
+    EventPosition as TimeGridEventPosition,
+    EventProps as TimeGridEventProps,
+    EventResize as TimeGridEventResize,
+    EventResizeEdge as TimeGridEventResizeEdge,
+    EventSegment as TimeGridEventSegment,
+    GroupBy as TimeGridGroupBy,
+    MultiDayEventLayout as TimeGridMultiDayEventLayout,
+    ResourceHeaderProps as TimeGridResourceHeaderProps,
+    Slot as TimeGridSlot,
+    SlotProps as TimeGridSlotProps,
+    SlotSizing as TimeGridSlotSizing,
+    ViewProps as TimeGridViewProps,
     TimeOfDay
 } from "./views/time-grid/types.js";

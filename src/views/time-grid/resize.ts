@@ -5,43 +5,43 @@ import {
 import type { ResolvedTimeWindow } from "./layout/timeScale.js";
 import type { LayoutColumn } from "./layout/types.js";
 import type {
-    TimeGridEventPosition,
-    TimeGridEventResize,
-    TimeGridEventResizeEdge
+    EventPosition,
+    EventResize,
+    EventResizeEdge
 } from "./types.js";
 
 /** One valid, visible boundary to which an event edge may be resized. */
-export interface TimeGridResizeBoundary<Resource = unknown>
-    extends TimeGridEventPosition<Resource> {
+export interface ResizeBoundary<Resource = unknown>
+    extends EventPosition<Resource> {
     date: Date;
     columnIndex: number;
     row: number;
 }
 
 /** One adjacent pair of valid boundaries on the configured resize scale. */
-export interface TimeGridResizeInterval<Resource = unknown> {
-    start: TimeGridResizeBoundary<Resource>;
-    end: TimeGridResizeBoundary<Resource>;
+export interface ResizeInterval<Resource = unknown> {
+    start: ResizeBoundary<Resource>;
+    end: ResizeBoundary<Resource>;
 }
 
-interface CreateTimeGridResizeIntervalsOptions<Resource> {
+interface CreateResizeIntervalsOptions<Resource> {
     columns: LayoutColumn<Resource>[];
     timeWindow: ResolvedTimeWindow;
     resizeStep: number;
 }
 
-interface CreateTimeGridResizeBoundariesOptions<
+interface CreateResizeBoundariesOptions<
     Event extends CalendarEvent,
     Resource
 > {
-    event: TimeGridEventResize<Event, Resource>["event"];
-    edge: TimeGridEventResizeEdge;
+    event: EventResize<Event, Resource>["event"];
+    edge: EventResizeEdge;
     resourceId: CalendarResourceId | null;
-    intervals: TimeGridResizeInterval<Resource>[];
+    intervals: ResizeInterval<Resource>[];
 }
 
 /** Validates the positive whole-minute increment used by event resizing. */
-export const resolveTimeGridResizeStep = (resizeStep: number): number => {
+export const resolveResizeStep = (resizeStep: number): number => {
     if (!Number.isInteger(resizeStep) || resizeStep < 1) {
         throw new RangeError("Calendar resizeStep must be a positive integer.");
     }
@@ -50,16 +50,16 @@ export const resolveTimeGridResizeStep = (resizeStep: number): number => {
 };
 
 /** Creates every adjacent boundary pair on the visible resize scale. */
-export const createTimeGridResizeIntervals = <Resource>({
+export const createResizeIntervals = <Resource>({
     columns,
     timeWindow,
     resizeStep
-}: CreateTimeGridResizeIntervalsOptions<Resource>): TimeGridResizeInterval<Resource>[] => {
-    const step = resolveTimeGridResizeStep(resizeStep);
+}: CreateResizeIntervalsOptions<Resource>): ResizeInterval<Resource>[] => {
+    const step = resolveResizeStep(resizeStep);
     const { startMinute, totalMinutes } = timeWindow;
 
     return columns.flatMap((column, columnIndex) => {
-        const createBoundary = (offset: number): TimeGridResizeBoundary<Resource> => ({
+        const createBoundary = (offset: number): ResizeBoundary<Resource> => ({
             date: atDayMinute(column.day, startMinute + offset),
             day: column.day,
             resource: column.resource,
@@ -67,7 +67,7 @@ export const createTimeGridResizeIntervals = <Resource>({
             columnIndex,
             row: offset + 1
         });
-        const intervals: TimeGridResizeInterval<Resource>[] = [];
+        const intervals: ResizeInterval<Resource>[] = [];
 
         for (let offset = 0; offset < totalMinutes; offset += step) {
             intervals.push({
@@ -86,7 +86,7 @@ export const createTimeGridResizeIntervals = <Resource>({
  * @param options - Source event, edge, occurrence resource, and resize scale.
  * @returns Chronologically ordered valid boundaries across visible days.
  */
-export const createTimeGridResizeBoundaries = <
+export const createResizeBoundaries = <
     Event extends CalendarEvent,
     Resource
 >({
@@ -94,7 +94,7 @@ export const createTimeGridResizeBoundaries = <
     edge,
     resourceId,
     intervals
-}: CreateTimeGridResizeBoundariesOptions<Event, Resource>): TimeGridResizeBoundary<Resource>[] => (
+}: CreateResizeBoundariesOptions<Event, Resource>): ResizeBoundary<Resource>[] => (
     intervals.flatMap((interval) => {
         if (interval.start.resourceId !== resourceId) return [];
 
@@ -110,11 +110,11 @@ export const createTimeGridResizeBoundaries = <
 
 /** Chooses the valid boundary nearest a pointer position in one column. */
 export const findClosestResizeBoundary = <Resource>(
-    boundaries: TimeGridResizeBoundary<Resource>[],
+    boundaries: ResizeBoundary<Resource>[],
     columnIndex: number,
     row: number,
-    edge: TimeGridEventResizeEdge
-): TimeGridResizeBoundary<Resource> | undefined => {
+    edge: EventResizeEdge
+): ResizeBoundary<Resource> | undefined => {
     const columnBoundaries = boundaries.filter(
         (boundary) => boundary.columnIndex === columnIndex
     );
@@ -131,10 +131,10 @@ export const findClosestResizeBoundary = <Resource>(
 
 /** Returns the next valid keyboard boundary in the requested direction. */
 export const findAdjacentResizeBoundary = <Resource>(
-    boundaries: TimeGridResizeBoundary<Resource>[],
+    boundaries: ResizeBoundary<Resource>[],
     current: Date,
     direction: -1 | 1
-): TimeGridResizeBoundary<Resource> | undefined => {
+): ResizeBoundary<Resource> | undefined => {
     const currentTime = current.getTime();
     if (direction === 1) {
         return boundaries.find((boundary) => boundary.date.getTime() > currentTime);
@@ -152,11 +152,11 @@ export const findAdjacentResizeBoundary = <Resource>(
 
 /** Builds the complete application-facing resize proposal. */
 export const createEventResize = <Event extends CalendarEvent, Resource>(
-    event: TimeGridEventResize<Event, Resource>["event"],
-    edge: TimeGridEventResizeEdge,
-    boundary: TimeGridResizeBoundary<Resource>,
-    source: TimeGridEventPosition<Resource>
-): TimeGridEventResize<Event, Resource> => ({
+    event: EventResize<Event, Resource>["event"],
+    edge: EventResizeEdge,
+    boundary: ResizeBoundary<Resource>,
+    source: EventPosition<Resource>
+): EventResize<Event, Resource> => ({
     event,
     edge,
     start: edge === "start" ? boundary.date : event.start,

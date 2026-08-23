@@ -2,11 +2,11 @@ import { addMilliseconds } from "date-fns/addMilliseconds";
 
 import type { CalendarEvent } from "../../types.js";
 import type { LayoutEvent, LayoutSlot } from "./layout/types.js";
-import type { TimeGridEventDrop } from "./types.js";
+import type { EventDrop } from "./types.js";
 
-export type TimeGridMoveDirection = "up" | "down" | "left" | "right";
+export type MoveDirection = "up" | "down" | "left" | "right";
 
-interface TimeGridMovePosition {
+interface MovePosition {
     columnIndex: number;
     timeIndex: number;
     start: Date;
@@ -42,8 +42,8 @@ export const findPointerMoveSlot = <Resource>(
 /** Returns the next time or visual-column slot for keyboard movement. */
 export const findAdjacentMoveSlot = <Resource>(
     slots: LayoutSlot<Resource>[],
-    current: TimeGridMovePosition,
-    direction: TimeGridMoveDirection
+    current: MovePosition,
+    direction: MoveDirection
 ): LayoutSlot<Resource> | undefined => {
     if (direction === "left" || direction === "right") {
         const columnIndex = current.columnIndex + (direction === "left" ? -1 : 1);
@@ -77,7 +77,7 @@ export const createEventDrop = <
 >(
     segment: LayoutEvent<Event, Resource>,
     slot: LayoutSlot<Resource>
-): TimeGridEventDrop<Event, Resource> => {
+): EventDrop<Event, Resource> => {
     const duration = segment.event.end.getTime() - segment.event.start.getTime();
 
     return {

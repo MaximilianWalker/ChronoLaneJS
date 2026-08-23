@@ -1,4 +1,4 @@
-import type { TimeGridEventProps } from "./types.js";
+import type { EventProps } from "./types.js";
 
 /**
  * Renders the default positioned time-grid event.
@@ -6,12 +6,12 @@ import type { TimeGridEventProps } from "./types.js";
  * Layout styles and event-root interactions are supplied by the grid. Move
  * and resize controls remain independent siblings owned by the view.
  */
-export default function Event({
+export default function DefaultEvent({
     event,
     segment,
     selected,
     elementProps
-}: TimeGridEventProps) {
+}: EventProps) {
     const isInteractive = Boolean(
         elementProps.onClick
         || elementProps.onDoubleClick

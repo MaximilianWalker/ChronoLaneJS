@@ -2,16 +2,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-    getTimeGridNavigationTarget,
-    isTimeGridNavigationKey
+    getNavigationTarget,
+    isNavigationKey
 } from "../../../src/views/time-grid/keyboard.js";
-import type { TimeGridNavigationKey } from "../../../src/views/time-grid/keyboard.js";
+import type { NavigationKey } from "../../../src/views/time-grid/keyboard.js";
 
 const target = (
     currentIndex: number,
-    key: TimeGridNavigationKey,
-    overrides: Partial<Parameters<typeof getTimeGridNavigationTarget>[0]> = {}
-) => getTimeGridNavigationTarget({
+    key: NavigationKey,
+    overrides: Partial<Parameters<typeof getNavigationTarget>[0]> = {}
+) => getNavigationTarget({
     currentIndex,
     itemCount: 12,
     columnCount: 3,
@@ -21,10 +21,10 @@ const target = (
 }, key);
 
 test("recognizes only time-grid navigation keys", () => {
-    assert.equal(isTimeGridNavigationKey("ArrowDown"), true);
-    assert.equal(isTimeGridNavigationKey("PageUp"), true);
-    assert.equal(isTimeGridNavigationKey("Enter"), false);
-    assert.equal(isTimeGridNavigationKey("Tab"), false);
+    assert.equal(isNavigationKey("ArrowDown"), true);
+    assert.equal(isNavigationKey("PageUp"), true);
+    assert.equal(isNavigationKey("Enter"), false);
+    assert.equal(isNavigationKey("Tab"), false);
 });
 
 test("moves through rows and columns without wrapping", () => {
