@@ -14,7 +14,7 @@ import {
 } from "./keyboard.js";
 import type { LayoutSlot } from "./layout/types.js";
 
-export interface SlotNavigation {
+interface SlotNavigation {
     rovingIndex: number;
     registerCell: (key: string, element: HTMLDivElement | null) => void;
     setActiveKey: (key: string) => void;

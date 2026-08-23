@@ -42,10 +42,18 @@ project-specific constraints are defined here.
   Do not extract generic row, cell, or item components merely to continue
   mapping, wrap styled elements, or conceal collection-owned behavior.
 - Keep time-grid row and cell iteration, structure, selection/navigation
-  wiring, and slot-renderer invocation in `Slots`. Prepare complex behavior in
-  a focused model or hook instead of private `Row` or `Cell` components.
+  wiring, and slot-renderer invocation in `Slots`. Keep stateful and imperative
+  navigation in `useSlotNavigation`; do not move JSX-adjacent prop mapping into
+  another hook or private `Row` or `Cell` component.
 - Extract structural components only when they own concrete layout,
   accessibility, navigation, or interaction semantics.
+- Do not extract a hook solely to move calculations, handlers, collection
+  mapping, or presentation-model construction out of a component. A hook must
+  own cohesive stateful, lifecycle, or imperative behavior, provide a
+  meaningful domain abstraction, or be reused. A single-use hook must have a
+  materially smaller and more coherent contract than the component concerns it
+  replaces. Prefer component-local code over a hook that mirrors component
+  inputs and returns JSX-adjacent props.
 - Split hooks when their concerns can change independently. Compose focused
   hooks in one feature controller instead of accumulating unrelated behavior
   in a single large hook.

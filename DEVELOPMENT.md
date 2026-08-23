@@ -129,6 +129,14 @@ independent move, resize, selection, and navigation concerns merely because
 they are consumed by the same view. Compose focused hooks through one feature
 controller.
 
+Do not extract a hook solely to move calculations, handlers, collection
+mapping, or presentation-model construction out of a component. A hook must
+encapsulate cohesive stateful, lifecycle, or imperative behavior, provide a
+meaningful domain abstraction, or be reused. A single-use hook is justified
+only when its contract is materially smaller and more coherent than the
+component concerns it replaces. Prefer honest component-local code over a hook
+that mirrors the component inputs and returns JSX-adjacent props.
+
 For repeated calendar events, prefer the ownership chain `collection ->
 occurrence owner -> injected renderer`. The collection owns grouping and
 layering, the occurrence owns presentation plus its cohesive pointer, keyboard,
@@ -140,8 +148,9 @@ until it reaches a genuine occurrence owner or injected renderer. Do not
 extract generic `Row`, `Cell`, `Item`, or similar components merely to wrap
 styled elements, continue mapping a parent-owned collection, or conceal
 collection-owned behavior. When direct traversal would make JSX complex,
-prepare layout and interaction models in a focused domain module or hook
-instead of hiding them behind structural components.
+prepare pure layout models in a focused domain module or stateful, lifecycle,
+or imperative behavior in a focused hook instead of hiding them behind
+structural components.
 
 The time-grid `Slots` component owns row and cell iteration, cell structure,
 selection and navigation wiring, and invocation of the injected slot renderer.
