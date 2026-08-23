@@ -4,7 +4,6 @@ import type { ComponentType } from "react";
 import type {
     CalendarEvent,
     CalendarResourceConfig,
-    CalendarStyle,
     NormalizedCalendarEvent
 } from "../../types.js";
 import { toEventSegment } from "./contracts.js";
@@ -16,11 +15,11 @@ import type {
     LayoutEvent,
     LayoutEventSegment
 } from "./layout/types.js";
-import { createEventDrop } from "./move.js";
-import { createEventPreviewSegments } from "./preview.js";
-import { createEventResize } from "./resize.js";
+import {
+    createTimedMovePreview,
+    createTimedResizePreview
+} from "./preview.js";
 import type { ResizeInterval } from "./resize.js";
-import { resolveCalendarResourceTitle } from "./resources.js";
 import TimedEvent from "./TimedEvent.js";
 import type { BackgroundEventProps } from "./types.js";
 
@@ -85,75 +84,20 @@ export default function TimedEvents<
     rendering,
     interactions
 }: TimedEventsProps<Event, Resource>) {
-    const { formatters, messages, context } = rendering.text;
     const { move, resize } = interactions;
     const gridRows = `repeat(${totalMinutes}, minmax(0, 1fr))`;
-    const movePreview = useMemo(() => {
-        if (!move?.target) return null;
-
-        const change = createEventDrop(move.segment, move.target);
-        const resourceTitle = move.target.resource == null
-            || move.target.resourceId == null
-            ? null
-            : resolveCalendarResourceTitle(
-                resources,
-                move.target.resource,
-                move.target.resourceId
-            );
-        const resource = typeof resourceTitle === "string"
-            || typeof resourceTitle === "number"
-            ? String(resourceTitle)
-            : move.target.resourceId == null
-                ? undefined
-                : String(move.target.resourceId);
-
-        return {
-            announcement: messages.eventMoveTarget({
-                view: context.view,
-                title: move.segment.event.title,
-                date: formatters.date(change.start, context),
-                time: formatters.time(change.start, context),
-                resource
-            }),
-            color: move.segment.event.color,
-            segments: createEventPreviewSegments({
-                start: change.start,
-                end: change.end,
-                resourceId: change.destination.resourceId,
-                columns,
-                timeWindow
-            })
-        };
-    }, [
-        columns,
-        context,
-        formatters,
-        messages,
+    const movePreview = useMemo(() => createTimedMovePreview({
         move,
+        columns,
+        timeWindow,
         resources,
+        text: rendering.text
+    }), [columns, move, rendering.text, resources, timeWindow]);
+    const resizePreview = useMemo(() => createTimedResizePreview({
+        resize,
+        columns,
         timeWindow
-    ]);
-    const resizePreview = useMemo(() => {
-        if (!resize?.target) return null;
-
-        const change = createEventResize(
-            resize.event,
-            resize.edge,
-            resize.target,
-            resize.source
-        );
-
-        return {
-            color: resize.event.color,
-            segments: createEventPreviewSegments({
-                start: change.start,
-                end: change.end,
-                resourceId: resize.source.resourceId,
-                columns,
-                timeWindow
-            })
-        };
-    }, [columns, resize, timeWindow]);
+    }), [columns, resize, timeWindow]);
 
     return (
         <div
@@ -167,28 +111,20 @@ export default function TimedEvents<
             >
                 {movePreview?.announcement}
             </div>
-            {movePreview?.segments.map((segment) => (
+            {movePreview?.segments.map(({ key, style }) => (
                 <div
-                    key={segment.columnIndex}
+                    key={key}
                     aria-hidden="true"
                     className="time-grid-view_move-preview"
-                    style={{
-                        "--color": movePreview.color,
-                        gridColumn: segment.columnIndex + 1,
-                        gridRow: `${segment.startRow} / ${segment.endRow}`
-                    } as CalendarStyle}
+                    style={style}
                 />
             ))}
-            {resizePreview?.segments.map((segment) => (
+            {resizePreview?.segments.map(({ key, style }) => (
                 <div
-                    key={segment.columnIndex}
+                    key={key}
                     aria-hidden="true"
                     className="time-grid-view_resize-preview"
-                    style={{
-                        "--color": resizePreview.color,
-                        gridColumn: segment.columnIndex + 1,
-                        gridRow: `${segment.startRow} / ${segment.endRow}`
-                    } as CalendarStyle}
+                    style={style}
                 />
             ))}
             {columns.map((column, columnIndex) => (
