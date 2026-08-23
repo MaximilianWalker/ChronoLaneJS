@@ -6,12 +6,6 @@ import {
     useMemo
 } from "react";
 import { addMonths } from "date-fns/addMonths";
-import { eachDayOfInterval } from "date-fns/eachDayOfInterval";
-import { endOfMonth } from "date-fns/endOfMonth";
-import { endOfWeek } from "date-fns/endOfWeek";
-import { startOfDay } from "date-fns/startOfDay";
-import { startOfMonth } from "date-fns/startOfMonth";
-import { startOfWeek } from "date-fns/startOfWeek";
 
 import CalendarNavigation from "../../components/CalendarNavigation.js";
 import type {
@@ -36,13 +30,10 @@ import {
 import { normalizeCalendarSelectedDate } from "../../core/selection.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
 import type { CalendarEvent } from "../../types.js";
+import Day from "./Day.js";
 import DefaultDayHeader from "./DefaultDayHeader.js";
 import DefaultEvent from "./DefaultEvent.js";
-import Grid from "./Grid.js";
-import {
-    createWeeks,
-    resolveMaxEvents
-} from "./layout.js";
+import { createLayout } from "./layout.js";
 import type { ViewProps } from "./types.js";
 
 const EMPTY_EVENTS: never[] = [];
@@ -100,14 +91,6 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
         timeZone,
         onDateChange
     });
-    const monthStart = startOfMonth(anchorDate);
-    const monthEnd = startOfDay(endOfMonth(anchorDate));
-    const rangeStart = startOfWeek(monthStart, { weekStartsOn: weekStart });
-    const rangeEnd = startOfDay(endOfWeek(monthEnd, { weekStartsOn: weekStart }));
-    const days = useMemo(() => eachDayOfInterval({
-        start: rangeStart,
-        end: rangeEnd
-    }), [rangeEnd, rangeStart]);
     const eventCollection = useMemo(
         () => normalizeEventCollection(events, timeZone),
         [events, timeZone]
@@ -122,12 +105,33 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
             : normalizeCalendarSelectedDate(selectedDate, timeZone),
         [selectedDate, timeZone]
     );
-    const maxEvents = resolveMaxEvents(maxEventsPerDay);
-    const weeks = useMemo(() => createWeeks({
-        days,
+    const overflowEnabled = onShowMore != null;
+    const layout = useMemo(() => createLayout({
+        anchorDate,
+        weekStartsOn: weekStart,
         events: eventCollection,
-        backgroundEvents: backgroundEventCollection
-    }), [backgroundEventCollection, days, eventCollection]);
+        backgroundEvents: backgroundEventCollection,
+        selectedDate: calendarSelectedDate,
+        showOutsideDays,
+        maxEventsPerDay,
+        overflowEnabled
+    }), [
+        anchorDate,
+        backgroundEventCollection,
+        calendarSelectedDate,
+        eventCollection,
+        maxEventsPerDay,
+        overflowEnabled,
+        showOutsideDays,
+        weekStart
+    ]);
+    const {
+        monthStart,
+        monthEnd,
+        rangeStart,
+        rangeEnd,
+        days
+    } = layout;
     const navigationBoundaries = useMemo(
         () => normalizeCalendarNavigationBoundaries(minDate, maxDate, timeZone),
         [maxDate, minDate, timeZone]
@@ -193,20 +197,45 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
                     navigation={NavigationRenderer}
                 />
             )}
-            <Grid
-                weeks={weeks}
-                weekdayHeaders={days.slice(0, 7)}
-                anchorDate={anchorDate}
-                selectedDate={calendarSelectedDate}
-                showOutsideDays={showOutsideDays}
-                maxEvents={maxEvents}
-                onSelectDay={onSelectDay}
-                onShowMore={onShowMore}
-                eventRenderer={EventRenderer}
-                headerRenderer={DayHeaderRenderer}
-                behavior={behavior}
-                text={text}
-            />
+            <div
+                className="month-view_grid-wrapper calendar-scroll-region"
+                aria-label={messages.monthGridLabel({ view: viewName })}
+                tabIndex={0}
+            >
+                <div className="month-view_grid" role="grid">
+                    <div className="month-view_weekdays" role="row">
+                        {layout.weekdayHeaders.map(({ key, day }) => (
+                            <div
+                                key={key}
+                                className="month-view_weekday"
+                                role="columnheader"
+                            >
+                                {formatters.weekday(day, text.context)}
+                            </div>
+                        ))}
+                    </div>
+                    {layout.weeks.map((week) => (
+                        <div
+                            key={week.key}
+                            className="month-view_week"
+                            role="row"
+                        >
+                            {week.days.map((entry) => (
+                                <Day
+                                    key={entry.key}
+                                    entry={entry}
+                                    onSelect={onSelectDay}
+                                    onShowMore={onShowMore}
+                                    eventRenderer={EventRenderer}
+                                    headerRenderer={DayHeaderRenderer}
+                                    behavior={behavior}
+                                    text={text}
+                                />
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
