@@ -37,7 +37,7 @@ import DefaultEvent from "./DefaultEvent.js";
 import DefaultResourceHeader from "./DefaultResourceHeader.js";
 import DefaultSlot from "./DefaultSlot.js";
 import Header from "./Header.js";
-import { createColumnLabels } from "./headerLabels.js";
+import { createHeaderModel } from "./headerModel.js";
 import { createLayout } from "./layout/createLayout.js";
 import { createHeaderRows } from "./layout/headers.js";
 import { createMultiDayEventLayout } from "./layout/multiDayEvents.js";
@@ -248,13 +248,11 @@ export default function View<
         () => createHeaderRows(columns, groupBy),
         [columns, groupBy]
     );
-    const columnHeaderLabels = createColumnLabels(
-        columns,
-        headerRows,
-        resources,
-        text
+    const headerModel = useMemo(
+        () => createHeaderModel(columns, headerRows, resources, text),
+        [columns, headerRows, resources, text]
     );
-    const hasResourceHeaders = headerRows.secondary.length > 0;
+    const hasResourceHeaders = headerModel.hasResourceHeaders;
     const gridSizing = createGridSizing(
         slotSizing,
         totalMinutes,
@@ -361,11 +359,9 @@ export default function View<
                 tabIndex={selectableSlots ? undefined : 0}
             >
                 <Header
-                    rows={headerRows}
-                    resources={resources}
+                    model={headerModel}
                     dayRenderer={DayHeaderRenderer}
                     resourceRenderer={ResourceHeaderRenderer}
-                    text={text}
                 />
                 <MultiDayEvents
                     layout={dedicatedLayout}
@@ -395,7 +391,7 @@ export default function View<
                             layout={layout}
                             slotDuration={slotDuration}
                             selectedRange={calendarSelectedRange}
-                            columnLabels={columnHeaderLabels}
+                            columnLabels={headerModel.columnLabels}
                             renderer={SlotRenderer}
                             onSelect={onSlotSelect}
                             wrapperRef={gridWrapperRef}
