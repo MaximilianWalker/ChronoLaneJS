@@ -1,11 +1,11 @@
 import { format } from "date-fns/format";
-import type { AgendaDayHeaderProps } from "./types.js";
+import type { DayHeaderProps } from "./types.js";
 
 /** Renders a locale-aware heading for one agenda day. */
-export default function DayHeader({
+export default function DefaultDayHeader({
     day,
     label
-}: AgendaDayHeaderProps) {
+}: DayHeaderProps) {
     return (
         <time dateTime={format(day, "yyyy-MM-dd")}>
             {label}

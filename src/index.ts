@@ -18,8 +18,8 @@ export {
     defaultCalendarMessages
 } from "./core/localization.js";
 export { resolveCalendarRange } from "./core/range.js";
-export { default as AgendaView } from "./views/agenda/AgendaView.js";
-export { default as MonthView } from "./views/month/MonthView.js";
+export { default as AgendaView } from "./views/agenda/View.js";
+export { default as MonthView } from "./views/month/View.js";
 export { default as DayView } from "./views/time-grid/presets/DayView.js";
 export { default as WeekView } from "./views/time-grid/presets/WeekView.js";
 export { default as TimeGridView } from "./views/time-grid/View.js";
@@ -72,17 +72,17 @@ export type {
     SharedViewProps
 } from "./types.js";
 export type {
-    AgendaComponents,
-    AgendaDayHeaderProps,
-    AgendaEmptyProps,
-    AgendaEventProps,
-    AgendaViewProps
+    Components as AgendaComponents,
+    DayHeaderProps as AgendaDayHeaderProps,
+    EmptyProps as AgendaEmptyProps,
+    EventProps as AgendaEventProps,
+    ViewProps as AgendaViewProps
 } from "./views/agenda/types.js";
 export type {
-    MonthComponents,
-    MonthDayHeaderProps,
-    MonthEventProps,
-    MonthViewProps
+    Components as MonthComponents,
+    DayHeaderProps as MonthDayHeaderProps,
+    EventProps as MonthEventProps,
+    ViewProps as MonthViewProps
 } from "./views/month/types.js";
 export type {
     BackgroundEventProps as TimeGridBackgroundEventProps,

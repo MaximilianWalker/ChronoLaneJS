@@ -22,6 +22,22 @@ project-specific constraints are defined here.
 - Remove obsolete boundaries and all references atomically. Do not retain
   aliases or compatibility wrappers unless the user explicitly requires them.
 
+## React render readability
+
+- Follow the render-structure and interaction-ownership rules in
+  `DEVELOPMENT.md`.
+- Keep render bodies as semantic composition. Do not declare non-trivial event
+  handlers, perform layout calculations, or embed branching collection
+  transforms inside JSX callbacks.
+- Keep one occurrence owner between a collection and an injected renderer.
+  That owner may own cohesive pointer, keyboard, selection, and resize
+  behavior; do not wrap it in additional same-domain component layers.
+- Extract structural components only when they own concrete layout,
+  accessibility, navigation, or interaction semantics.
+- Split hooks when their concerns can change independently. Compose focused
+  hooks in one feature controller instead of accumulating unrelated behavior
+  in a single large hook.
+
 ## Comment discipline
 
 - Follow the documentation and comment rules in `DEVELOPMENT.md`.

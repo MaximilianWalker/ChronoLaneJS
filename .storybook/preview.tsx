@@ -2,8 +2,8 @@ import type { Decorator, Preview } from "@storybook/react-vite";
 
 import "../src/Calendar.css";
 import "../src/components/CalendarNavigation.css";
-import "../src/views/agenda/AgendaView.css";
-import "../src/views/month/MonthView.css";
+import "../src/views/agenda/View.css";
+import "../src/views/month/View.css";
 import "../src/views/time-grid/View.css";
 import "../stories/story.css";
 import { chronoLaneJsTheme } from "./theme.js";

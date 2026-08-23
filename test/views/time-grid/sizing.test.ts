@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { resolveSlotDimension } from "../../../src/views/time-grid/sizing.js";
+import {
+    createGridSizing,
+    resolveSlotDimension
+} from "../../../src/views/time-grid/sizing.js";
 import type { SlotSizing } from "../../../src/views/time-grid/types.js";
 
 test("resolves fixed, fluid, and minimum slot dimensions", () => {
@@ -95,4 +98,24 @@ test("rejects invalid minimum slot dimensions", () => {
             );
         }
     }
+});
+
+test("creates grid dimensions from slot sizing and structure", () => {
+    assert.deepEqual(createGridSizing(
+        { width: 120, minHeight: 40 },
+        720,
+        60,
+        3,
+        2
+    ), {
+        fixedWidth: 120,
+        fixedHeight: undefined,
+        rowTemplate: "repeat(720, minmax(0, 1fr))",
+        height: undefined,
+        minHeight: "480px",
+        wrapperStyle: {
+            "--_time-grid-header-row-count": 2,
+            "--_time-grid-slot-columns": "repeat(3, 120px)"
+        }
+    });
 });

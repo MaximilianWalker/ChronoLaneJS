@@ -2,8 +2,8 @@
 
 import "./Calendar.css";
 import "./components/CalendarNavigation.css";
-import "./views/agenda/AgendaView.css";
-import "./views/month/MonthView.css";
+import "./views/agenda/View.css";
+import "./views/month/View.css";
 import "./views/time-grid/View.css";
 
 export { default } from "./index.js";

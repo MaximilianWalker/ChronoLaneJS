@@ -87,8 +87,7 @@ const createResourceCell = <Resource>({
 }: ColumnGroup<Resource>): ResourceHeaderCell<Resource> => {
     const column = columns[0];
     if (
-        !column
-        || column.resourceId == null
+        column?.resourceId == null
         || column.resourceIndex == null
     ) {
         throw new RangeError("A resource header requires a resource column.");

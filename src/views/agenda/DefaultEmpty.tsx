@@ -1,6 +1,6 @@
-import type { AgendaEmptyProps } from "./types.js";
+import type { EmptyProps } from "./types.js";
 
 /** Renders the prepared message when an agenda range contains no events. */
-export default function EmptyState({ message }: AgendaEmptyProps) {
+export default function DefaultEmpty({ message }: EmptyProps) {
     return <p className="agenda-view_empty">{message}</p>;
 }

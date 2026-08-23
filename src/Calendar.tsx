@@ -25,8 +25,8 @@ import type {
     CalendarViewDefinition,
     SharedViewProps
 } from "./types.js";
-import type { AgendaViewProps } from "./views/agenda/types.js";
-import type { MonthViewProps } from "./views/month/types.js";
+import type { ViewProps as AgendaViewProps } from "./views/agenda/types.js";
+import type { ViewProps as MonthViewProps } from "./views/month/types.js";
 import type { ViewProps as TimeGridViewProps } from "./views/time-grid/types.js";
 
 const EMPTY_EVENTS: never[] = [];

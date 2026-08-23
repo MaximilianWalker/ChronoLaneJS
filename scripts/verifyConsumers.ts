@@ -44,11 +44,13 @@ interface PackageMetadata {
 
 const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
 const packageSpec = process.argv[2] ?? repositoryRoot;
+const npmExecPath = process.env.npm_execpath;
 
 assert.ok(
     process.argv.length <= 3,
     "Usage: tsx scripts/verifyConsumers.ts [package-spec]"
 );
+assert.ok(npmExecPath, "Consumer verification must run through npm.");
 
 const run = (command: string, args: string[], cwd: string): void => {
     console.log(`\n> ${command} ${args.join(" ")} (${relative(repositoryRoot, cwd) || "."})`);
@@ -61,6 +63,14 @@ const capture = (command: string, args: string[], cwd: string): string => (
         encoding: "utf8",
         stdio: ["ignore", "pipe", "inherit"]
     })
+);
+
+const runNpm = (args: string[], cwd: string): void => {
+    run(process.execPath, [npmExecPath, ...args], cwd);
+};
+
+const captureNpm = (args: string[], cwd: string): string => (
+    capture(process.execPath, [npmExecPath, ...args], cwd)
 );
 
 const readJson = async <Value>(path: string): Promise<Value> => (
@@ -87,14 +97,14 @@ const installTarball = async (
     manifest.dependencies["@chronolanejs/react"] = `file:${tarballReference}`;
     await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
-    run("npm", [
+    runNpm([
         "install",
         "--package-lock-only",
         "--ignore-scripts",
         "--no-audit",
         "--no-fund"
     ], fixtureRoot);
-    run("npm", ["ci", "--no-audit", "--no-fund"], fixtureRoot);
+    runNpm(["ci", "--no-audit", "--no-fund"], fixtureRoot);
 
     const installedPackage = join(
         fixtureRoot,
@@ -245,7 +255,7 @@ export default defineConfig({
     }
 });
 `);
-    run("npm", [
+    runNpm([
         "exec",
         "--",
         "vite",
@@ -282,7 +292,7 @@ const verifyNextOutput = async (fixtureRoot: string): Promise<void> => {
 const temporaryRoot = await mkdtemp(join(tmpdir(), "chronolanejs-consumers-"));
 
 try {
-    const packOutput = capture("npm", [
+    const packOutput = captureNpm([
         "pack",
         packageSpec,
         "--ignore-scripts",
@@ -310,13 +320,13 @@ try {
     await verifyInstalledPackage(vitePackage, packedPackage);
     await writeRuntimeProbe(viteRoot, packedPackage.version);
     run("node", ["verify-installed.mjs"], viteRoot);
-    run("npm", ["run", "build"], viteRoot);
+    runNpm(["run", "build"], viteRoot);
     await verifyViteOutput(viteRoot);
     await verifyTreeShaking(viteRoot);
 
     const nextPackage = await installTarball(nextRoot, tarballPath);
     await verifyInstalledPackage(nextPackage, packedPackage);
-    run("npm", ["run", "build"], nextRoot);
+    runNpm(["run", "build"], nextRoot);
     await verifyNextOutput(nextRoot);
 
     console.log(

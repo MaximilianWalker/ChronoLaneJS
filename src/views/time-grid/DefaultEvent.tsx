@@ -12,12 +12,10 @@ export default function DefaultEvent({
     selected,
     elementProps
 }: EventProps) {
-    const isInteractive = Boolean(
-        elementProps.onClick
-        || elementProps.onDoubleClick
-        || elementProps.onContextMenu
-        || elementProps.onKeyDown
-    );
+    const isInteractive = elementProps.onClick != null
+        || elementProps.onDoubleClick != null
+        || elementProps.onContextMenu != null
+        || elementProps.onKeyDown != null;
 
     return (
         <div

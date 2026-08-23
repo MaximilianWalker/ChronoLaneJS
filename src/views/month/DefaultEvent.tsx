@@ -1,7 +1,7 @@
 import { isSameDay } from "date-fns/isSameDay";
 
 import type { CalendarEvent } from "../../types.js";
-import type { MonthEventProps } from "./types.js";
+import type { EventProps } from "./types.js";
 
 /**
  * Renders the default compact event representation used in a month cell.
@@ -9,19 +9,19 @@ import type { MonthEventProps } from "./types.js";
  * The event time is shown only on the day the event starts. The root becomes a
  * focusable event element when pointer or keyboard behavior is available.
  */
-export default function Event<EventType extends CalendarEvent = CalendarEvent>({
+export default function DefaultEvent<
+    EventType extends CalendarEvent = CalendarEvent
+>({
     event,
     day,
     timeLabel,
     selected,
     elementProps
-}: MonthEventProps<EventType>) {
-    const isInteractive = Boolean(
-        elementProps.onClick
-        || elementProps.onDoubleClick
-        || elementProps.onContextMenu
-        || elementProps.onKeyDown
-    );
+}: EventProps<EventType>) {
+    const isInteractive = elementProps.onClick != null
+        || elementProps.onDoubleClick != null
+        || elementProps.onContextMenu != null
+        || elementProps.onKeyDown != null;
     const startsToday = isSameDay(event.start, day);
 
     return (

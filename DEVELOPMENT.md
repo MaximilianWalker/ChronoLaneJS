@@ -104,6 +104,35 @@ Pure calculations should live in focused domain modules when independently
 testable. Default renderer components may remain separate because they are
 real replacement points in the public API.
 
+### Render structure and interaction ownership
+
+Render bodies should read as a short semantic description of the UI. A JSX
+collection callback may choose a key and pass data to one element, but it
+should not declare handlers, build presentation models, perform layout
+calculations, or contain multi-branch control flow. Move independently
+testable calculations to a focused domain module and move cohesive occurrence
+behavior to its occurrence owner. A trivial one-expression adapter that binds
+an event to a named module function is acceptable.
+
+Do not declare components inside components. Avoid non-trivial helper and event
+handler declarations inside a component render scope; put reusable interaction
+orchestration in a named module-scope function or a focused hook. Hooks may use
+callbacks where React requires stable closures, but one hook should not combine
+independent move, resize, selection, and navigation concerns merely because
+they are consumed by the same view. Compose focused hooks through one feature
+controller.
+
+For repeated calendar events, prefer the ownership chain `collection ->
+occurrence owner -> injected renderer`. The collection owns grouping and
+layering, the occurrence owns presentation plus its cohesive pointer, keyboard,
+selection, and resize controls, and the injected renderer owns replaceable
+markup. Do not add more same-domain wrappers around that chain.
+
+Structural components such as headers, rows, slots, and cells are useful only
+when they own concrete layout, accessibility, navigation, or interaction
+semantics. Do not extract a structural component that merely forwards parent
+data or moves JSX to another file.
+
 ## Roadmap discipline
 
 `ROADMAP.md` is the canonical backlog. Reference its stable item identifier in

@@ -1,5 +1,5 @@
 import type { CalendarEvent } from "../../types.js";
-import type { AgendaEventProps } from "./types.js";
+import type { EventProps } from "./types.js";
 
 /**
  * Renders the default agenda event with its time, title, and description.
@@ -7,18 +7,18 @@ import type { AgendaEventProps } from "./types.js";
  * The root remains an event element while supplied handlers add pointer and
  * keyboard behavior without presenting events as buttons.
  */
-export default function Event<EventType extends CalendarEvent = CalendarEvent>({
+export default function DefaultEvent<
+    EventType extends CalendarEvent = CalendarEvent
+>({
     event,
     timeLabel,
     selected,
     elementProps
-}: AgendaEventProps<EventType>) {
-    const isInteractive = Boolean(
-        elementProps.onClick
-        || elementProps.onDoubleClick
-        || elementProps.onContextMenu
-        || elementProps.onKeyDown
-    );
+}: EventProps<EventType>) {
+    const isInteractive = elementProps.onClick != null
+        || elementProps.onDoubleClick != null
+        || elementProps.onContextMenu != null
+        || elementProps.onKeyDown != null;
 
     return (
         <div

@@ -6,10 +6,12 @@ import {
     useMemo,
     useRef
 } from "react";
-import type { SyntheticEvent } from "react";
-import { format } from "date-fns/format";
 
 import CalendarNavigation from "../../components/CalendarNavigation.js";
+import type {
+    EventBehavior,
+    ViewText
+} from "../../components/eventPresentation.js";
 import { normalizeEvents } from "../../core/events.js";
 import {
     DEFAULT_CALENDAR_LOCALE,
@@ -28,16 +30,14 @@ import {
 } from "../../core/navigation.js";
 import { normalizeCalendarSelectionRange } from "../../core/selection.js";
 import { useCalendarViewDate } from "../../hooks/useViewDate.js";
-import type {
-    CalendarEvent,
-    CalendarStyle
-} from "../../types.js";
+import type { CalendarEvent } from "../../types.js";
 import DefaultBackground from "./DefaultBackground.js";
-import { toSlot } from "./contracts.js";
 import DefaultDayHeader from "./DefaultDayHeader.js";
 import DefaultEvent from "./DefaultEvent.js";
 import DefaultResourceHeader from "./DefaultResourceHeader.js";
 import DefaultSlot from "./DefaultSlot.js";
+import Header from "./Header.js";
+import { createColumnLabels } from "./headerLabels.js";
 import { createLayout } from "./layout/createLayout.js";
 import { createHeaderRows } from "./layout/headers.js";
 import {
@@ -48,18 +48,17 @@ import {
     createResizeIntervals,
     resolveResizeStep
 } from "./resize.js";
-import { resolveCalendarResourceTitle } from "./resources.js";
 import MultiDayEvents from "./MultiDayEvents.js";
-import type { EventRendering } from "./rendering.js";
-import { resolveSlotDimension } from "./sizing.js";
+import type { EventRendering } from "./eventModel.js";
+import { createGridSizing } from "./sizing.js";
+import Slots from "./Slots.js";
 import TimedEvents from "./TimedEvents.js";
+import TimeLabels from "./TimeLabels.js";
 import type { ViewProps } from "./types.js";
-import { useInteractions } from "./useInteractions.js";
-import { useSlotNavigation } from "./useSlotNavigation.js";
+import { useInteractionController } from "./interactions/useController.js";
 
 const EMPTY_ITEMS: never[] = [];
 const EMPTY_COMPONENTS = /* @__PURE__ */ Object.freeze({});
-const DEFAULT_SLOT_HEIGHT = 50;
 
 const groupByColumn = <Item extends { columnIndex: number }>(
     items: Item[],
@@ -139,6 +138,26 @@ export default function View<
         () => ({ locale: calendarLocale, view: viewName }),
         [calendarLocale, viewName]
     );
+    const text = useMemo<ViewText>(() => ({
+        formatters,
+        messages,
+        context: formatContext
+    }), [formatContext, formatters, messages]);
+    const eventBehavior = useMemo<EventBehavior<Event, Resource>>(() => ({
+        selectedIds: selectedEventIds,
+        canSelect: canSelectEvent,
+        canOpen: canOpenEvent,
+        onSelect: onEventSelect,
+        onOpen: onEventOpen,
+        interactions: eventInteractions
+    }), [
+        canOpenEvent,
+        canSelectEvent,
+        eventInteractions,
+        onEventOpen,
+        onEventSelect,
+        selectedEventIds
+    ]);
     const { anchorDate, setDate } = useCalendarViewDate({
         date: controlledDate,
         defaultDate,
@@ -207,8 +226,6 @@ export default function View<
         columns,
         timeWindow,
         slots,
-        slotRows,
-        dividers,
         events: positionedEvents,
         backgroundEvents: positionedBackgroundEvents,
         totalMinutes
@@ -242,54 +259,20 @@ export default function View<
         () => createHeaderRows(columns, groupBy),
         [columns, groupBy]
     );
-    const columnHeaderLabels = useMemo(() => columns.map((_, columnIndex) => (
-        [headerRows.primary, headerRows.secondary].flatMap((headers) => (
-            headers.filter((headerCell) => (
-                columnIndex >= headerCell.columnIndex
-                && columnIndex < headerCell.columnIndex + headerCell.columns.length
-            ))
-        )).map((headerCell) => {
-            if (headerCell.kind === "day") {
-                return formatters.dayHeader(headerCell.day, formatContext);
-            }
-
-            const title = resolveCalendarResourceTitle(
-                resources,
-                headerCell.resource,
-                headerCell.resourceId
-            );
-            return typeof title === "string" || typeof title === "number"
-                ? String(title)
-                : String(headerCell.resourceId);
-        }).join(", ")
-    )), [columns, formatContext, formatters, headerRows, resources]);
+    const columnHeaderLabels = createColumnLabels(
+        columns,
+        headerRows,
+        resources,
+        text
+    );
     const hasResourceHeaders = headerRows.secondary.length > 0;
-    const slotWidth = resolveSlotDimension(
+    const gridSizing = createGridSizing(
         slotSizing,
-        "width"
+        totalMinutes,
+        slotDuration,
+        columns.length,
+        hasResourceHeaders ? 2 : 1
     );
-    const slotHeight = resolveSlotDimension(
-        slotSizing,
-        "height",
-        DEFAULT_SLOT_HEIGHT
-    );
-    const slotCount = totalMinutes / slotDuration;
-    const fixedSlotWidth = slotWidth.size;
-    const fixedSlotHeight = slotHeight.size;
-    const slotWidthValue = fixedSlotWidth !== undefined
-        ? `${fixedSlotWidth}px`
-        : `minmax(${slotWidth.minSize}px, 1fr)`;
-    const gridHeight = fixedSlotHeight !== undefined
-        ? `${slotCount * fixedSlotHeight}px`
-        : undefined;
-    const gridMinHeight = fixedSlotHeight === undefined && slotHeight.minSize > 0
-        ? `${slotCount * slotHeight.minSize}px`
-        : undefined;
-    const gridRows = `repeat(${totalMinutes}, minmax(0, 1fr))`;
-    const gridWrapperStyle: CalendarStyle = {
-        "--_time-grid-header-row-count": hasResourceHeaders ? 2 : 1,
-        "--_time-grid-slot-columns": `repeat(${columns.length}, ${slotWidthValue})`
-    };
 
     const calendarRange = { start: rangeStart, end: rangeEnd, days };
     const navigationContext = { view: viewName, range: calendarRange };
@@ -302,7 +285,7 @@ export default function View<
     });
     const canMoveEvents = onEventDrop != null;
     const selectableSlots = onSlotSelect != null;
-    const interaction = useInteractions({
+    const interaction = useInteractionController({
         columns,
         slots,
         totalMinutes,
@@ -318,57 +301,21 @@ export default function View<
     } = interaction;
     const eventRendering = useMemo<EventRendering<Event, Resource>>(() => ({
         renderer: EventRenderer,
-        selectedIds: selectedEventIds,
+        behavior: eventBehavior,
+        text,
         moveEnabled: canMoveEvents,
         resizeEnabled: canResizeEvents,
         canDrag: canDragEvent,
-        canResize: canResizeEvent,
-        canSelect: canSelectEvent,
-        canOpen: canOpenEvent,
-        onSelect: onEventSelect,
-        onOpen: onEventOpen,
-        interactions: eventInteractions,
-        formatters,
-        messages,
-        formatContext,
-        viewName
+        canResize: canResizeEvent
     }), [
         EventRenderer,
         canDragEvent,
         canMoveEvents,
-        canOpenEvent,
         canResizeEvent,
         canResizeEvents,
-        canSelectEvent,
-        eventInteractions,
-        formatContext,
-        formatters,
-        messages,
-        onEventOpen,
-        onEventSelect,
-        selectedEventIds,
-        viewName
+        eventBehavior,
+        text
     ]);
-    const selectedSlotIndex = calendarSelectedRange == null
-        ? -1
-        : slots.findIndex((slot) => (
-            calendarSelectedRange.start < slot.end
-            && calendarSelectedRange.end > slot.start
-        ));
-    const {
-        rovingIndex: rovingSlotIndex,
-        registerCell: registerSlotCell,
-        setActiveKey: setActiveSlotKey,
-        handleKeyDown: handleSlotNavigation
-    } = useSlotNavigation({
-        slots,
-        columnCount: columns.length,
-        selectedIndex: selectedSlotIndex,
-        selectable: selectableSlots,
-        wrapperRef: gridWrapperRef,
-        stageRef: gridStageRef
-    });
-
     const navigate = useCallback((direction: -1 | 1) => {
         const nextDate = resolvedRange.navigate(direction);
         setDate(resolveCalendarNavigationDate(
@@ -391,9 +338,9 @@ export default function View<
 
     return (
         <div
-            className={`time-grid-view${fixedSlotWidth !== undefined
+            className={`time-grid-view${gridSizing.fixedWidth !== undefined
                 ? " has-fixed-slot-width"
-                : ""}${fixedSlotHeight !== undefined
+                : ""}${gridSizing.fixedHeight !== undefined
                 ? " has-fixed-slot-height"
                 : ""} ${className ?? ""}`.trim()}
             data-time-zone={timeZone}
@@ -419,53 +366,16 @@ export default function View<
                     ? undefined
                     : messages.timeGridLabel({ view: viewName })}
                 data-group-by={hasResourceHeaders ? groupBy : undefined}
-                style={gridWrapperStyle}
+                style={gridSizing.wrapperStyle}
                 tabIndex={selectableSlots ? undefined : 0}
             >
-                <div
-                    className={`time-grid-view_header${hasResourceHeaders
-                        ? " has-resource-headers"
-                        : ""}`}
-                >
-                    {[headerRows.primary, headerRows.secondary].map(
-                        (headers, rowIndex) => headers.map((headerCell) => (
-                            <div
-                                key={`${rowIndex}-${headerCell.key}`}
-                                className={`time-grid-view_header-cell time-grid-view_${headerCell.kind}-header is-${rowIndex === 0
-                                    ? "primary"
-                                    : "secondary"}`}
-                                style={{
-                                    gridColumn: `${headerCell.columnIndex + 2} / span ${headerCell.columns.length}`,
-                                    gridRow: rowIndex + 1
-                                }}
-                            >
-                                {headerCell.kind === "day"
-                                    ? (
-                                        <DayHeaderRenderer
-                                            day={headerCell.day}
-                                            columns={headerCell.columns}
-                                            title={formatters.dayHeader(
-                                                headerCell.day,
-                                                formatContext
-                                            )}
-                                        />
-                                    )
-                                    : (
-                                        <ResourceHeaderRenderer
-                                            resource={headerCell.resource}
-                                            resourceId={headerCell.resourceId}
-                                            columns={headerCell.columns}
-                                            title={resolveCalendarResourceTitle(
-                                                resources,
-                                                headerCell.resource,
-                                                headerCell.resourceId
-                                            )}
-                                        />
-                                    )}
-                            </div>
-                        ))
-                    )}
-                </div>
+                <Header
+                    rows={headerRows}
+                    resources={resources}
+                    dayRenderer={DayHeaderRenderer}
+                    resourceRenderer={ResourceHeaderRenderer}
+                    text={text}
+                />
                 <MultiDayEvents
                     layout={dedicatedLayout}
                     columns={columns}
@@ -475,150 +385,32 @@ export default function View<
                     gridRef={multiDayGridRef}
                 />
                 <div className="time-grid-view_body">
-                    <div
-                        className="time-grid-view_time-labels"
-                        style={{
-                            gridTemplateRows: gridRows,
-                            height: gridHeight,
-                            minHeight: gridMinHeight
-                        }}
-                    >
-                        {dividers.map(({ key, time, startRow, rowSpan }) => (
-                            <div
-                                key={key}
-                                className="time-grid-view_time-label"
-                                style={{ gridRow: `${startRow} / span ${rowSpan}` }}
-                            >
-                                <time dateTime={format(time, "HH:mm")}>
-                                    {formatters.time(time, formatContext)}
-                                </time>
-                            </div>
-                        ))}
-                    </div>
+                    <TimeLabels
+                        dividers={layout.dividers}
+                        rowTemplate={gridSizing.rowTemplate}
+                        height={gridSizing.height}
+                        minHeight={gridSizing.minHeight}
+                        text={text}
+                    />
                     <div
                         ref={gridStageRef}
                         className="time-grid-view_grid-stage"
                         style={{
-                            height: gridHeight,
-                            minHeight: gridMinHeight
+                            height: gridSizing.height,
+                            minHeight: gridSizing.minHeight
                         }}
                     >
-                        <div
-                            className="time-grid-view_grid"
-                            role={selectableSlots ? "grid" : undefined}
-                            aria-label={selectableSlots
-                                ? messages.timeGridLabel({ view: viewName })
-                                : undefined}
-                            aria-multiselectable={selectableSlots || undefined}
-                            style={{ gridTemplateRows: gridRows }}
-                        >
-                            {selectableSlots && (
-                                <div
-                                    role="row"
-                                    className="time-grid-view_accessible-header-row"
-                                >
-                                    {columns.map((column, columnIndex) => (
-                                        <div
-                                            key={`${column.key}-accessible-header`}
-                                            role="columnheader"
-                                        >
-                                            {columnHeaderLabels[columnIndex]}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            {slotRows.map((row, rowIndex) => {
-                                const firstSlot = row[0];
-                                if (!firstSlot) return null;
-
-                                return (
-                                    <div
-                                        key={`${firstSlot.key}-row`}
-                                        role={selectableSlots ? "row" : undefined}
-                                        className="time-grid-view_slot-row"
-                                        style={{
-                                            gridColumn: "1 / -1",
-                                            gridRow: `${(firstSlot.timeIndex * slotDuration) + 1} / span ${firstSlot.duration}`
-                                        }}
-                                    >
-                                        {row.map((slot) => {
-                                            const slotIndex = (rowIndex * columns.length)
-                                                + slot.columnIndex;
-                                            const rendererSlot = toSlot(slot);
-                                            const selected = calendarSelectedRange
-                                                && calendarSelectedRange.start < slot.end
-                                                && calendarSelectedRange.end > slot.start;
-                                            const handleSelect = onSlotSelect
-                                                ? (interaction: SyntheticEvent) => {
-                                                    setActiveSlotKey(slot.key);
-                                                    onSlotSelect(rendererSlot, interaction);
-                                                }
-                                                : undefined;
-
-                                            return (
-                                                <div
-                                                    key={`${slot.key}-cell`}
-                                                    ref={(element) => registerSlotCell(
-                                                        slot.key,
-                                                        element
-                                                    )}
-                                                    role={selectableSlots
-                                                        ? "gridcell"
-                                                        : undefined}
-                                                    aria-selected={selectableSlots
-                                                        ? Boolean(selected)
-                                                        : undefined}
-                                                    className="time-grid-view_slot-cell"
-                                                    style={{
-                                                        gridColumn: slot.columnIndex + 1
-                                                    }}
-                                                >
-                                                    <SlotRenderer
-                                                        slot={rendererSlot}
-                                                        selected={Boolean(selected)}
-                                                        elementProps={{
-                                                            className: `time-grid-view_slot${slot.columnIndex === 0
-                                                                ? " is-first-column"
-                                                                : ""}${slot.isDividerBoundary
-                                                                ? " is-divider-boundary"
-                                                                : ""}`,
-                                                            "aria-label": handleSelect
-                                                                ? messages.slotLabel({
-                                                                    view: viewName,
-                                                                    date: formatters.date(
-                                                                        slot.start,
-                                                                        formatContext
-                                                                    ),
-                                                                    time: formatters.time(
-                                                                        slot.start,
-                                                                        formatContext
-                                                                    )
-                                                                })
-                                                                : undefined,
-                                                            onClick: handleSelect,
-                                                            onFocus: handleSelect
-                                                                ? () => setActiveSlotKey(slot.key)
-                                                                : undefined,
-                                                            onKeyDown: handleSelect
-                                                                ? (interaction) => handleSlotNavigation(
-                                                                    interaction,
-                                                                    slotIndex
-                                                                )
-                                                                : undefined,
-                                                            tabIndex: handleSelect
-                                                                ? slotIndex === rovingSlotIndex
-                                                                    ? 0
-                                                                    : -1
-                                                                : undefined
-                                                        }}
-                                                    />
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                );
-                            })}
-                        </div>
+                        <Slots
+                            layout={layout}
+                            slotDuration={slotDuration}
+                            selectedRange={calendarSelectedRange}
+                            columnLabels={columnHeaderLabels}
+                            renderer={SlotRenderer}
+                            onSelect={onSlotSelect}
+                            wrapperRef={gridWrapperRef}
+                            stageRef={gridStageRef}
+                            text={text}
+                        />
                         <TimedEvents
                             layout={layout}
                             eventsByColumn={eventsByColumn}

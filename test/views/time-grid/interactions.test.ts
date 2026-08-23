@@ -4,12 +4,12 @@ import test from "node:test";
 import type { CalendarEvent } from "../../../src/types.js";
 import {
     reduceInteraction
-} from "../../../src/views/time-grid/interactions.js";
+} from "../../../src/views/time-grid/interactions/reducer.js";
 import type {
     ActiveInteraction,
     MoveState,
     ResizeState
-} from "../../../src/views/time-grid/interactions.js";
+} from "../../../src/views/time-grid/interactions/types.js";
 
 type Interaction = ActiveInteraction<CalendarEvent, unknown>;
 

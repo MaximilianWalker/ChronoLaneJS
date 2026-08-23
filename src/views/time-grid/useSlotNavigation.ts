@@ -14,6 +14,16 @@ import {
 } from "./keyboard.js";
 import type { LayoutSlot } from "./layout/types.js";
 
+export interface SlotNavigation {
+    rovingIndex: number;
+    registerCell: (key: string, element: HTMLDivElement | null) => void;
+    setActiveKey: (key: string) => void;
+    handleKeyDown: (
+        interaction: KeyboardEvent<HTMLElement>,
+        slotIndex: number
+    ) => void;
+}
+
 interface UseSlotNavigationOptions<Resource> {
     slots: LayoutSlot<Resource>[];
     columnCount: number;
@@ -30,7 +40,7 @@ export const useSlotNavigation = <Resource>({
     selectable,
     wrapperRef,
     stageRef
-}: UseSlotNavigationOptions<Resource>) => {
+}: UseSlotNavigationOptions<Resource>): SlotNavigation => {
     const [activeKey, setActiveKey] = useState<string | null>(null);
     const cellRefs = useRef(new Map<string, HTMLDivElement>());
     const rememberedIndex = activeKey == null

@@ -1,4 +1,7 @@
+import type { CalendarStyle } from "../../types.js";
 import type { SlotSizing } from "./types.js";
+
+const DEFAULT_SLOT_HEIGHT = 50;
 
 export type ResolvedSlotDimension =
     | { size: number; minSize?: never }
@@ -43,4 +46,48 @@ export const resolveSlotDimension = (
     return fallbackSize === undefined
         ? { minSize: 0 }
         : { size: fallbackSize };
+};
+
+export interface GridSizing {
+    fixedWidth?: number;
+    fixedHeight?: number;
+    rowTemplate: string;
+    height?: string;
+    minHeight?: string;
+    wrapperStyle: CalendarStyle;
+}
+
+export const createGridSizing = (
+    sizing: SlotSizing | undefined,
+    totalMinutes: number,
+    slotDuration: number,
+    columnCount: number,
+    headerRowCount: number
+): GridSizing => {
+    const width = resolveSlotDimension(sizing, "width");
+    const height = resolveSlotDimension(
+        sizing,
+        "height",
+        DEFAULT_SLOT_HEIGHT
+    );
+    const slotCount = totalMinutes / slotDuration;
+    const widthValue = width.size !== undefined
+        ? `${width.size}px`
+        : `minmax(${width.minSize}px, 1fr)`;
+
+    return {
+        fixedWidth: width.size,
+        fixedHeight: height.size,
+        rowTemplate: `repeat(${totalMinutes}, minmax(0, 1fr))`,
+        height: height.size === undefined
+            ? undefined
+            : `${slotCount * height.size}px`,
+        minHeight: height.size === undefined && height.minSize > 0
+            ? `${slotCount * height.minSize}px`
+            : undefined,
+        wrapperStyle: {
+            "--_time-grid-header-row-count": headerRowCount,
+            "--_time-grid-slot-columns": `repeat(${columnCount}, ${widthValue})`
+        }
+    };
 };

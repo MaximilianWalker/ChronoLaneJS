@@ -6,18 +6,19 @@ import type {
 import type {
     CalendarEvent,
     NormalizedCalendarEvent
-} from "../../types.js";
-import type { LayoutMultiDayEvent } from "./layout/multiDayEvents.js";
+} from "../../../types.js";
+import type { LayoutMultiDayEvent } from "../layout/multiDayEvents.js";
 import type {
     LayoutColumn,
     LayoutEvent,
     LayoutSlot
-} from "./layout/types.js";
-import type { ResizeBoundary } from "./resize.js";
+} from "../layout/types.js";
+import type { ResizeBoundary } from "../resize.js";
 import type {
     EventPosition,
     EventResizeEdge
-} from "./types.js";
+} from "../types.js";
+
 export interface MoveState<
     Event extends CalendarEvent,
     Resource
@@ -98,25 +99,16 @@ export type InteractionAction<
         interaction: Exclude<ActiveInteraction<Event, Resource>, null>;
     };
 
-export const reduceInteraction = <Event extends CalendarEvent, Resource>(
-    state: ActiveInteraction<Event, Resource>,
-    action: InteractionAction<Event, Resource>
-): ActiveInteraction<Event, Resource> => {
-    if (action.type === "begin") return action.interaction;
-    if (
-        state?.kind !== action.interaction.kind
-        || state.handleKey !== action.interaction.handleKey
-    ) return state;
+export type InteractionDispatch<
+    Event extends CalendarEvent,
+    Resource
+> = Dispatch<InteractionAction<Event, Resource>>;
 
-    return action.type === "update" ? action.interaction : null;
-};
-
-export interface TimedInteractions<
+export interface TimedMoveInteractions<
     Event extends CalendarEvent,
     Resource
 > {
     move: MoveState<Event, Resource> | null;
-    resize: ResizeState<Event, Resource> | null;
     beginMove: (
         segment: LayoutEvent<Event, Resource>,
         handleKey: string,
@@ -132,6 +124,13 @@ export interface TimedInteractions<
     handleMovePointerMove: (interaction: PointerEvent<HTMLElement>) => void;
     handleMovePointerUp: (interaction: PointerEvent<HTMLElement>) => void;
     handleMovePointerCancel: (interaction: PointerEvent<HTMLElement>) => void;
+}
+
+export interface TimedResizeInteractions<
+    Event extends CalendarEvent,
+    Resource
+> {
+    resize: ResizeState<Event, Resource> | null;
     beginResize: (
         event: NormalizedCalendarEvent<Event>,
         segment: LayoutEvent<Event, Resource>,
@@ -148,12 +147,17 @@ export interface TimedInteractions<
     handleResizePointerCancel: (interaction: PointerEvent<HTMLElement>) => void;
 }
 
-export interface MultiDayInteractions<
+export type TimedInteractions<
+    Event extends CalendarEvent,
+    Resource
+> = TimedMoveInteractions<Event, Resource>
+    & TimedResizeInteractions<Event, Resource>;
+
+export interface MultiDayMoveInteractions<
     Event extends CalendarEvent,
     Resource
 > {
     move: MultiDayMoveState<Event, Resource> | null;
-    resize: MultiDayResizeState<Event, Resource> | null;
     beginMove: (
         segment: LayoutMultiDayEvent<Event, Resource>,
         handleKey: string,
@@ -169,6 +173,13 @@ export interface MultiDayInteractions<
     handleMovePointerMove: (interaction: PointerEvent<HTMLElement>) => void;
     handleMovePointerUp: (interaction: PointerEvent<HTMLElement>) => void;
     handleMovePointerCancel: (interaction: PointerEvent<HTMLElement>) => void;
+}
+
+export interface MultiDayResizeInteractions<
+    Event extends CalendarEvent,
+    Resource
+> {
+    resize: MultiDayResizeState<Event, Resource> | null;
     beginResize: (
         segment: LayoutMultiDayEvent<Event, Resource>,
         edge: EventResizeEdge,
@@ -184,7 +195,8 @@ export interface MultiDayInteractions<
     handleResizePointerCancel: (interaction: PointerEvent<HTMLElement>) => void;
 }
 
-export type InteractionDispatch<
+export type MultiDayInteractions<
     Event extends CalendarEvent,
     Resource
-> = Dispatch<InteractionAction<Event, Resource>>;
+> = MultiDayMoveInteractions<Event, Resource>
+    & MultiDayResizeInteractions<Event, Resource>;
