@@ -40,15 +40,13 @@ import Header from "./Header.js";
 import { createColumnLabels } from "./headerLabels.js";
 import { createLayout } from "./layout/createLayout.js";
 import { createHeaderRows } from "./layout/headers.js";
-import {
-    createMultiDayEventLayout,
-    isMultiDayEvent
-} from "./layout/multiDayEvents.js";
+import { createMultiDayEventLayout } from "./layout/multiDayEvents.js";
 import {
     createResizeIntervals,
     resolveResizeStep
 } from "./resize.js";
 import MultiDayEvents from "./MultiDayEvents.js";
+import { partitionEvents } from "./eventModel.js";
 import type { EventRendering } from "./eventModel.js";
 import { createGridSizing } from "./sizing.js";
 import Slots from "./Slots.js";
@@ -177,21 +175,10 @@ export default function View<
         [events, timeZone]
     );
     const calendarEvents = eventCollection.events;
-    if (multiDayEventLayout !== "timed" && multiDayEventLayout !== "dedicated") {
-        throw new TypeError(
-            'multiDayEventLayout must be either "timed" or "dedicated".'
-        );
-    }
-    const { timedEvents, dedicatedEvents } = useMemo(() => {
-        if (multiDayEventLayout === "timed") {
-            return { timedEvents: calendarEvents, dedicatedEvents: EMPTY_ITEMS };
-        }
-
-        return {
-            timedEvents: calendarEvents.filter((event) => !isMultiDayEvent(event)),
-            dedicatedEvents: calendarEvents.filter(isMultiDayEvent)
-        };
-    }, [calendarEvents, multiDayEventLayout]);
+    const { timedEvents, dedicatedEvents } = useMemo(
+        () => partitionEvents(calendarEvents, multiDayEventLayout),
+        [calendarEvents, multiDayEventLayout]
+    );
     const backgroundEventCollection = useMemo(
         () => normalizeEventCollection(backgroundEvents, timeZone),
         [backgroundEvents, timeZone]

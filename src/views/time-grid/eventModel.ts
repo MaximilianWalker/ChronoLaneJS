@@ -17,6 +17,32 @@ import type {
     MultiDayEventLayout,
     ViewProps
 } from "./types.js";
+import { isMultiDayEvent } from "./layout/multiDayEvents.js";
+
+interface EventPartition<Event extends CalendarEvent> {
+    timedEvents: NormalizedCalendarEvent<Event>[];
+    dedicatedEvents: NormalizedCalendarEvent<Event>[];
+}
+
+export const partitionEvents = <Event extends CalendarEvent>(
+    events: NormalizedCalendarEvent<Event>[],
+    layout: MultiDayEventLayout
+): EventPartition<Event> => {
+    if (layout !== "timed" && layout !== "dedicated") {
+        throw new TypeError(
+            'multiDayEventLayout must be either "timed" or "dedicated".'
+        );
+    }
+
+    if (layout === "timed") {
+        return { timedEvents: events, dedicatedEvents: [] };
+    }
+
+    return {
+        timedEvents: events.filter((event) => !isMultiDayEvent(event)),
+        dedicatedEvents: events.filter(isMultiDayEvent)
+    };
+};
 
 export interface EventRendering<
     Event extends CalendarEvent,
