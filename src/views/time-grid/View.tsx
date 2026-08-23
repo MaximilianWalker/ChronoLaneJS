@@ -29,7 +29,7 @@ import {
     resolveCalendarNavigationDate
 } from "../../core/navigation.js";
 import { normalizeCalendarSelectionRange } from "../../core/selection.js";
-import { useCalendarViewDate } from "../../hooks/useViewDate.js";
+import { useViewDate } from "../../hooks/useViewDate.js";
 import type { CalendarEvent } from "../../types.js";
 import DefaultBackground from "./DefaultBackground.js";
 import DefaultDayHeader from "./DefaultDayHeader.js";
@@ -156,7 +156,7 @@ export default function View<
         onEventSelect,
         selectedEventIds
     ]);
-    const { anchorDate, setDate } = useCalendarViewDate({
+    const { anchorDate, setDate } = useViewDate({
         date: controlledDate,
         defaultDate,
         timeZone,

@@ -27,7 +27,7 @@ import {
     resolveCalendarNavigationDate
 } from "../../core/navigation.js";
 import { resolveCalendarRange } from "../../core/range.js";
-import { useCalendarViewDate } from "../../hooks/useViewDate.js";
+import { useViewDate } from "../../hooks/useViewDate.js";
 import type { CalendarEvent } from "../../types.js";
 import Day from "./Day.js";
 import DefaultDayHeader from "./DefaultDayHeader.js";
@@ -81,7 +81,7 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
     } = components;
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
-    const { anchorDate, setDate } = useCalendarViewDate({
+    const { anchorDate, setDate } = useViewDate({
         date,
         defaultDate,
         timeZone,
