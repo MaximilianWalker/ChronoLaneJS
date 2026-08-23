@@ -7,7 +7,7 @@ import type { CalendarNavigationButtonProps } from "../types.js";
  *
  * Consumers can replace this renderer through `components.navigation`.
  */
-export const DefaultNavigationButton = ({
+const DefaultButton = ({
     type,
     children,
     ...props
@@ -26,7 +26,7 @@ export const DefaultNavigationButton = ({
     </button>
 );
 
-interface CalendarNavigationProps {
+interface NavigationProps {
     header: ReactNode;
     onPrevious: MouseEventHandler<HTMLButtonElement>;
     onNext: MouseEventHandler<HTMLButtonElement>;
@@ -34,7 +34,7 @@ interface CalendarNavigationProps {
     nextDisabled?: boolean;
     previousLabel: string;
     nextLabel: string;
-    navigation?: ComponentType<CalendarNavigationButtonProps>;
+    buttonRenderer?: ComponentType<CalendarNavigationButtonProps>;
     className?: string;
 }
 
@@ -44,7 +44,7 @@ interface CalendarNavigationProps {
  * Disabled directions remain in the layout but are hidden to keep the header
  * centered and prevent unavailable navigation.
  */
-export default function CalendarNavigation({
+export default function Navigation({
     header,
     onPrevious,
     onNext,
@@ -52,12 +52,12 @@ export default function CalendarNavigation({
     nextDisabled = false,
     previousLabel,
     nextLabel,
-    navigation: NavigationButton = DefaultNavigationButton,
+    buttonRenderer: ButtonRenderer = DefaultButton,
     className = ""
-}: CalendarNavigationProps) {
+}: NavigationProps) {
     return (
         <div className={`calendar-view_navigation ${className}`.trim()}>
-            <NavigationButton
+            <ButtonRenderer
                 type="prev"
                 aria-label={previousLabel}
                 aria-hidden={previousDisabled || undefined}
@@ -67,7 +67,7 @@ export default function CalendarNavigation({
                 style={{ visibility: previousDisabled ? "hidden" : "visible" }}
             />
             <h2 className="calendar-view_navigation-text">{header}</h2>
-            <NavigationButton
+            <ButtonRenderer
                 type="next"
                 aria-label={nextLabel}
                 aria-hidden={nextDisabled || undefined}

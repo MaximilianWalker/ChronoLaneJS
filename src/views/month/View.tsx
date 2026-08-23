@@ -7,7 +7,7 @@ import {
 } from "react";
 import { addMonths } from "date-fns/addMonths";
 
-import CalendarNavigation from "../../components/CalendarNavigation.js";
+import Navigation from "../../components/Navigation.js";
 import type {
     EventBehavior,
     ViewText
@@ -81,7 +81,7 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
     const {
         event: EventRenderer = DefaultEvent,
         dayHeader: DayHeaderRenderer = DefaultDayHeader,
-        navigation: NavigationRenderer
+        navigation: NavigationButtonRenderer
     } = components;
     const calendarLocale = readCalendarLocale(locale);
     const weekStart = resolveCalendarWeekStart(calendarLocale, weekStartProp);
@@ -186,7 +186,7 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
             style={style}
         >
             {showControls && (
-                <CalendarNavigation
+                <Navigation
                     header={formatters.rangeHeader(headerRange, text.context)}
                     onPrevious={() => navigate(-1)}
                     onNext={() => navigate(1)}
@@ -194,7 +194,7 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
                     nextDisabled={navigationState.nextDisabled}
                     previousLabel={messages.previous(navigationContext)}
                     nextLabel={messages.next(navigationContext)}
-                    navigation={NavigationRenderer}
+                    buttonRenderer={NavigationButtonRenderer}
                 />
             )}
             <div

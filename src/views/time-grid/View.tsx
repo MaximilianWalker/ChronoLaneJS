@@ -7,7 +7,7 @@ import {
     useRef
 } from "react";
 
-import CalendarNavigation from "../../components/CalendarNavigation.js";
+import Navigation from "../../components/Navigation.js";
 import type {
     EventBehavior,
     ViewText
@@ -127,7 +127,7 @@ export default function View<
         backgroundEvent: BackgroundRenderer = DefaultBackground,
         dayHeader: DayHeaderRenderer = DefaultDayHeader,
         resourceHeader: ResourceHeaderRenderer = DefaultResourceHeader,
-        navigation: NavigationRenderer
+        navigation: NavigationButtonRenderer
     } = components;
     const gridWrapperRef = useRef<HTMLDivElement>(null);
     const calendarLocale = readCalendarLocale(locale);
@@ -336,7 +336,7 @@ export default function View<
             style={style}
         >
             {showControls && (
-                <CalendarNavigation
+                <Navigation
                     className="time-grid-view_navigation"
                     header={header}
                     onPrevious={() => navigate(-1)}
@@ -345,7 +345,7 @@ export default function View<
                     nextDisabled={navigationState.nextDisabled}
                     previousLabel={messages.previous(navigationContext)}
                     nextLabel={messages.next(navigationContext)}
-                    navigation={NavigationRenderer}
+                    buttonRenderer={NavigationButtonRenderer}
                 />
             )}
             <div

@@ -1,7 +1,7 @@
 "use client";
 
 import "./Calendar.css";
-import "./components/CalendarNavigation.css";
+import "./components/Navigation.css";
 import "./views/agenda/View.css";
 import "./views/month/View.css";
 import "./views/time-grid/View.css";
