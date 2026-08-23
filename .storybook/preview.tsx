@@ -1,7 +1,7 @@
 import type { Decorator, Preview } from "@storybook/react-vite";
 
 import "../src/Calendar.css";
-import "../src/components/CalendarNavigation.css";
+import "../src/components/Navigation.css";
 import "../src/views/agenda/View.css";
 import "../src/views/month/View.css";
 import "../src/views/time-grid/View.css";
