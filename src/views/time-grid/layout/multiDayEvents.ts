@@ -52,6 +52,9 @@ interface CreateMultiDayEventLayoutOptions<
     events: NormalizedCalendarEvent<Event>[];
     columns: LayoutColumn<Resource>[];
     resources?: CalendarResourceConfig<Event, Resource>;
+    getEventInterval?: (
+        event: NormalizedCalendarEvent<Event>
+    ) => { start: Date; end: Date };
 }
 
 interface MultiDayEventPreviewOptions<
@@ -118,11 +121,17 @@ const matchesResource = <Resource>(
 const createSegments = <Event extends CalendarEvent, Resource>(
     event: NormalizedCalendarEvent<Event>,
     columns: LayoutColumn<Resource>[],
-    matchesColumn: (column: LayoutColumn<Resource>) => boolean
+    matchesColumn: (column: LayoutColumn<Resource>) => boolean,
+    interval: { start: Date; end: Date } = event
 ): LayoutMultiDayEventSegment<Event, Resource>[] => {
+    const positionedEvent = interval === event
+        ? event
+        : { ...event, ...interval };
     const matchingColumns = columns
         .map((column, columnIndex) => ({ column, columnIndex }))
-        .filter(({ column }) => matchesColumn(column) && eventOverlapsDay(event, column.day));
+        .filter(({ column }) => (
+            matchesColumn(column) && eventOverlapsDay(positionedEvent, column.day)
+        ));
     const groups: typeof matchingColumns[] = [];
 
     matchingColumns.forEach((entry) => {
@@ -148,13 +157,13 @@ const createSegments = <Event extends CalendarEvent, Resource>(
         const eventWithoutResource: Omit<
             NormalizedCalendarEvent<Event>,
             "resource"
-        > = event;
+        > = positionedEvent;
 
         return {
             ...eventWithoutResource,
             event,
-            start: event.start > visibleStart ? event.start : visibleStart,
-            end: event.end < visibleEnd ? event.end : visibleEnd,
+            start: interval.start > visibleStart ? interval.start : visibleStart,
+            end: interval.end < visibleEnd ? interval.end : visibleEnd,
             day: first.column.day,
             dayIndex: first.column.dayIndex,
             columnIndex: first.columnIndex,
@@ -178,7 +187,8 @@ export const createMultiDayEventLayout = <
 >({
     events,
     columns,
-    resources
+    resources,
+    getEventInterval
 }: CreateMultiDayEventLayoutOptions<Event, Resource>): MultiDayEventLayout<Event, Resource> => {
     const segments = sortEvents(events).flatMap((event) => {
         const resourceIds = resolveCalendarEventResourceIds(
@@ -189,7 +199,8 @@ export const createMultiDayEventLayout = <
         return createSegments(
             event,
             columns,
-            (column) => matchesResource(resourceIds, column)
+            (column) => matchesResource(resourceIds, column),
+            getEventInterval?.(event)
         );
     }).sort((first, second) => (
         first.columnIndex - second.columnIndex
@@ -228,7 +239,8 @@ export const createMultiDayEventPreview = <
 }: MultiDayEventPreviewOptions<Event, Resource>) => createSegments(
     { ...event, start, end },
     columns,
-    (column) => column.resourceId == null || column.resourceId === resourceId
+    (column) => column.resourceId == null || column.resourceId === resourceId,
+    { start, end }
 );
 
 /** Builds a day-scale movement proposal while preserving wall-clock fields. */

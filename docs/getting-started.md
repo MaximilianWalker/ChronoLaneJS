@@ -353,15 +353,17 @@ const [events, setEvents] = useState(meetings);
 />
 ```
 
-Move handles use Arrow Up/Down for adjacent time slots and Arrow Left/Right for
-adjacent day/resource columns. Resize handles use Arrow keys for the adjacent
-`resizeStep` boundary. Both interactions preview the complete proposal, use
-Enter or blur to commit, and use Escape to cancel. Pointer, touch, and keyboard
-share the same targets and fire the application callback only once on commit.
-A no-op move or resize does not fire a callback.
+Drag a movable event from its body; a short press remains an ordinary click.
+From the focused event, Arrow Up/Down targets adjacent time slots and Arrow
+Left/Right targets adjacent day/resource columns. Transparent resize zones at
+the event edges expose the resize cursor and use Arrow keys for the adjacent
+`resizeStep` boundary when focused. The event follows an active resize instead
+of drawing a separate preview. Enter or blur commits, Escape cancels, and the
+application callback fires once. A no-op move or resize does not fire it.
 
-Dedicated multi-day handles use Left/Right for visible day/resource movement
-and whole-calendar-day resizing. Wall-clock times remain stable across DST.
+Focused dedicated multi-day events use Left/Right for visible day/resource
+movement; their edge zones resize by whole calendar days. Wall-clock times
+remain stable across DST.
 
 `selectedDate` and both `CalendarSelectionRange` boundaries accept the same
 `Date`, string, and timestamp inputs as events. The view clones and validates

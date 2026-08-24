@@ -135,5 +135,5 @@ test("resolves pointer and keyboard movement from the same slot scale", () => {
     assert.equal(format(next.start, "HH:mm"), "09:30");
     assert.equal(format(previous.start, "HH:mm"), "09:00");
     assert.equal(findAdjacentMoveSlot(layout.slots, origin, "right")?.dayIndex, 1);
-    assert.equal(findPointerMoveSlot(layout.slots, 1, 46, 30)?.timeIndex, 1);
+    assert.equal(findPointerMoveSlot(layout.slots, 1, 46, 30)?.timeIndex, 2);
 });

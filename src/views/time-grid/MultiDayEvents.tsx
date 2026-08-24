@@ -10,10 +10,7 @@ import type { MultiDayInteractions } from "./interactions/types.js";
 import type { MultiDayEventLayout as Layout } from "./layout/multiDayEvents.js";
 import type { LayoutColumn } from "./layout/types.js";
 import MultiDayEvent from "./MultiDayEvent.js";
-import {
-    createMultiDayMovePreview,
-    createMultiDayResizePreview
-} from "./preview.js";
+import { createMultiDayMovePreview } from "./preview.js";
 
 interface MultiDayEventsProps<Event extends CalendarEvent, Resource> {
     layout: Layout<Event, Resource>;
@@ -36,17 +33,13 @@ export default function MultiDayEvents<
     gridRef
 }: MultiDayEventsProps<Event, Resource>) {
     const { messages, context } = rendering.text;
-    const { move, resize } = interactions;
+    const { move } = interactions;
     const movePreview = useMemo(() => createMultiDayMovePreview({
         move,
         columns,
         resources,
         text: rendering.text
     }), [columns, move, rendering.text, resources]);
-    const resizePreview = useMemo(() => createMultiDayResizePreview({
-        resize,
-        columns
-    }), [columns, resize]);
 
     if (layout.events.length === 0) return null;
 
@@ -94,14 +87,6 @@ export default function MultiDayEvents<
                         style={style}
                     />
                 ))}
-                {resizePreview?.segments.map(({ key, style }) => (
-                    <div
-                        key={key}
-                        aria-hidden="true"
-                        className="time-grid-view_resize-preview is-multi-day"
-                        style={style}
-                    />
-                ))}
                 {layout.events.map((segment) => {
                     const occurrenceKey = `${rendering.getEventKey(segment.event)}:dedicated:${segment.columnIndex}`;
 
@@ -113,7 +98,6 @@ export default function MultiDayEvents<
                             columns={columns}
                             rendering={rendering}
                             interactions={interactions}
-                            gridRef={gridRef}
                         />
                     );
                 })}

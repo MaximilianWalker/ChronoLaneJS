@@ -89,12 +89,15 @@ export const handleTimedMovePointerDown = <
     handleKey: string,
     interactions: TimedInteractions<Event, Resource>
 ): void => {
-    interaction.preventDefault();
     interaction.stopPropagation();
     const next = interactions.beginMove(
         segment,
         handleKey,
-        interaction.pointerId
+        {
+            pointerId: interaction.pointerId,
+            clientX: interaction.clientX,
+            clientY: interaction.clientY
+        }
     );
     if (!next) return;
 

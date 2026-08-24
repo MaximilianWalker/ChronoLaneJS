@@ -1,13 +1,9 @@
 import type {
     KeyboardEvent,
-    PointerEvent,
-    RefObject
+    PointerEvent
 } from "react";
 
 import type { CalendarEvent } from "../../../types.js";
-import {
-    getMultiDayPointerColumnIndex
-} from "../layout/multiDayEvents.js";
 import type { LayoutMultiDayEvent } from "../layout/multiDayEvents.js";
 import type { LayoutColumn } from "../layout/types.js";
 import type { EventResizeEdge } from "../types.js";
@@ -17,7 +13,6 @@ interface MoveOptions<Event extends CalendarEvent, Resource> {
     segment: LayoutMultiDayEvent<Event, Resource>;
     handleKey: string;
     columns: LayoutColumn<Resource>[];
-    gridRef: RefObject<HTMLDivElement | null>;
     interactions: MultiDayInteractions<Event, Resource>;
 }
 
@@ -76,25 +71,17 @@ export const handleMultiDayMovePointerDown = <
     Resource
 >(
     interaction: PointerEvent<HTMLElement>,
-    { segment, handleKey, columns, gridRef, interactions }: MoveOptions<Event, Resource>
+    { segment, handleKey, interactions }: MoveOptions<Event, Resource>
 ): void => {
-    interaction.preventDefault();
     interaction.stopPropagation();
-    const grid = gridRef.current;
-    if (!grid) return;
-    const bounds = grid.getBoundingClientRect();
-    const grabColumnIndex = getMultiDayPointerColumnIndex(
-        interaction.clientX,
-        bounds.left,
-        bounds.width,
-        columns.length
-    );
-    if (grabColumnIndex == null) return;
     const next = interactions.beginMove(
         segment,
         handleKey,
-        interaction.pointerId,
-        grabColumnIndex
+        {
+            pointerId: interaction.pointerId,
+            clientX: interaction.clientX,
+            clientY: interaction.clientY
+        }
     );
     if (next && interaction.nativeEvent.isTrusted) {
         interaction.currentTarget.setPointerCapture(interaction.pointerId);

@@ -256,7 +256,7 @@ export interface CalendarSlotMessageContext extends CalendarMessageContext {
     time: string;
 }
 
-/** Prepared values available when formatting an event's accessible label. */
+/** Prepared values used for an event's details tooltip and accessible label. */
 export interface CalendarEventMessageContext extends CalendarMessageContext {
     title?: string;
     description?: string;

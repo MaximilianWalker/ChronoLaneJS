@@ -46,10 +46,12 @@ visible row and column structure without changing the controlled selection.
 | Openable event | `Enter` | Calls `onEventOpen`. |
 | Pointer event | Single click | Calls `onEventSelect`; a double-click still selects only once. |
 | Pointer event | Double-click or double-tap | Calls `onEventOpen`. |
+| Focused movable time-grid event | Arrow keys | Previews the adjacent time or visible day/resource target. |
+| Focused movable time-grid event | `Enter` or blur | Commits one `onEventDrop` proposal after movement. |
+| Focused movable time-grid event | `Escape` | Cancels without calling `onEventDrop`. |
 | Event resize handle | Arrow keys | Previews the adjacent valid `resizeStep` boundary. |
 | Event resize handle | `Enter` or blur | Commits one `onEventResize` proposal after movement. |
 | Event resize handle | `Escape` | Cancels without calling `onEventResize`. |
-| Dedicated multi-day move handle | `ArrowLeft` or `ArrowRight` | Previews the adjacent visible day/resource column. |
 | Dedicated multi-day resize handle | `ArrowLeft` or `ArrowRight` | Previews the adjacent whole-calendar-day boundary. |
 | Selectable month day | `Enter` or `Space` | Calls `onSelectDay`. |
 | Month overflow | `Enter` or `Space` | Calls `onShowMore`. |
@@ -61,10 +63,11 @@ visible row and column structure without changing the controlled selection.
 | Focused passive scroll region | browser/platform scrolling keys | Scrolls the calendar surface. |
 
 Focusable event roots receive `aria-keyshortcuts="Space"`, `"Enter"`, or both
-according to their enabled semantics. `canSelectEvent` and `canOpenEvent` may
-remove one action for one rendered occurrence without remapping the remaining
-gesture. Consumer-provided `eventInteractions.ariaKeyShortcuts` is merged with
-the semantic shortcuts.
+according to their enabled semantics. Movable time-grid events additionally
+expose their Arrow and cancellation shortcuts plus an accessible movement
+description. `canSelectEvent` and `canOpenEvent` may remove one action for one
+rendered occurrence without remapping the remaining gesture. Consumer-provided
+`eventInteractions.ariaKeyShortcuts` is merged with the semantic shortcuts.
 
 ## Selection and opening feedback
 
@@ -107,14 +110,17 @@ The `messages` registry owns all library-generated labels:
 - the dedicated multi-day region name;
 - selectable slot labels;
 - interactive event labels;
+- movable-event descriptions and movement announcements;
 - visible event time ranges;
 - event resize handles;
 - agenda empty state;
 - month overflow controls.
 
 Default event labels combine title, formatted start/end dates and times, and
-description. Provide meaningful event titles and descriptions, or override
-`messages.eventLabel` when the domain needs another name.
+description. The same prepared text is available as the native details tooltip
+on every foreground event, including passive events. Provide meaningful event
+titles and descriptions, or override `messages.eventLabel` when the domain
+needs another name.
 
 ```tsx
 const messages = {
@@ -173,31 +179,34 @@ application text. Translate the complete `messages` registry explicitly.
 
 ## Event resize behavior
 
-Time-grid resize handles are independent siblings of the event renderer, so
-operating a handle does not select, open, or drag the event. Pointer and touch
-movement snaps to the configured `resizeStep` boundaries. Keyboard Arrow keys
-move by the same boundaries even when visual slots are larger. The complete
-proposed interval is shown immediately. The event always contains at least one
-resize interval, including a shorter final interval when the configured time
-window is uneven.
+Time-grid resize handles are transparent edge hit zones and independent
+siblings of the event renderer, so operating one does not select, open, or drag
+the event. The resize cursor appears only over the relevant edge. Pointer and
+touch movement snaps to the configured `resizeStep` boundaries, and the real
+event geometry follows the active boundary. Keyboard Arrow keys use the same
+boundaries even when visual slots are larger. The event always contains at
+least one resize interval, including a shorter final interval when the
+configured time window is uneven.
 
 Only the chosen start or end edge changes. Resizing may cross visible days on
 the same resource but never moves an event between resources. Pointer cancel
-and Escape discard the preview; releasing the pointer, pressing Enter, or
-leaving the keyboard handle commits one proposal. No movement produces no
-callback. Background events never expose interaction or resize controls.
+and Escape restore the original geometry; releasing the pointer, pressing
+Enter, or leaving the keyboard handle commits one proposal. No movement
+produces no callback. Background events never expose interaction or resize
+controls.
 
 ## Event movement behavior
 
-Time-grid move controls are independent siblings of the event renderer, so
-operating one does not select, open, or resize the event. Pointer and touch
-movement target the slot under the pointer. Keyboard Arrow Up/Down selects the
-previous or next time slot; Arrow Left/Right selects the adjacent visible day
-or resource column. Each target immediately previews the complete event and is
-announced with its prepared date, time, and resource label.
+Movable time-grid events use their body as the pointer and touch drag surface.
+A movement threshold preserves ordinary click and double-click semantics, and
+the event retains the original pointer grab offset while targeting the nearest
+slot. On the focused event, Arrow Up/Down selects the previous or next time
+slot; Arrow Left/Right selects the adjacent visible day or resource column.
+Each target previews the complete event and is announced with its prepared
+date, time, and resource label.
 
 Pointer cancel and Escape discard the preview. Releasing the pointer, pressing
-Enter, or leaving the keyboard control commits one `onEventDrop` proposal. No
+Enter, or leaving the focused event commits one `onEventDrop` proposal. No
 movement produces no callback. Moving a clipped segment preserves the complete
 source duration, and background events never expose movement controls.
 
@@ -211,7 +220,8 @@ DST. Exact formatted start/end values remain in event and handle labels.
 Custom renderers replace markup but must preserve library behavior.
 
 1. Spread `elementProps` onto the root element without dropping handlers,
-   styles, `className`, `tabIndex`, `aria-label`, or `aria-keyshortcuts`.
+   styles, `className`, `tabIndex`, `aria-label`, `aria-description`, or
+   `aria-keyshortcuts`.
 2. Keep event roots as event/content elements. ChronoLaneJS supplies explicit
    pointer and keyboard behavior; do not recast every event as a native button.
 3. Keep the supplied accessible name unless the replacement provides an

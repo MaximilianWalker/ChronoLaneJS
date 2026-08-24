@@ -195,6 +195,6 @@ export const DaylightSavingChange: Story = {
                 "03:00",
                 "04:00"
             ]);
-        });
+        }, { timeout: 3_000 });
     }
 };

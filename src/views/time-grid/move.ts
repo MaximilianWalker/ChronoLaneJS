@@ -32,11 +32,11 @@ export const findPointerMoveSlot = <Resource>(
     row: number,
     slotDuration: number
 ): LayoutSlot<Resource> | undefined => {
-    const timeIndex = Math.floor(Math.max(0, row - 1) / slotDuration);
+    const timeIndex = Math.round(Math.max(0, row - 1) / slotDuration);
+    const columnSlots = slots.filter((slot) => slot.columnIndex === columnIndex);
 
-    return slots.find((slot) => (
-        slot.columnIndex === columnIndex && slot.timeIndex === timeIndex
-    ));
+    return columnSlots.find((slot) => slot.timeIndex === timeIndex)
+        ?? columnSlots.at(-1);
 };
 
 /** Returns the next time or visual-column slot for keyboard movement. */

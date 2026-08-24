@@ -19,8 +19,13 @@ import type { ViewProps } from "../types.js";
 import type {
     InteractionDispatch,
     MoveState,
+    PointerStart,
     TimedMoveInteractions
 } from "./types.js";
+import {
+    exceedsDragThreshold,
+    suppressNextClick
+} from "./pointerDrag.js";
 
 interface Options<Event extends CalendarEvent, Resource> {
     move: MoveState<Event, Resource> | null;
@@ -46,21 +51,46 @@ export const useTimedMove = <Event extends CalendarEvent, Resource>({
     const beginMove = useCallback((
         segment: LayoutEvent<Event, Resource>,
         handleKey: string,
-        pointerId?: number
+        pointer?: PointerStart
     ): MoveState<Event, Resource> | null => {
         const origin = findEventMoveOrigin(slots, segment);
         if (!origin) return null;
+
+        const grid = stageRef.current;
+        const bounds = grid?.getBoundingClientRect();
+        const pointerColumnIndex = pointer && bounds && bounds.width > 0
+            ? Math.min(
+                columns.length - 1,
+                Math.max(0, Math.floor(
+                    (pointer.clientX - bounds.left) / bounds.width * columns.length
+                ))
+            )
+            : segment.columnIndex;
+        const pointerRow = pointer && bounds && bounds.height > 0
+            ? 1 + Math.min(
+                totalMinutes - Number.EPSILON,
+                Math.max(
+                    0,
+                    (pointer.clientY - bounds.top) / bounds.height * totalMinutes
+                )
+            )
+            : segment.startRow;
 
         const next = {
             kind: "move",
             segment,
             origin,
             handleKey,
-            pointerId
+            pointer: pointer && {
+                ...pointer,
+                dragging: false,
+                grabColumnOffset: pointerColumnIndex - segment.columnIndex,
+                grabRowOffset: pointerRow - segment.startRow
+            }
         } satisfies MoveState<Event, Resource>;
         dispatch({ type: "begin", interaction: next });
         return next;
-    }, [dispatch, slots]);
+    }, [columns.length, dispatch, slots, stageRef, totalMinutes]);
 
     const updateMoveTarget = useCallback((
         current: MoveState<Event, Resource>,
@@ -99,60 +129,91 @@ export const useTimedMove = <Event extends CalendarEvent, Resource>({
     ) => {
         const grid = stageRef.current;
         if (
-            move?.pointerId !== interaction.pointerId
+            move?.pointer?.pointerId !== interaction.pointerId
             || !grid
             || columns.length === 0
         ) return;
+
+        const dragging = move.pointer.dragging || exceedsDragThreshold(
+            move.pointer,
+            interaction
+        );
+        if (!dragging) return;
 
         interaction.preventDefault();
         interaction.stopPropagation();
         const bounds = grid.getBoundingClientRect();
         if (bounds.width <= 0 || bounds.height <= 0) return;
 
-        const columnIndex = Math.min(
+        const pointerColumnIndex = Math.min(
             columns.length - 1,
             Math.max(0, Math.floor(
                 (interaction.clientX - bounds.left) / bounds.width * columns.length
             ))
         );
-        const row = 1 + Math.min(
+        const columnIndex = Math.min(
+            columns.length - 1,
+            Math.max(0, pointerColumnIndex - move.pointer.grabColumnOffset)
+        );
+        const pointerRow = 1 + Math.min(
             totalMinutes - Number.EPSILON,
             Math.max(0, (interaction.clientY - bounds.top) / bounds.height * totalMinutes)
         );
+        const row = Math.max(1, pointerRow - move.pointer.grabRowOffset);
         const target = findPointerMoveSlot(
             slots,
             columnIndex,
             row,
             slotDuration
         );
-        if (target) updateMoveTarget(move, target);
+        if (!target) return;
+
+        const nextTarget = target.key === move.origin.key ? undefined : target;
+        if (
+            move.pointer.dragging
+            && move.target?.key === nextTarget?.key
+        ) return;
+
+        dispatch({
+            type: "update",
+            interaction: {
+                ...move,
+                pointer: { ...move.pointer, dragging: true },
+                target: nextTarget
+            }
+        });
     }, [
         columns.length,
+        dispatch,
         move,
         slotDuration,
         slots,
         stageRef,
-        totalMinutes,
-        updateMoveTarget
+        totalMinutes
     ]);
 
     const handleMovePointerUp = useCallback((
         interaction: PointerEvent<HTMLElement>
-    ) => {
-        if (move?.pointerId !== interaction.pointerId) return;
+    ): boolean => {
+        if (move?.pointer?.pointerId !== interaction.pointerId) return false;
 
-        interaction.preventDefault();
-        interaction.stopPropagation();
+        const dragged = move.pointer.dragging;
+        if (dragged) {
+            interaction.preventDefault();
+            interaction.stopPropagation();
+            suppressNextClick(interaction.currentTarget);
+        }
         if (interaction.currentTarget.hasPointerCapture(interaction.pointerId)) {
             interaction.currentTarget.releasePointerCapture(interaction.pointerId);
         }
         commitMove(move);
+        return dragged;
     }, [commitMove, move]);
 
     const handleMovePointerCancel = useCallback((
         interaction: PointerEvent<HTMLElement>
     ) => {
-        if (move?.pointerId !== interaction.pointerId) return;
+        if (move?.pointer?.pointerId !== interaction.pointerId) return;
 
         interaction.stopPropagation();
         cancelMove();

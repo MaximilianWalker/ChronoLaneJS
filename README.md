@@ -453,14 +453,16 @@ gestures never change meaning based on which callbacks are present.
 callbacks without replacing the semantic behavior. Use `canSelectEvent` and
 `canOpenEvent` to restrict those semantic actions per event occurrence.
 
-Supplying `viewProps.onEventDrop` exposes an event move handle with pointer,
-touch, and keyboard support. Movement previews the complete event, targets the
-visible `slotDuration` scale, and announces each proposed date, time, and
-resource. Arrow Up/Down changes time, Arrow Left/Right changes the visible
-column, Enter or blur commits, and Escape cancels. Supplying
-`viewProps.onEventResize` exposes equivalent start/end resize handles. Resizes
-snap by `resizeStep` independently from the visual slots and preserve the
-resource. Use `canDragEvent` and `canResizeEvent` for per-segment restrictions.
+Supplying `viewProps.onEventDrop` makes the event surface draggable by pointer
+or touch and movable from its keyboard focus. Movement preserves the pointer's
+grab offset, targets the visible `slotDuration` scale, and announces each
+proposed date, time, and resource. Arrow Up/Down changes time, Arrow Left/Right
+changes the visible column, Enter or blur commits, and Escape cancels.
+Supplying `viewProps.onEventResize` adds transparent start/end edge hit zones.
+The resize cursor appears at the edge and the event follows the pointer while
+snapping by `resizeStep`, independently from the visual slots. Resizing
+preserves the resource. Use `canDragEvent` and `canResizeEvent` for per-segment
+restrictions.
 
 In a dedicated multi-day region, Left/Right moves across visible day/resource
 columns and resizing uses whole calendar-day steps. Both operations preserve

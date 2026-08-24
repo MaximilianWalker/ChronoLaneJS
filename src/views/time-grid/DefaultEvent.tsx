@@ -3,8 +3,8 @@ import type { EventProps } from "./types.js";
 /**
  * Renders the default positioned time-grid event.
  *
- * Layout styles and event-root interactions are supplied by the grid. Move
- * and resize controls remain independent siblings owned by the view.
+ * Layout styles and event-root interactions are supplied by the grid. The
+ * event surface owns movement while transparent edge controls own resizing.
  */
 export default function DefaultEvent({
     event,

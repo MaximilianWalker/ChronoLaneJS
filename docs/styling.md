@@ -142,6 +142,11 @@ const event = {
 - `style` is merged into the time-grid event root after required positioning.
 - `titleStyle` and `descriptionStyle` apply only to the default event content.
 
+Default time-grid titles and descriptions stay on complete lines and use an
+ellipsis when the available width is insufficient. Very short timed events
+place both fields on one compact line; events too short for even that line hide
+the visible text while retaining their native details tooltip.
+
 For structural markup changes, use a custom renderer instead of selectors that
 depend on default renderer descendants.
 

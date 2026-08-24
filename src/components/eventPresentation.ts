@@ -43,6 +43,7 @@ interface CreateEventPresentationOptions<
 export interface EventPresentation {
     selected: boolean;
     interactionProps: EventInteractionProps;
+    details: string;
     ariaLabel?: string;
     startDate: string;
     startTime: string;
@@ -79,21 +80,21 @@ export const createEventPresentation = <
     const startTime = text.formatters.time(event.start, text.context);
     const endDate = text.formatters.date(event.end, text.context);
     const endTime = text.formatters.time(event.end, text.context);
+    const details = text.messages.eventLabel({
+        view: text.context.view,
+        title: event.title,
+        description: event.description,
+        startDate,
+        startTime,
+        endDate,
+        endTime
+    });
 
     return {
         selected: event.id != null && behavior.selectedIds.includes(event.id),
         interactionProps,
-        ariaLabel: interactive
-            ? text.messages.eventLabel({
-                view: text.context.view,
-                title: event.title,
-                description: event.description,
-                startDate,
-                startTime,
-                endDate,
-                endTime
-            })
-            : undefined,
+        details,
+        ariaLabel: interactive ? details : undefined,
         startDate,
         startTime,
         endDate,

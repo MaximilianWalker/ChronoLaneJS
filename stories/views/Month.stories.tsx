@@ -44,6 +44,13 @@ export const Basic: Story = {
                 ".month-view_grid-wrapper.calendar-scroll-region"
             )
         ).not.toBeNull();
+        const event = canvasElement.querySelector<HTMLElement>(
+            '[data-event-id="planning"]'
+        );
+        await expect(event?.getAttribute("title")).toContain("Planning");
+        await expect(event?.getAttribute("title")).toContain(
+            "Set priorities for the week"
+        );
     }
 };
 

@@ -168,30 +168,12 @@
     z-index: 14;
 }
 
-.time-grid-view_multi-day-resize-handle::after {
-    content: "";
-    position: absolute;
-    inset: 6px auto;
-    width: 2px;
-    border-radius: 999px;
-    background: color-mix(in srgb, currentColor 72%, white);
-    opacity: 0.72;
-}
-
 .time-grid-view_multi-day-resize-handle.is-start {
     transform: translateX(-2px);
 }
 
-.time-grid-view_multi-day-resize-handle.is-start::after {
-    left: 5px;
-}
-
 .time-grid-view_multi-day-resize-handle.is-end {
     transform: translateX(2px);
-}
-
-.time-grid-view_multi-day-resize-handle.is-end::after {
-    right: 5px;
 }
 
 .time-grid-view_time-label {
@@ -277,9 +259,10 @@
 .time-grid-view_slot-cell:has(> .time-grid-view_slot:focus-visible)::after {
     content: "";
     position: absolute;
-    inset: 0;
-    outline: 2px solid currentColor;
-    outline-offset: -2px;
+    inset: 2px;
+    border-radius: 6px;
+    background: rgba(37, 99, 235, 0.09);
+    box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.58);
     pointer-events: none;
     z-index: 12;
 }
@@ -314,13 +297,24 @@ button.time-grid-view_slot {
     cursor: pointer;
 }
 
+.time-grid-view_slot:focus-visible {
+    outline: 0;
+}
+
 .time-grid-view_slot:hover::after,
 .time-grid-view_slot.is-selected::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(30, 41, 60, 0.08);
     z-index: 3;
+}
+
+.time-grid-view_slot:hover::after {
+    background: rgba(37, 99, 235, 0.06);
+}
+
+.time-grid-view_slot.is-selected::after {
+    background: rgba(37, 99, 235, 0.1);
 }
 
 .time-grid-view_background-events,
@@ -356,13 +350,17 @@ button.time-grid-view_slot {
     box-sizing: border-box;
     min-width: 0;
     margin: 2px 3px;
-    border: 1px solid color-mix(in srgb, var(--color) 22%, white);
+    border: 0;
     border-radius: var(--border-radius);
     background-color: var(--background-color);
     font-size: 12px;
     overflow: hidden;
     pointer-events: auto;
     z-index: 10;
+}
+
+.time-grid-view_event:not(.time-grid-view_multi-day-event) {
+    container-type: size;
 }
 
 .time-grid-view_event[data-interactive="true"] {
@@ -374,38 +372,14 @@ button.time-grid-view_slot {
     cursor: pointer;
 }
 
-.time-grid-view_event-move-controls {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    box-sizing: border-box;
-    min-width: 0;
-    pointer-events: none;
-    z-index: 14;
-}
-
-.time-grid-view_event-move-handle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    margin-right: 3px;
-    padding: 0;
-    border: 1px solid color-mix(in srgb, currentColor 28%, white);
-    border-radius: 6px;
-    background: color-mix(in srgb, white 88%, transparent);
-    color: #273346;
-    font: inherit;
-    line-height: 1;
+.time-grid-view_event.is-movable {
     cursor: grab;
-    pointer-events: auto;
     touch-action: none;
 }
 
-.time-grid-view_event-move-handle[data-moving="true"] {
+.time-grid-view_event.is-moving {
     cursor: grabbing;
+    user-select: none;
 }
 
 .time-grid-view_event-resize-handle {
@@ -420,16 +394,6 @@ button.time-grid-view_slot {
     z-index: 14;
 }
 
-.time-grid-view_event-resize-handle::after {
-    content: "";
-    position: absolute;
-    inset: 5px 8px auto;
-    height: 2px;
-    border-radius: 999px;
-    background: color-mix(in srgb, currentColor 72%, white);
-    opacity: 0.72;
-}
-
 .time-grid-view_event-resize-handle.is-start {
     transform: translateY(-4px);
 }
@@ -438,8 +402,7 @@ button.time-grid-view_slot {
     transform: translateY(4px);
 }
 
-.time-grid-view_move-preview,
-.time-grid-view_resize-preview {
+.time-grid-view_move-preview {
     --color: #1e293c;
 
     box-sizing: border-box;
@@ -453,8 +416,7 @@ button.time-grid-view_slot {
     z-index: 12;
 }
 
-.time-grid-view_move-preview.is-multi-day,
-.time-grid-view_resize-preview.is-multi-day {
+.time-grid-view_move-preview.is-multi-day {
     min-height: 26px;
 }
 
@@ -472,13 +434,33 @@ button.time-grid-view_slot {
 }
 
 .time-grid-view_event:hover::after,
-.time-grid-view_event.is-selected::after {
+.time-grid-view_event.is-selected::after,
+.time-grid-view_event:focus-visible::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: var(--border-radius);
-    background: rgba(0, 0, 0, 0.1);
+    pointer-events: none;
     z-index: 11;
+}
+
+.time-grid-view_event:hover::after {
+    background: rgba(15, 23, 42, 0.06);
+}
+
+.time-grid-view_event.is-selected::after {
+    background: rgba(15, 23, 42, 0.1);
+}
+
+.time-grid-view_event:focus-visible {
+    outline: 0;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+    z-index: 12;
+}
+
+.time-grid-view_event:focus-visible::after {
+    background: rgba(37, 99, 235, 0.08);
+    box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.58);
 }
 
 .time-grid-view_event-color-bar {
@@ -493,21 +475,64 @@ button.time-grid-view_slot {
 .time-grid-view_event-content {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    min-height: 0;
     width: 100%;
     gap: 2px;
     padding: 5px 6px;
     color: #1e293c;
     font-size: 0.68rem;
+    overflow: hidden;
+}
+
+.time-grid-view_event-title,
+.time-grid-view_event-description {
+    display: block;
+    overflow: hidden;
+    min-width: 0;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .time-grid-view_event-title {
+    flex: 0 0 auto;
     font-size: 0.71rem;
     font-weight: 600;
 }
 
 .time-grid-view_event-description {
+    flex: 0 1 auto;
     color: #526075;
     font-size: 0.62rem;
+}
+
+@container (max-height: 38px) {
+    .time-grid-view_event-content {
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+        padding-block: 1px;
+    }
+
+    .time-grid-view_event-title {
+        flex: 0 1 auto;
+        max-width: 60%;
+    }
+
+    .time-grid-view_event-title:only-child {
+        max-width: 100%;
+    }
+
+    .time-grid-view_event-description {
+        flex: 1 1 0;
+    }
+}
+
+@container (max-height: 13px) {
+    .time-grid-view_event-content {
+        visibility: hidden;
+    }
 }
 
 .time-grid-view_event.default {
@@ -526,8 +551,6 @@ button.time-grid-view_slot {
 }
 
 .time-grid-view_navigation-button:focus-visible,
-.time-grid-view_event:focus-visible,
-.time-grid-view_event-move-handle:focus-visible,
 .time-grid-view_event-resize-handle:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: -2px;

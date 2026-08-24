@@ -12,6 +12,13 @@ import {
     handleTimedResizeKeyDown,
     handleTimedResizePointerDown
 } from "./interactions/timedControls.js";
+import {
+    appendMoveShortcuts,
+    handleMoveSurfaceClick,
+    handleMoveSurfaceKeyDown,
+    handleMoveSurfacePointerCancel,
+    handleMoveSurfacePointerUp
+} from "./interactions/moveSurface.js";
 import type { TimedInteractions } from "./interactions/types.js";
 import type {
     LayoutEvent,
@@ -47,63 +54,7 @@ interface ControlProps<Event extends CalendarEvent, Resource> {
     interactions: TimedInteractions<Event, Resource>;
 }
 
-interface MoveControlProps<Event extends CalendarEvent, Resource>
-    extends ControlProps<Event, Resource> {
-    slots: LayoutSlot<Resource>[];
-}
-
-function MoveControl<Event extends CalendarEvent, Resource>({
-    segment,
-    eventKey,
-    slots,
-    rendering,
-    interactions
-}: MoveControlProps<Event, Resource>) {
-    const { event } = segment;
-    const handleKey = `${eventKey}-move`;
-    const active = interactions.move?.handleKey === handleKey;
-    const moveOptions = { segment, handleKey, slots, interactions };
-
-    return (
-        <div
-            className="time-grid-view_event-move-controls"
-            style={{
-                gridColumn: "1 / 2",
-                gridRow: `${segment.startRow} / ${segment.endRow}`,
-                ...getLaneStyle(segment)
-            }}
-        >
-            <button
-                type="button"
-                className="time-grid-view_event-move-handle"
-                data-event-id={event.id}
-                data-moving={active || undefined}
-                aria-label={rendering.text.messages.eventMoveHandle({
-                    view: rendering.text.context.view,
-                    title: event.title
-                })}
-                aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Enter Escape"
-                onBlur={() => handleTimedMoveBlur(handleKey, interactions)}
-                onKeyDown={(interaction) => (
-                    handleTimedMoveKeyDown(interaction, moveOptions)
-                )}
-                onPointerDown={(interaction) => (
-                    handleTimedMovePointerDown(
-                        interaction,
-                        segment,
-                        handleKey,
-                        interactions
-                    )
-                )}
-                onPointerMove={interactions.handleMovePointerMove}
-                onPointerUp={interactions.handleMovePointerUp}
-                onPointerCancel={interactions.handleMovePointerCancel}
-            >
-                <span aria-hidden="true">↕</span>
-            </button>
-        </div>
-    );
-}
+const MOVE_KEYS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 
 interface ResizeControlProps<Event extends CalendarEvent, Resource>
     extends ControlProps<Event, Resource> {
@@ -121,7 +72,12 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
     interactions
 }: ResizeControlProps<Event, Resource>) {
     const { event } = segment;
-    const boundaryVisible = event[edge].getTime() === segment[edge].getTime();
+    const handleKey = `${eventKey}-${edge}`;
+    const active = interactions.resize?.handleKey === handleKey
+        ? interactions.resize
+        : null;
+    const currentBoundary = active?.target?.date ?? event[edge];
+    const boundaryVisible = currentBoundary.getTime() === segment[edge].getTime();
     const allowed = boundaryVisible
         && (rendering.canResize?.(event, rendererSegment, edge) ?? true);
     if (!allowed) return null;
@@ -136,11 +92,6 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
     const lastBoundary = boundaries.at(-1);
     if (!firstBoundary || !lastBoundary) return null;
 
-    const handleKey = `${eventKey}-${edge}`;
-    const active = interactions.resize?.handleKey === handleKey
-        ? interactions.resize
-        : null;
-    const currentBoundary = active?.target?.date ?? event[edge];
     const currentValue = currentBoundary.getTime();
     const minimumValue = Math.min(firstBoundary.date.getTime(), currentValue);
     const maximumValue = Math.max(lastBoundary.date.getTime(), currentValue);
@@ -221,6 +172,17 @@ export default function TimedEvent<
     const { event } = segment;
     const model = createEventModel({ event, segment, rendering });
     const EventRenderer = rendering.eventRenderer;
+    const moveHandleKey = `${occurrenceKey}-move`;
+    const moving = interactions.move?.handleKey === moveHandleKey;
+    const resizing = interactions.resize?.handleKey.startsWith(
+        `${occurrenceKey}-`
+    ) ?? false;
+    const moveOptions = {
+        segment,
+        handleKey: moveHandleKey,
+        slots,
+        interactions
+    };
     const controls = {
         segment,
         rendererSegment: model.segment,
@@ -236,9 +198,78 @@ export default function TimedEvent<
                 segment={model.segment}
                 selected={model.selected}
                 elementProps={{
-                    className: "time-grid-view_event",
+                    className: `time-grid-view_event${model.movable
+                        ? " is-movable"
+                        : ""}${moving ? " is-moving" : ""}${resizing
+                        ? " is-resizing"
+                        : ""}`,
                     ...model.interactionProps,
+                    tabIndex: model.movable
+                        ? 0
+                        : model.interactionProps.tabIndex,
                     "aria-label": model.ariaLabel,
+                    "aria-description": model.movable
+                        ? rendering.text.messages.eventMoveHandle({
+                            view: rendering.text.context.view,
+                            title: event.title
+                        })
+                        : undefined,
+                    "aria-keyshortcuts": model.movable
+                        ? appendMoveShortcuts(
+                            model.interactionProps["aria-keyshortcuts"],
+                            "ArrowUp ArrowDown ArrowLeft ArrowRight Enter Escape"
+                        )
+                        : model.interactionProps["aria-keyshortcuts"],
+                    title: model.details,
+                    onBlur: model.movable
+                        ? () => handleTimedMoveBlur(
+                            moveHandleKey,
+                            interactions
+                        )
+                        : undefined,
+                    onClick: model.movable
+                        ? (interaction) => handleMoveSurfaceClick(
+                            interaction,
+                            model.interactionProps.onClick
+                        )
+                        : model.interactionProps.onClick,
+                    onKeyDown: model.movable
+                        ? (interaction) => handleMoveSurfaceKeyDown(
+                            interaction,
+                            moving,
+                            MOVE_KEYS,
+                            (moveInteraction) => handleTimedMoveKeyDown(
+                                moveInteraction,
+                                moveOptions
+                            ),
+                            model.interactionProps.onKeyDown
+                        )
+                        : model.interactionProps.onKeyDown,
+                    onPointerDown: model.movable
+                        ? (interaction) => handleTimedMovePointerDown(
+                            interaction,
+                            segment,
+                            moveHandleKey,
+                            interactions
+                        )
+                        : undefined,
+                    onPointerMove: model.movable
+                        ? interactions.handleMovePointerMove
+                        : undefined,
+                    onPointerUp: model.movable
+                        ? (interaction) => handleMoveSurfacePointerUp(
+                            interaction,
+                            interactions.handleMovePointerUp,
+                            model.interactionProps.onPointerUp
+                        )
+                        : model.interactionProps.onPointerUp,
+                    onPointerCancel: model.movable
+                        ? (interaction) => handleMoveSurfacePointerCancel(
+                            interaction,
+                            interactions.handleMovePointerCancel,
+                            model.interactionProps.onPointerCancel
+                        )
+                        : model.interactionProps.onPointerCancel,
                     style: {
                         "--color": event.color,
                         gridColumn: "1 / 2",
@@ -249,7 +280,6 @@ export default function TimedEvent<
                     }
                 }}
             />
-            {model.movable && <MoveControl {...controls} slots={slots} />}
             {rendering.resizeEnabled && (
                 <>
                     <ResizeControl

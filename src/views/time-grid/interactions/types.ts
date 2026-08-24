@@ -19,6 +19,25 @@ import type {
     EventResizeEdge
 } from "../types.js";
 
+export interface PointerStart {
+    pointerId: number;
+    clientX: number;
+    clientY: number;
+}
+
+interface PointerDrag extends PointerStart {
+    dragging: boolean;
+}
+
+interface TimedPointerDrag extends PointerDrag {
+    grabColumnOffset: number;
+    grabRowOffset: number;
+}
+
+interface MultiDayPointerDrag extends PointerDrag {
+    grabColumnIndex: number;
+}
+
 export interface MoveState<
     Event extends CalendarEvent,
     Resource
@@ -27,7 +46,7 @@ export interface MoveState<
     segment: LayoutEvent<Event, Resource>;
     origin: LayoutSlot<Resource>;
     handleKey: string;
-    pointerId?: number;
+    pointer?: TimedPointerDrag;
     target?: LayoutSlot<Resource>;
 }
 
@@ -53,8 +72,7 @@ export interface MultiDayMoveState<
     segment: LayoutMultiDayEvent<Event, Resource>;
     origin: LayoutColumn<Resource>;
     handleKey: string;
-    pointerId?: number;
-    grabColumnIndex?: number;
+    pointer?: MultiDayPointerDrag;
     target?: LayoutColumn<Resource>;
 }
 
@@ -112,7 +130,7 @@ export interface TimedMoveInteractions<
     beginMove: (
         segment: LayoutEvent<Event, Resource>,
         handleKey: string,
-        pointerId?: number
+        pointer?: PointerStart
     ) => MoveState<Event, Resource> | null;
     updateMoveTarget: (
         current: MoveState<Event, Resource>,
@@ -122,7 +140,7 @@ export interface TimedMoveInteractions<
     cancelMove: () => void;
     commitMove: (current: MoveState<Event, Resource> | null) => void;
     handleMovePointerMove: (interaction: PointerEvent<HTMLElement>) => void;
-    handleMovePointerUp: (interaction: PointerEvent<HTMLElement>) => void;
+    handleMovePointerUp: (interaction: PointerEvent<HTMLElement>) => boolean;
     handleMovePointerCancel: (interaction: PointerEvent<HTMLElement>) => void;
 }
 
@@ -161,8 +179,7 @@ export interface MultiDayMoveInteractions<
     beginMove: (
         segment: LayoutMultiDayEvent<Event, Resource>,
         handleKey: string,
-        pointerId?: number,
-        grabColumnIndex?: number
+        pointer?: PointerStart
     ) => MultiDayMoveState<Event, Resource> | null;
     updateMoveTarget: (
         current: MultiDayMoveState<Event, Resource>,
@@ -171,7 +188,7 @@ export interface MultiDayMoveInteractions<
     cancelMove: () => void;
     commitMove: (current: MultiDayMoveState<Event, Resource> | null) => void;
     handleMovePointerMove: (interaction: PointerEvent<HTMLElement>) => void;
-    handleMovePointerUp: (interaction: PointerEvent<HTMLElement>) => void;
+    handleMovePointerUp: (interaction: PointerEvent<HTMLElement>) => boolean;
     handleMovePointerCancel: (interaction: PointerEvent<HTMLElement>) => void;
 }
 

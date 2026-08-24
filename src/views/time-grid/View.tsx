@@ -12,7 +12,10 @@ import type {
     EventBehavior,
     ViewText
 } from "../../components/eventPresentation.js";
-import { normalizeEventCollection } from "../../core/events.js";
+import {
+    normalizeEventCollection,
+    sortEvents
+} from "../../core/events.js";
 import {
     DEFAULT_CALENDAR_LOCALE,
     readCalendarLocale,
@@ -39,12 +42,18 @@ import DefaultSlot from "./DefaultSlot.js";
 import Header from "./Header.js";
 import { createHeaderModel } from "./headerModel.js";
 import { createLayout } from "./layout/createLayout.js";
+import { createPositionedEvents } from "./layout/events.js";
 import { createHeaderRows } from "./layout/headers.js";
-import { createMultiDayEventLayout } from "./layout/multiDayEvents.js";
 import {
+    createMultiDayEventLayout,
+    createMultiDayEventResize
+} from "./layout/multiDayEvents.js";
+import {
+    createEventResize,
     createResizeIntervals,
     resolveResizeStep
 } from "./resize.js";
+import { resolveCalendarEventResourceIds } from "./resources.js";
 import MultiDayEvents from "./MultiDayEvents.js";
 import { partitionEvents } from "./eventModel.js";
 import type { EventRendering } from "./eventModel.js";
@@ -219,11 +228,6 @@ export default function View<
         backgroundEvents: positionedBackgroundEvents,
         totalMinutes
     } = layout;
-    const dedicatedLayout = useMemo(() => createMultiDayEventLayout({
-        events: dedicatedEvents,
-        columns,
-        resources
-    }), [columns, dedicatedEvents, resources]);
     const canResizeEvents = onEventResize != null;
     const resolvedResizeStep = resolveResizeStep(resizeStep);
     const resizeIntervals = useMemo(
@@ -235,10 +239,6 @@ export default function View<
             })
             : [],
         [canResizeEvents, columns, resolvedResizeStep, timeWindow]
-    );
-    const eventsByColumn = useMemo(
-        () => groupByColumn(positionedEvents, columns.length),
-        [columns.length, positionedEvents]
     );
     const backgroundEventsByColumn = useMemo(
         () => groupByColumn(positionedBackgroundEvents, columns.length),
@@ -286,6 +286,67 @@ export default function View<
         timed: timedInteractions,
         multiDay: multiDayInteractions
     } = interaction;
+    const visiblePositionedEvents = useMemo(() => {
+        const resize = timedInteractions.resize;
+        if (!resize?.target) return positionedEvents;
+
+        const change = createEventResize(
+            resize.event,
+            resize.edge,
+            resize.target,
+            resize.source
+        );
+        return sortEvents(createPositionedEvents({
+            events: timedEvents,
+            columns,
+            timeWindow,
+            getEventIds: (event) => resolveCalendarEventResourceIds(
+                event,
+                resources?.getEventIds
+            ),
+            getEventInterval: (event) => event === resize.event ? change : event
+        }));
+    }, [
+        columns,
+        positionedEvents,
+        resources,
+        timedEvents,
+        timedInteractions.resize,
+        timeWindow
+    ]);
+    const eventsByColumn = useMemo(
+        () => groupByColumn(visiblePositionedEvents, columns.length),
+        [columns.length, visiblePositionedEvents]
+    );
+    const dedicatedLayout = useMemo(() => {
+        const resize = multiDayInteractions.resize;
+        const options = {
+            events: dedicatedEvents,
+            columns,
+            resources
+        };
+        if (resize?.targetOffset == null) {
+            return createMultiDayEventLayout(options);
+        }
+        const targetOffset = resize.targetOffset;
+
+        return createMultiDayEventLayout({
+            ...options,
+            getEventInterval: (event) => event === resize.segment.event
+                ? createMultiDayEventResize({
+                    event,
+                    edge: resize.edge,
+                    dayOffset: targetOffset,
+                    source: resize.source
+                })
+                : event
+        });
+    }, [
+        columns,
+        dedicatedEvents,
+        multiDayInteractions.resize,
+        resources
+    ]);
     const eventRendering = useMemo<EventRendering<Event, Resource>>(() => ({
         eventRenderer: EventRenderer,
         getEventKey: eventCollection.getKey,

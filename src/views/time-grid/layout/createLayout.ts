@@ -10,7 +10,10 @@ import {
 } from "../resources.js";
 import type { ResolvedCalendarResource } from "../resources.js";
 import type { GroupBy, TimeOfDay } from "../types.js";
-import { assignEventLanes, createEventSegments } from "./events.js";
+import {
+    createEventSegments,
+    createPositionedEvents
+} from "./events.js";
 import {
     createTimeScale,
     resolveTimeWindow
@@ -130,7 +133,7 @@ export const createLayout = <Event extends CalendarEvent, Resource>({
             resolveCalendarEventResourceIds(event, resources?.getEventIds)
         )
     };
-    const eventSegments = createEventSegments<Event, Resource>({
+    const positionedEvents = createPositionedEvents<Event, Resource>({
         ...segmentOptions,
         events
     });
@@ -143,7 +146,7 @@ export const createLayout = <Event extends CalendarEvent, Resource>({
         columns,
         timeWindow,
         ...timeScale,
-        events: sortEvents(assignEventLanes(eventSegments, columns.length)),
+        events: sortEvents(positionedEvents),
         backgroundEvents: backgroundSegments
     };
 };

@@ -98,6 +98,22 @@ test("creates one clipped span and respects an exclusive midnight end", () => {
     }]);
 });
 
+test("positions a transient interval without replacing the source event", () => {
+    const event: TestEvent = {
+        id: "resizing",
+        start: date(14),
+        end: date(16)
+    };
+    const layout = createMultiDayEventLayout({
+        events: [event],
+        columns: createColumns(),
+        getEventInterval: () => ({ start: event.start, end: date(17) })
+    });
+
+    assert.equal(layout.events[0]?.event, event);
+    assert.equal(layout.events[0]?.columnSpan, 3);
+});
+
 test("assigns separate lanes only when visible spans overlap", () => {
     const layout = createMultiDayEventLayout({
         events: [

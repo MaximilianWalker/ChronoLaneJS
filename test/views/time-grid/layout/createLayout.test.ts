@@ -8,6 +8,7 @@ import {
 } from "date-fns";
 
 import { createLayout as buildLayout } from "../../../../src/views/time-grid/layout/createLayout.js";
+import { createPositionedEvents } from "../../../../src/views/time-grid/layout/events.js";
 import { createHeaderRows } from "../../../../src/views/time-grid/layout/headers.js";
 import type {
     CalendarEvent,
@@ -298,6 +299,30 @@ test("adjacent events do not consume separate lanes", () => {
             { laneIndex: 0, laneCount: 1 }
         ]
     );
+});
+
+test("positions a transient interval without replacing the source event", () => {
+    const event: TestEvent = {
+        id: "resizing",
+        title: "Resizing",
+        start: date(1, 9),
+        end: date(1, 10)
+    };
+    const layout = createLayout({ events: [event] });
+    const positioned = createPositionedEvents({
+        events: [event],
+        columns: layout.columns,
+        timeWindow: layout.timeWindow,
+        getEventIds: () => new Set(),
+        getEventInterval: () => ({
+            start: event.start,
+            end: date(1, 11)
+        })
+    });
+
+    assert.equal(positioned[0]?.event, event);
+    assert.equal(positioned[0]?.startRow, 61);
+    assert.equal(positioned[0]?.endRow, 181);
 });
 
 test("duplicates multi-resource events only into assigned columns", () => {

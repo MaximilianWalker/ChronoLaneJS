@@ -90,7 +90,19 @@ const preview: Preview = {
                 order: [
                     "Introduction",
                     "Views",
-                    "Scenarios",
+                    "Scenarios", [
+                        "Events",
+                        "Navigation",
+                        "Interactions", [
+                            "Selection and Opening",
+                            "Movement",
+                            "Resizing",
+                            "Slot Selection",
+                            "Keyboard Navigation",
+                            "Customization and Permissions"
+                        ],
+                        "Locales and Timezones"
+                    ],
                     "Customization"
                 ]
             }

@@ -1,5 +1,3 @@
-import type { RefObject } from "react";
-
 import type {
     CalendarEvent,
     CalendarStyle
@@ -14,6 +12,13 @@ import {
     handleMultiDayResizeKeyDown,
     handleMultiDayResizePointerDown
 } from "./interactions/multiDayControls.js";
+import {
+    appendMoveShortcuts,
+    handleMoveSurfaceClick,
+    handleMoveSurfaceKeyDown,
+    handleMoveSurfacePointerCancel,
+    handleMoveSurfacePointerUp
+} from "./interactions/moveSurface.js";
 import type { MultiDayInteractions } from "./interactions/types.js";
 import {
     createMultiDayEventResize,
@@ -80,56 +85,7 @@ interface ControlProps<Event extends CalendarEvent, Resource> {
     interactions: MultiDayInteractions<Event, Resource>;
 }
 
-interface MoveControlProps<Event extends CalendarEvent, Resource>
-    extends ControlProps<Event, Resource> {
-    eventStyle: CalendarStyle;
-    gridRef: RefObject<HTMLDivElement | null>;
-}
-
-function MoveControl<Event extends CalendarEvent, Resource>({
-    segment,
-    eventKey,
-    eventStyle,
-    columns,
-    gridRef,
-    rendering,
-    interactions
-}: MoveControlProps<Event, Resource>) {
-    const handleKey = `${eventKey}-move`;
-    const active = interactions.move?.handleKey === handleKey;
-    const options = { segment, handleKey, columns, gridRef, interactions };
-
-    return (
-        <div
-            className="time-grid-view_event-move-controls"
-            style={eventStyle}
-        >
-            <button
-                type="button"
-                className="time-grid-view_event-move-handle"
-                data-event-id={segment.event.id}
-                data-moving={active || undefined}
-                aria-label={rendering.text.messages.eventMoveHandle({
-                    view: rendering.text.context.view,
-                    title: segment.event.title
-                })}
-                aria-keyshortcuts="ArrowLeft ArrowRight Enter Escape"
-                onBlur={() => handleMultiDayMoveBlur(handleKey, interactions)}
-                onKeyDown={(interaction) => (
-                    handleMultiDayMoveKeyDown(interaction, options)
-                )}
-                onPointerDown={(interaction) => (
-                    handleMultiDayMovePointerDown(interaction, options)
-                )}
-                onPointerMove={interactions.handleMovePointerMove}
-                onPointerUp={interactions.handleMovePointerUp}
-                onPointerCancel={interactions.handleMovePointerCancel}
-            >
-                <span aria-hidden="true">↔</span>
-            </button>
-        </div>
-    );
-}
+const MOVE_KEYS = new Set(["ArrowLeft", "ArrowRight"]);
 
 interface ResizeControlProps<Event extends CalendarEvent, Resource>
     extends ControlProps<Event, Resource> {
@@ -146,30 +102,35 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
     interactions
 }: ResizeControlProps<Event, Resource>) {
     const { event } = segment;
-    const boundaryVisible = event[edge].getTime() === segment[edge].getTime();
+    const handleKey = `${eventKey}-${edge}`;
+    const active = interactions.resize?.handleKey === handleKey
+        ? interactions.resize
+        : null;
+    const baseEvent = active?.segment.event ?? event;
+    const currentOffset = active?.targetOffset ?? 0;
+    const currentChange = createMultiDayEventResize({
+        event: baseEvent,
+        edge,
+        dayOffset: currentOffset,
+        source: active?.source ?? {
+            day: segment.day,
+            resource: segment.resource,
+            resourceId: segment.resourceId
+        }
+    });
+    const currentBoundary = currentChange[edge];
+    const boundaryVisible = currentBoundary.getTime() === segment[edge].getTime();
     const allowed = boundaryVisible
         && (rendering.canResize?.(event, rendererSegment, edge) ?? true);
     if (!allowed) return null;
 
-    const { source, dayOffsets, boundaries } = createResizeRange(
+    const { dayOffsets, boundaries } = createResizeRange(
         segment,
         edge,
         columns
     );
     if (dayOffsets.length === 0) return null;
 
-    const handleKey = `${eventKey}-${edge}`;
-    const active = interactions.resize?.handleKey === handleKey
-        ? interactions.resize
-        : null;
-    const currentOffset = active?.targetOffset ?? 0;
-    const currentChange = createMultiDayEventResize({
-        event,
-        edge,
-        dayOffset: currentOffset,
-        source
-    });
-    const currentBoundary = currentChange[edge];
     const firstBoundary = boundaries[0];
     const lastBoundary = boundaries.at(-1);
     if (!firstBoundary || !lastBoundary) return null;
@@ -232,7 +193,6 @@ interface MultiDayEventProps<Event extends CalendarEvent, Resource> {
     columns: LayoutColumn<Resource>[];
     rendering: EventRendering<Event, Resource>;
     interactions: MultiDayInteractions<Event, Resource>;
-    gridRef: RefObject<HTMLDivElement | null>;
 }
 
 export default function MultiDayEvent<
@@ -243,8 +203,7 @@ export default function MultiDayEvent<
     segment,
     columns,
     rendering,
-    interactions,
-    gridRef
+    interactions
 }: MultiDayEventProps<Event, Resource>) {
     const { event } = segment;
     const model = createEventModel({
@@ -260,6 +219,17 @@ export default function MultiDayEvent<
         overflow: "hidden"
     };
     const EventRenderer = rendering.eventRenderer;
+    const moveHandleKey = `${occurrenceKey}-move`;
+    const moving = interactions.move?.handleKey === moveHandleKey;
+    const resizing = interactions.resize?.handleKey.startsWith(
+        `${occurrenceKey}-`
+    ) ?? false;
+    const moveOptions = {
+        segment,
+        handleKey: moveHandleKey,
+        columns,
+        interactions
+    };
     const controls = {
         segment,
         rendererSegment: model.segment,
@@ -276,19 +246,79 @@ export default function MultiDayEvent<
                 segment={model.segment}
                 selected={model.selected}
                 elementProps={{
-                    className: "time-grid-view_event time-grid-view_multi-day-event",
+                    className: `time-grid-view_event time-grid-view_multi-day-event${model.movable
+                        ? " is-movable"
+                        : ""}${moving ? " is-moving" : ""}${resizing
+                        ? " is-resizing"
+                        : ""}`,
                     ...model.interactionProps,
+                    tabIndex: model.movable
+                        ? 0
+                        : model.interactionProps.tabIndex,
                     "aria-label": model.ariaLabel,
+                    "aria-description": model.movable
+                        ? rendering.text.messages.eventMoveHandle({
+                            view: rendering.text.context.view,
+                            title: event.title
+                        })
+                        : undefined,
+                    "aria-keyshortcuts": model.movable
+                        ? appendMoveShortcuts(
+                            model.interactionProps["aria-keyshortcuts"],
+                            "ArrowLeft ArrowRight Enter Escape"
+                        )
+                        : model.interactionProps["aria-keyshortcuts"],
+                    title: model.details,
+                    onBlur: model.movable
+                        ? () => handleMultiDayMoveBlur(
+                            moveHandleKey,
+                            interactions
+                        )
+                        : undefined,
+                    onClick: model.movable
+                        ? (interaction) => handleMoveSurfaceClick(
+                            interaction,
+                            model.interactionProps.onClick
+                        )
+                        : model.interactionProps.onClick,
+                    onKeyDown: model.movable
+                        ? (interaction) => handleMoveSurfaceKeyDown(
+                            interaction,
+                            moving,
+                            MOVE_KEYS,
+                            (moveInteraction) => handleMultiDayMoveKeyDown(
+                                moveInteraction,
+                                moveOptions
+                            ),
+                            model.interactionProps.onKeyDown
+                        )
+                        : model.interactionProps.onKeyDown,
+                    onPointerDown: model.movable
+                        ? (interaction) => handleMultiDayMovePointerDown(
+                            interaction,
+                            moveOptions
+                        )
+                        : undefined,
+                    onPointerMove: model.movable
+                        ? interactions.handleMovePointerMove
+                        : undefined,
+                    onPointerUp: model.movable
+                        ? (interaction) => handleMoveSurfacePointerUp(
+                            interaction,
+                            interactions.handleMovePointerUp,
+                            model.interactionProps.onPointerUp
+                        )
+                        : model.interactionProps.onPointerUp,
+                    onPointerCancel: model.movable
+                        ? (interaction) => handleMoveSurfacePointerCancel(
+                            interaction,
+                            interactions.handleMovePointerCancel,
+                            model.interactionProps.onPointerCancel
+                        )
+                        : model.interactionProps.onPointerCancel,
                     style: { ...eventStyle, ...event.style }
                 }}
             />
-            {model.movable && (
-                <MoveControl
-                    {...controls}
-                    eventStyle={eventStyle}
-                    gridRef={gridRef}
-                />
-            )}
             {rendering.resizeEnabled && (
                 <>
                     <ResizeControl {...controls} edge="start" />

@@ -16,8 +16,13 @@ import type { ViewProps } from "../types.js";
 import type {
     InteractionDispatch,
     MultiDayMoveInteractions,
-    MultiDayMoveState
+    MultiDayMoveState,
+    PointerStart
 } from "./types.js";
+import {
+    exceedsDragThreshold,
+    suppressNextClick
+} from "./pointerDrag.js";
 
 interface Options<Event extends CalendarEvent, Resource> {
     move: MultiDayMoveState<Event, Resource> | null;
@@ -37,23 +42,37 @@ export const useMultiDayMove = <Event extends CalendarEvent, Resource>({
     const beginMove = useCallback((
         segment: LayoutMultiDayEvent<Event, Resource>,
         handleKey: string,
-        pointerId?: number,
-        grabColumnIndex?: number
+        pointer?: PointerStart
     ): MultiDayMoveState<Event, Resource> | null => {
         const origin = columns[segment.columnIndex];
         if (!origin) return null;
+
+        const grid = gridRef.current;
+        const bounds = grid?.getBoundingClientRect();
+        const grabColumnIndex = pointer && bounds
+            ? getMultiDayPointerColumnIndex(
+                pointer.clientX,
+                bounds.left,
+                bounds.width,
+                columns.length
+            )
+            : undefined;
+        if (pointer && grabColumnIndex == null) return null;
 
         const next = {
             kind: "multi-day-move",
             segment,
             origin,
             handleKey,
-            pointerId,
-            grabColumnIndex
+            pointer: pointer && {
+                ...pointer,
+                dragging: false,
+                grabColumnIndex: grabColumnIndex!
+            }
         } satisfies MultiDayMoveState<Event, Resource>;
         dispatch({ type: "begin", interaction: next });
         return next;
-    }, [columns, dispatch]);
+    }, [columns, dispatch, gridRef]);
 
     const updateMoveTarget = useCallback((
         current: MultiDayMoveState<Event, Resource>,
@@ -90,11 +109,16 @@ export const useMultiDayMove = <Event extends CalendarEvent, Resource>({
     ) => {
         const grid = gridRef.current;
         if (
-            move?.pointerId !== interaction.pointerId
-            || move.grabColumnIndex == null
+            move?.pointer?.pointerId !== interaction.pointerId
             || !grid
             || columns.length === 0
         ) return;
+
+        const dragging = move.pointer.dragging || exceedsDragThreshold(
+            move.pointer,
+            interaction
+        );
+        if (!dragging) return;
 
         interaction.preventDefault();
         interaction.stopPropagation();
@@ -109,31 +133,51 @@ export const useMultiDayMove = <Event extends CalendarEvent, Resource>({
         if (columnIndex == null) return;
         const targetIndex = getMultiDayMoveTargetIndex(
             move.segment.columnIndex,
-            move.grabColumnIndex,
+            move.pointer.grabColumnIndex,
             columnIndex,
             columns.length
         );
         const target = targetIndex == null ? undefined : columns[targetIndex];
-        if (target) updateMoveTarget(move, target);
-    }, [columns, gridRef, move, updateMoveTarget]);
+        if (!target) return;
+
+        const nextTarget = target.key === move.origin.key ? undefined : target;
+        if (
+            move.pointer.dragging
+            && move.target?.key === nextTarget?.key
+        ) return;
+
+        dispatch({
+            type: "update",
+            interaction: {
+                ...move,
+                pointer: { ...move.pointer, dragging: true },
+                target: nextTarget
+            }
+        });
+    }, [columns, dispatch, gridRef, move]);
 
     const handleMovePointerUp = useCallback((
         interaction: PointerEvent<HTMLElement>
-    ) => {
-        if (move?.pointerId !== interaction.pointerId) return;
+    ): boolean => {
+        if (move?.pointer?.pointerId !== interaction.pointerId) return false;
 
-        interaction.preventDefault();
-        interaction.stopPropagation();
+        const dragged = move.pointer.dragging;
+        if (dragged) {
+            interaction.preventDefault();
+            interaction.stopPropagation();
+            suppressNextClick(interaction.currentTarget);
+        }
         if (interaction.currentTarget.hasPointerCapture(interaction.pointerId)) {
             interaction.currentTarget.releasePointerCapture(interaction.pointerId);
         }
         commitMove(move);
+        return dragged;
     }, [commitMove, move]);
 
     const handleMovePointerCancel = useCallback((
         interaction: PointerEvent<HTMLElement>
     ) => {
-        if (move?.pointerId !== interaction.pointerId) return;
+        if (move?.pointer?.pointerId !== interaction.pointerId) return;
         interaction.stopPropagation();
         cancelMove();
     }, [cancelMove, move]);

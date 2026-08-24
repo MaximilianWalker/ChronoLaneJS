@@ -236,10 +236,10 @@ the week preset and `viewName="time-grid"` without applying a column minimum.
 | `labelInterval` | `number` | `slotDuration` | Label/divider cadence; must be an integer multiple of `slotDuration`. | `60` |
 | `slotSizing` | `TimeGridSlotSizing` | fluid width (`WeekView`: `96px` minimum), fixed `50px` height | Fixed or minimum pixel dimension per slot axis. Fixed and minimum values on one axis are mutually exclusive. | `{ minWidth: 120, height: 48 }` |
 | `selectedRange` | `CalendarSelectionRange` | none | Validates and normalizes the controlled half-open range in `timeZone`, then marks every overlapping slot. The end must follow the start. | `{ start: "2026-09-14T09:00:00", end: "2026-09-14T10:00:00" }` |
-| `canDragEvent` | `(event, segment) => boolean` | allow all | Restricts the pointer, touch, and keyboard move control by source event and visible segment. Evaluated only when `onEventDrop` exists. | `(_, segment) => segment.resourceId !== "locked"` |
-| `onEventDrop` | `(change: TimeGridEventDrop) => void` | none | Enables live-preview pointer, touch, and keyboard movement and reports one committed proposal. It does not mutate events. | `({ event, start, end }) => update(event.id, { start, end })` |
-| `canResizeEvent` | `(event, segment, edge) => boolean` | allow all | Restricts a visible start or end resize handle. Evaluated only when `onEventResize` exists. | `(_, segment) => segment.resourceId !== "locked"` |
-| `onEventResize` | `(change: TimeGridEventResize) => void` | none | Enables live-preview pointer, touch, and keyboard resize handles and reports one committed proposal. | `({ event, start, end }) => update(event.id, { start, end })` |
+| `canDragEvent` | `(event, segment) => boolean` | allow all | Restricts pointer, touch, and keyboard movement from the event surface by source event and visible segment. Evaluated only when `onEventDrop` exists. | `(_, segment) => segment.resourceId !== "locked"` |
+| `onEventDrop` | `(change: TimeGridEventDrop) => void` | none | Enables pointer/touch body dragging and focused-event keyboard movement, then reports one committed proposal. It does not mutate events. | `({ event, start, end }) => update(event.id, { start, end })` |
+| `canResizeEvent` | `(event, segment, edge) => boolean` | allow all | Restricts a transparent start or end resize edge. Evaluated only when `onEventResize` exists. | `(_, segment) => segment.resourceId !== "locked"` |
+| `onEventResize` | `(change: TimeGridEventResize) => void` | none | Enables pointer, touch, and keyboard edge resizing, updates event geometry live, and reports one committed proposal. | `({ event, start, end }) => update(event.id, { start, end })` |
 | `onSlotSelect` | `(slot, interaction) => void` | none | Enables slot buttons, roving grid focus, and Arrow/Home/End/Page navigation, then reports the complete slot model on activation. | `(slot) => setRange({ start: slot.start, end: slot.end })` |
 | `components` | `TimeGridComponents<Event, Resource>` | default renderers | Replaces event, slot, background, day header, resource header, or navigation renderers. | `{ event: ScheduleEvent }` |
 
@@ -539,7 +539,9 @@ by the library.
 <!-- props:MonthEventProps event day timeLabel selected elementProps -->
 
 `CalendarRendererElementProps` always includes `className` and `style`, and may
-include native HTML attributes such as `aria-label`, `onClick`, and `onKeyDown`.
+include native HTML attributes such as `title`, `aria-label`, `onClick`, and
+`onKeyDown`. Foreground event renderers receive a localized `title` containing
+the event title, description, and complete start/end date and time details.
 For example, an interactive event may receive
 `{ className: "calendar-event is-selected", style: { "--color": "#2563eb" },
 "aria-label": "Planning, Monday, 9:00 AM to 10:00 AM", onClick }`.
@@ -628,8 +630,8 @@ const formatters = {
 | `timeGridLabel`, `monthGridLabel` | `view` | Scrollable grid accessible name | `"Week calendar"` |
 | `multiDayRegionLabel` | `view` | Visible and accessible dedicated-region label | `"Multi-day events"` |
 | `slotLabel` | `view`, prepared `date`, prepared `time` | Selectable slot label | `"Monday, September 14 at 9:00 AM"` |
-| `eventLabel` | `view`, optional title/description, prepared start/end date/time | Interactive event label | `"Planning, Monday, 9:00 AM to 10:00 AM"` |
-| `eventMoveHandle` | `view`, optional title | Accessible move-control label | `"Move Planning"` |
+| `eventLabel` | `view`, optional title/description, prepared start/end date/time | Event details tooltip and interactive label | `"Planning, Monday, 9:00 AM to 10:00 AM"` |
+| `eventMoveHandle` | `view`, optional title | Accessible movement description for a movable event | `"Move Planning"` |
 | `eventMoveTarget` | `view`, optional title/resource, prepared date/time | Live movement destination announcement | `"Move Planning to Tuesday, 10:00 AM, Studio"` |
 | `eventResizeHandle` | `view`, edge, optional title, prepared date/time | Accessible resize-handle label | `"Resize end of Planning, Monday at 10:00 AM"` |
 | `timeRange` | `view`, prepared start/end time | Visible event time text | `"9:00 AM – 10:00 AM"` |

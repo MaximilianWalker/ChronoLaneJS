@@ -50,6 +50,7 @@ export default function Occurrence<Event extends CalendarEvent>({
                 className: "agenda-view_event",
                 ...presentation.interactionProps,
                 "aria-label": presentation.ariaLabel,
+                title: presentation.details,
                 style: { "--color": event.color }
             }}
         />

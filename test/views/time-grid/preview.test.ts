@@ -14,19 +14,14 @@ import type {
 } from "../../../src/types.js";
 import type {
     MoveState,
-    MultiDayMoveState,
-    MultiDayResizeState,
-    ResizeState
+    MultiDayMoveState
 } from "../../../src/views/time-grid/interactions/types.js";
 import { createLayout } from "../../../src/views/time-grid/layout/createLayout.js";
 import { createMultiDayEventLayout } from "../../../src/views/time-grid/layout/multiDayEvents.js";
 import {
     createMultiDayMovePreview,
-    createMultiDayResizePreview,
-    createTimedMovePreview,
-    createTimedResizePreview
+    createTimedMovePreview
 } from "../../../src/views/time-grid/preview.js";
-import { createResizeIntervals } from "../../../src/views/time-grid/resize.js";
 
 interface Event extends CalendarEvent {
     id: string;
@@ -96,7 +91,7 @@ const layout = createLayout<Event, Resource>({
     labelInterval: 60
 });
 
-test("prepares timed move and resize preview presentation", () => {
+test("prepares timed move preview presentation", () => {
     const segment = layout.events[0]!;
     const origin = layout.slots.find((slot) => (
         slot.columnIndex === 0 && slot.start.getHours() === 9
@@ -129,43 +124,9 @@ test("prepares timed move and resize preview presentation", () => {
         }
     }]);
 
-    const intervals = createResizeIntervals({
-        columns: layout.columns,
-        timeWindow: layout.timeWindow,
-        resizeStep: 60
-    });
-    const targetBoundary = intervals
-        .filter(({ end }) => end.columnIndex === 0)
-        .find(({ end }) => end.date.getHours() === 11)!.end;
-    const resize: ResizeState<Event, Resource> = {
-        kind: "resize",
-        event: segment.event,
-        edge: "end",
-        source: {
-            day: segment.day,
-            resource: segment.resource,
-            resourceId: segment.resourceId
-        },
-        boundaries: [],
-        target: targetBoundary,
-        handleKey: "timed-resize"
-    };
-
-    assert.deepEqual(createTimedResizePreview({
-        resize,
-        columns: layout.columns,
-        timeWindow: layout.timeWindow
-    })?.segments, [{
-        key: "0",
-        style: {
-            "--color": "tomato",
-            gridColumn: 1,
-            gridRow: "61 / 181"
-        }
-    }]);
 });
 
-test("prepares multi-day move and resize preview presentation", () => {
+test("prepares multi-day move preview presentation", () => {
     const multiDayLayout = createMultiDayEventLayout({
         events: [multiDayEvent],
         columns: layout.columns,
@@ -196,29 +157,4 @@ test("prepares multi-day move and resize preview presentation", () => {
         }
     }]);
 
-    const resize: MultiDayResizeState<Event, Resource> = {
-        kind: "multi-day-resize",
-        segment,
-        edge: "end",
-        source: {
-            day: segment.day,
-            resource: segment.resource,
-            resourceId: segment.resourceId
-        },
-        dayOffsets: [1],
-        targetOffset: 1,
-        handleKey: "multi-resize"
-    };
-
-    assert.deepEqual(createMultiDayResizePreview({
-        resize,
-        columns: layout.columns
-    })?.segments, [{
-        key: "0-3",
-        style: {
-            "--color": "royalblue",
-            gridColumn: "1 / span 3",
-            gridRow: 1
-        }
-    }]);
 });

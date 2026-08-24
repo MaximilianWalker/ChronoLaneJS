@@ -15,10 +15,7 @@ import type {
     LayoutEvent,
     LayoutEventSegment
 } from "./layout/types.js";
-import {
-    createTimedMovePreview,
-    createTimedResizePreview
-} from "./preview.js";
+import { createTimedMovePreview } from "./preview.js";
 import type { ResizeInterval } from "./resize.js";
 import TimedEvent from "./TimedEvent.js";
 import type { BackgroundEventProps } from "./types.js";
@@ -84,7 +81,7 @@ export default function TimedEvents<
     rendering,
     interactions
 }: TimedEventsProps<Event, Resource>) {
-    const { move, resize } = interactions;
+    const { move } = interactions;
     const gridRows = `repeat(${totalMinutes}, minmax(0, 1fr))`;
     const movePreview = useMemo(() => createTimedMovePreview({
         move,
@@ -93,11 +90,6 @@ export default function TimedEvents<
         resources,
         text: rendering.text
     }), [columns, move, rendering.text, resources, timeWindow]);
-    const resizePreview = useMemo(() => createTimedResizePreview({
-        resize,
-        columns,
-        timeWindow
-    }), [columns, resize, timeWindow]);
 
     return (
         <div
@@ -116,14 +108,6 @@ export default function TimedEvents<
                     key={key}
                     aria-hidden="true"
                     className="time-grid-view_move-preview"
-                    style={style}
-                />
-            ))}
-            {resizePreview?.segments.map(({ key, style }) => (
-                <div
-                    key={key}
-                    aria-hidden="true"
-                    className="time-grid-view_resize-preview"
                     style={style}
                 />
             ))}

@@ -7,14 +7,11 @@ import type {
 } from "../../types.js";
 import type {
     MoveState,
-    MultiDayMoveState,
-    MultiDayResizeState,
-    ResizeState
+    MultiDayMoveState
 } from "./interactions/types.js";
 import {
     createMultiDayEventDrop,
-    createMultiDayEventPreview,
-    createMultiDayEventResize
+    createMultiDayEventPreview
 } from "./layout/multiDayEvents.js";
 import {
     atDayMinute,
@@ -23,7 +20,6 @@ import {
 import type { ResolvedTimeWindow } from "./layout/timeScale.js";
 import type { LayoutColumn } from "./layout/types.js";
 import { createEventDrop } from "./move.js";
-import { createEventResize } from "./resize.js";
 import { resolveCalendarResourceTitle } from "./resources.js";
 
 export interface EventPreviewSegment {
@@ -78,10 +74,6 @@ export interface MovePreview {
     segments: PreviewSegment[];
 }
 
-export interface ResizePreview {
-    segments: PreviewSegment[];
-}
-
 interface TimedMovePreviewOptions<Event extends CalendarEvent, Resource> {
     move: MoveState<Event, Resource> | null;
     columns: LayoutColumn<Resource>[];
@@ -90,22 +82,11 @@ interface TimedMovePreviewOptions<Event extends CalendarEvent, Resource> {
     text: ViewText;
 }
 
-interface TimedResizePreviewOptions<Event extends CalendarEvent, Resource> {
-    resize: ResizeState<Event, Resource> | null;
-    columns: LayoutColumn<Resource>[];
-    timeWindow: ResolvedTimeWindow;
-}
-
 interface MultiDayMovePreviewOptions<Event extends CalendarEvent, Resource> {
     move: MultiDayMoveState<Event, Resource> | null;
     columns: LayoutColumn<Resource>[];
     resources?: CalendarResourceConfig<Event, Resource>;
     text: ViewText;
-}
-
-interface MultiDayResizePreviewOptions<Event extends CalendarEvent, Resource> {
-    resize: MultiDayResizeState<Event, Resource> | null;
-    columns: LayoutColumn<Resource>[];
 }
 
 const resolveResourceLabel = <Event extends CalendarEvent, Resource>(
@@ -167,37 +148,6 @@ export const createTimedMovePreview = <Event extends CalendarEvent, Resource>({
     };
 };
 
-export const createTimedResizePreview = <Event extends CalendarEvent, Resource>({
-    resize,
-    columns,
-    timeWindow
-}: TimedResizePreviewOptions<Event, Resource>): ResizePreview | null => {
-    if (!resize?.target) return null;
-
-    const change = createEventResize(
-        resize.event,
-        resize.edge,
-        resize.target,
-        resize.source
-    );
-    return {
-        segments: createEventPreviewSegments({
-            start: change.start,
-            end: change.end,
-            resourceId: resize.source.resourceId,
-            columns,
-            timeWindow
-        }).map((segment) => ({
-            key: String(segment.columnIndex),
-            style: {
-                "--color": resize.event.color,
-                gridColumn: segment.columnIndex + 1,
-                gridRow: `${segment.startRow} / ${segment.endRow}`
-            }
-        }))
-    };
-};
-
 export const createMultiDayMovePreview = <Event extends CalendarEvent, Resource>({
     move,
     columns,
@@ -221,39 +171,6 @@ export const createMultiDayMovePreview = <Event extends CalendarEvent, Resource>
                 "--color": move.segment.event.color,
                 gridColumn: `${segment.columnIndex + 1} / span ${segment.columnSpan}`,
                 gridRow: move.segment.laneIndex + 1
-            }
-        }))
-    };
-};
-
-export const createMultiDayResizePreview = <
-    Event extends CalendarEvent,
-    Resource
->({
-    resize,
-    columns
-}: MultiDayResizePreviewOptions<Event, Resource>): ResizePreview | null => {
-    if (resize?.targetOffset == null) return null;
-
-    const change = createMultiDayEventResize({
-        event: resize.segment.event,
-        edge: resize.edge,
-        dayOffset: resize.targetOffset,
-        source: resize.source
-    });
-    return {
-        segments: createMultiDayEventPreview({
-            event: resize.segment.event,
-            start: change.start,
-            end: change.end,
-            resourceId: resize.source.resourceId,
-            columns
-        }).map((segment) => ({
-            key: `${segment.columnIndex}-${segment.columnSpan}`,
-            style: {
-                "--color": resize.segment.event.color,
-                gridColumn: `${segment.columnIndex + 1} / span ${segment.columnSpan}`,
-                gridRow: resize.segment.laneIndex + 1
             }
         }))
     };

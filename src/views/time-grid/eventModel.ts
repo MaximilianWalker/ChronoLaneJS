@@ -73,6 +73,7 @@ interface EventModel<Resource> {
     selected: boolean;
     movable: boolean;
     interactionProps: EventInteractionProps;
+    details: string;
     ariaLabel?: string;
 }
 
@@ -100,6 +101,7 @@ export const createEventModel = <Event extends CalendarEvent, Resource>({
         movable: rendering.moveEnabled
             && (rendering.canDrag?.(event, rendererSegment) ?? true),
         interactionProps: presentation.interactionProps,
+        details: presentation.details,
         ariaLabel: presentation.ariaLabel
     };
 };
