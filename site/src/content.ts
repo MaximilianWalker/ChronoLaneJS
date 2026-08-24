@@ -11,132 +11,35 @@ import readme from "../../README.md?raw";
 import roadmap from "../../ROADMAP.md?raw";
 import security from "../../SECURITY.md?raw";
 
-export type DocumentId =
-    | "documentation"
-    | "getting-started"
-    | "api"
-    | "styling"
-    | "examples"
-    | "accessibility"
-    | "migration-v2"
-    | "changelog"
-    | "overview"
-    | "development"
-    | "roadmap"
-    | "security";
+import {
+    documentDefinitions,
+    normalizeDocumentSource,
+    type DocumentDefinition,
+    type DocumentId
+} from "./documentManifest.js";
 
-export type DocumentCategory = "Consumer guides" | "Releases" | "Project";
-
-export interface DocumentSource {
-    id: DocumentId;
-    category: DocumentCategory;
-    label: string;
-    description: string;
+export interface DocumentSource extends DocumentDefinition {
     source: string;
-    githubPath: string;
 }
 
-const readmeBody = readme.replace(/^[\s\S]*?\r?\n---\r?\n/, "");
+const sources: Record<DocumentId, string> = {
+    documentation,
+    "getting-started": gettingStarted,
+    api,
+    styling,
+    examples,
+    accessibility,
+    "migration-v2": migrationV2,
+    changelog,
+    overview: readme,
+    development,
+    roadmap,
+    security
+};
 
-export const documents: readonly DocumentSource[] = [
-    {
-        id: "documentation",
-        category: "Consumer guides",
-        label: "Documentation home",
-        description: "Choose the right guide and understand the documentation contract",
-        source: documentation,
-        githubPath: "docs/README.md"
-    },
-    {
-        id: "getting-started",
-        category: "Consumer guides",
-        label: "Getting started",
-        description: "Events, state, timezones, ranges, resources, and interactions",
-        source: gettingStarted,
-        githubPath: "docs/getting-started.md"
-    },
-    {
-        id: "api",
-        category: "Consumer guides",
-        label: "API reference",
-        description: "Every export, prop, payload, default, function, and error",
-        source: api,
-        githubPath: "docs/api.md"
-    },
-    {
-        id: "styling",
-        category: "Consumer guides",
-        label: "Styling and theming",
-        description: "Tokens, dimensions, stable classes, renderers, and responsive behavior",
-        source: styling,
-        githubPath: "docs/styling.md"
-    },
-    {
-        id: "examples",
-        category: "Consumer guides",
-        label: "Examples",
-        description: "Vite, Next.js, state, resources, localization, and custom rendering",
-        source: examples,
-        githubPath: "docs/examples.md"
-    },
-    {
-        id: "accessibility",
-        category: "Consumer guides",
-        label: "Accessibility",
-        description: "Keyboard behavior, names, focus, drag limitations, and responsibilities",
-        source: accessibility,
-        githubPath: "docs/accessibility.md"
-    },
-    {
-        id: "migration-v2",
-        category: "Releases",
-        label: "Migrate from v1 to v2",
-        description: "Breaking contracts, before-and-after examples, and upgrade verification",
-        source: migrationV2,
-        githubPath: "docs/migrations/v2.md"
-    },
-    {
-        id: "changelog",
-        category: "Releases",
-        label: "Changelog",
-        description: "Curated changes and upgrade context for every published version",
-        source: changelog,
-        githubPath: "CHANGELOG.md"
-    },
-    {
-        id: "overview",
-        category: "Project",
-        label: "Repository overview",
-        description: "Project introduction, feature overview, and runtime support",
-        source: readmeBody,
-        githubPath: "README.md"
-    },
-    {
-        id: "development",
-        category: "Project",
-        label: "Development guide",
-        description: "Coding standards, validation requirements, and release workflow",
-        source: development,
-        githubPath: "DEVELOPMENT.md"
-    },
-    {
-        id: "roadmap",
-        category: "Project",
-        label: "Roadmap",
-        description: "Release gates and the canonical project backlog",
-        source: roadmap,
-        githubPath: "ROADMAP.md"
-    },
-    {
-        id: "security",
-        category: "Project",
-        label: "Security",
-        description: "How to report vulnerabilities responsibly",
-        source: security,
-        githubPath: "SECURITY.md"
-    }
-] as const;
+export const documents: readonly DocumentSource[] = documentDefinitions.map((definition) => ({
+    ...definition,
+    source: normalizeDocumentSource(definition.id, sources[definition.id])
+}));
 
-export const isDocumentId = (value: string): value is DocumentId => (
-    documents.some(({ id }) => id === value)
-);
+export type { DocumentId } from "./documentManifest.js";

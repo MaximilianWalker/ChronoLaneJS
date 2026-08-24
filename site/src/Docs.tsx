@@ -1,16 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Markdown, { type Components } from "react-markdown";
 
-import {
-    documents,
-    isDocumentId,
-    type DocumentId
-} from "./content.js";
+import type { DocumentSource } from "./content.js";
+import type { DocumentId } from "./documentManifest.js";
 import { REPOSITORY_URL } from "./Chrome.js";
-import { parseDocumentLocation } from "./documentRouting.js";
+import { createDocumentHref } from "./documentRouting.js";
 import { markdownRehypePlugins, markdownRemarkPlugins } from "./markdown.js";
-
-const getDocumentLocation = () => parseDocumentLocation(window.location.hash, isDocumentId);
 
 const resolveRepositoryPath = (currentPath: string, href: string): string => {
     const currentDirectory = currentPath.includes("/")
@@ -21,13 +16,16 @@ const resolveRepositoryPath = (currentPath: string, href: string): string => {
         .replace(/^\//, "");
 };
 
-export default function Docs() {
-    const [activeId, setActiveId] = useState<DocumentId>(() => (
-        getDocumentLocation()?.id ?? "documentation"
-    ));
+interface DocsProps {
+    activeId: DocumentId;
+    baseUrl: string;
+    documents: readonly DocumentSource[];
+}
+
+export default function Docs({ activeId, baseUrl, documents }: DocsProps) {
     const activeDocument = documents.find(({ id }) => id === activeId) ?? documents[0]!;
     const markdownComponents = useMemo<Components>(() => ({
-        a: ({ href, children, ...props }) => {
+        a: ({ href, children, node: _node, ...props }) => {
             if (!href) return <a {...props}>{children}</a>;
             if (/^[a-z][a-z\d+.-]*:/i.test(href)) {
                 const opensNewTab = /^https?:/i.test(href);
@@ -54,7 +52,7 @@ export default function Docs() {
                 return (
                     <a
                         {...props}
-                        href={`#doc-${document.id}${anchor ? `/${anchor}` : ""}`}
+                        href={createDocumentHref(baseUrl, document, anchor)}
                     >
                         {children}
                     </a>
@@ -74,22 +72,7 @@ export default function Docs() {
                 </a>
             );
         }
-    }), [activeDocument.githubPath]);
-
-    useEffect(() => {
-        const syncFromHash = () => {
-            const location = getDocumentLocation();
-            if (!location) return;
-
-            setActiveId(location.id);
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                document.getElementById(location.anchor ?? "document")?.scrollIntoView();
-            }));
-        };
-        window.addEventListener("hashchange", syncFromHash);
-        syncFromHash();
-        return () => window.removeEventListener("hashchange", syncFromHash);
-    }, []);
+    }), [activeDocument.githubPath, baseUrl, documents]);
 
     return (
         <section className="docs-section" aria-label="Repository documentation">
@@ -106,7 +89,7 @@ export default function Docs() {
                             )}
                             <a
                                 className={`docs-nav-link${activeId === document.id ? " is-active" : ""}`}
-                                href={`#doc-${document.id}`}
+                                href={createDocumentHref(baseUrl, document)}
                                 aria-current={activeId === document.id ? "page" : undefined}
                             >
                                 <strong>{document.label}</strong>

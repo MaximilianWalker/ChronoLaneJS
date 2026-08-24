@@ -13,11 +13,10 @@ export function CoffeeIcon() {
 
 interface HeaderProps {
     activePage: "home" | "docs";
+    baseUrl: string;
 }
 
-export function Header({ activePage }: HeaderProps) {
-    const baseUrl = import.meta.env.BASE_URL;
-
+export function Header({ activePage, baseUrl }: HeaderProps) {
     return (
         <header className="site-header">
             <a className="brand" href={baseUrl} aria-label="ChronoLaneJS home">
@@ -55,19 +54,21 @@ export function Header({ activePage }: HeaderProps) {
     );
 }
 
-export function Footer() {
-    const baseUrl = import.meta.env.BASE_URL;
+interface FooterProps {
+    baseUrl: string;
+}
 
+export function Footer({ baseUrl }: FooterProps) {
     return (
         <footer className="site-footer">
             <div className="brand brand--footer">
                 <img src={`${baseUrl}chronolane-logo.svg`} alt="" />
                 <span>ChronoLaneJS</span>
             </div>
-            <p>A modern, timezone-aware calendar for React.</p>
+            <p>An open-source React and TypeScript calendar and scheduler.</p>
             <div className="site-footer-links">
                 <a href={`${REPOSITORY_URL}/blob/main/LICENSE`}>MIT License</a>
-                <a href={`${baseUrl}docs/#doc-security`}>Security</a>
+                <a href={`${baseUrl}docs/project/security/`}>Security</a>
                 <a href={`${REPOSITORY_URL}/issues`}>Issues</a>
             </div>
         </footer>

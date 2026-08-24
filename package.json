@@ -1,7 +1,7 @@
 {
   "name": "@chronolanejs/react",
   "version": "0.1.0-rc.0",
-  "description": "A modern, timezone-aware calendar for React.",
+  "description": "An open-source React and TypeScript calendar and scheduler with accessible views, resources, event interactions, and timezone support.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -19,11 +19,14 @@
   "keywords": [
     "calendar",
     "date-fns",
+    "event-calendar",
     "react",
+    "react-calendar",
     "resource-calendar",
     "scheduler",
     "time-grid",
-    "timezone"
+    "timezone",
+    "typescript"
   ],
   "files": [
     "assets/chronolane-logo.png",
@@ -76,7 +79,7 @@
     "storybook:test:watch": "vitest --project=storybook",
     "check:storybook": "npm run types:check:storybook && npm run storybook:test && npm run storybook:build",
     "site": "vite --config vite.site.config.ts",
-    "site:build": "tsc -p tsconfig.site.json && vite build --config vite.site.config.ts",
+    "site:build": "tsc -p tsconfig.site.json && vite build --config vite.site.config.ts && tsx --tsconfig tsconfig.site.json scripts/generateSite.ts",
     "site:bundle": "npm run site:build && storybook build --output-dir site-dist/storybook",
     "site:preview": "vite preview --config vite.site.config.ts"
   },

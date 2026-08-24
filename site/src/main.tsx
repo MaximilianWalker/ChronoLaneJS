@@ -1,5 +1,5 @@
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 
 import App from "./App.js";
 import "../../src/Calendar.css";
@@ -13,8 +13,14 @@ const root = document.getElementById("root");
 
 if (!root) throw new Error("Site root element was not found.");
 
-createRoot(root).render(
+const page = (
     <StrictMode>
-        <App />
+        <App baseUrl={import.meta.env.BASE_URL} />
     </StrictMode>
 );
+
+if (root.hasChildNodes()) {
+    hydrateRoot(root, page);
+} else {
+    createRoot(root).render(page);
+}

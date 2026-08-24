@@ -47,8 +47,12 @@ The GitHub Pages website renders `README.md`, `DEVELOPMENT.md`, `ROADMAP.md`,
 `SECURITY.md`, and every file under `docs/` directly, so update the canonical
 Markdown instead of adding site-only documentation. Public exports and props
 must be present in `docs/api.md`; `npm run docs:check` rejects both missing and
-stale export or prop entries. The built package runtime is also checked against
-an exact export allowlist so implementation helpers cannot appear silently.
+stale export or prop entries. `npm run site:build` prerenders the homepage and
+each document at the stable route declared in `site/src/documentManifest.ts`,
+adds route-specific search metadata, and generates `sitemap.xml`; do not add
+fragment-routed documents or hand-maintained HTML copies. The built package
+runtime is also checked against an exact export allowlist so implementation
+helpers cannot appear silently.
 Runnable Vite and Next.js integrations live under `examples/` as independent
 consumer packages. `npm run check` validates the publishable root package;
 `npm run examples:check` packs one artifact, installs that exact tarball into

@@ -322,6 +322,68 @@ Last reviewed: 2026-08-24
   - Decide and document ownership of recurrence expansion, persistence,
     fetching, application state, and design-system styling.
 
+## Website discovery and search
+
+- [x] **[P1][WEB-01] Publish every document at a crawlable URL.**
+  - Replace fragment-selected documents such as `/docs/#doc-api` with stable
+    paths such as `/docs/api/`, `/docs/accessibility/`,
+    `/docs/migrations/v2/`, and `/docs/changelog/`.
+  - Generate meaningful HTML for the homepage and every document at build
+    time so their primary content does not depend on client-side rendering.
+  - Make direct requests to every public path return its content on GitHub
+    Pages, and connect documents with ordinary crawlable links.
+- [ ] **[P1][WEB-02] Establish Google discovery and indexing infrastructure.**
+  - Publish a root `sitemap.xml` containing fully qualified canonical URLs for
+    the homepage and every public document. Reference it from the host-root
+    `robots.txt` when a project-owned domain or controllable GitHub Pages user
+    site makes that file available; a project-path robots file is not valid.
+  - Add a canonical URL, unique title, specific description, and matching Open
+    Graph URL to every generated page.
+  - Verify the exact GitHub Pages URL-prefix property in Google Search Console,
+    submit the sitemap, inspect representative URLs, and record or resolve all
+    reported discovery, rendering, canonicalization, and indexing problems.
+- [ ] **[P1][WEB-03] Make the library's search intent explicit.**
+  - Describe ChronoLaneJS consistently as an open-source React and TypeScript
+    calendar and scheduler across the website, GitHub repository, npm package,
+    release pages, and README files.
+  - Give core capabilities dedicated pages with complete examples and
+    screenshots, including drag and resize interactions, resource scheduling,
+    time-zone handling, accessibility, custom renderers, TypeScript APIs, and
+    framework integration.
+  - Use capability-specific page titles and descriptions based on concrete
+    developer queries rather than broad terms such as "modern calendar".
+  - Add accurate `SoftwareSourceCode` structured data for the repository,
+    package, license, programming language, supported runtime, and current
+    release without treating structured data as a guaranteed rich result.
+- [ ] **[P2][WEB-04] Strengthen GitHub and npm package discovery.**
+  - Audit the GitHub description and topics and the npm description, keywords,
+    homepage, repository, and README opening for the exact project name and
+    its principal React calendar use cases.
+  - Cross-link the website, repository, npm package, documentation, changelog,
+    migration guides, and GitHub releases with stable public URLs.
+  - Keep version, installation, compatibility, and release information
+    consistent so search engines can associate those surfaces with one
+    project rather than several incomplete descriptions.
+- [ ] **[P2][WEB-05] Build legitimate external authority.**
+  - Publish substantial technical demonstrations for the library's distinctive
+    capabilities and link readers to the most relevant permanent guide rather
+    than only the homepage.
+  - Seek inclusion in maintained React and open-source directories, examples,
+    and community resources where the library is genuinely relevant.
+  - Encourage public adopters and integrations to reference the repository or
+    documentation without manufacturing links or duplicating promotional
+    content across sites.
+- [ ] **[P2][WEB-06] Measure search visibility and decide long-term site identity.**
+  - Track sitemap coverage, indexed URLs, crawl and rendering problems, search
+    queries, impressions, and clicks in Search Console after each release.
+  - Treat visibility of the official website, GitHub repository, and npm
+    package for the exact `ChronoLaneJS` query as the initial discovery
+    baseline; measure capability-query growth separately as a longer-term goal.
+  - Evaluate a project-owned domain for durable URLs and stronger branding,
+    including redirect, canonical, and Search Console migration requirements,
+    without treating a domain change as a substitute for crawlable content or
+    external authority.
+
 ## Repository and maintenance
 
 - [x] **[P1][REPO-01] Add issue and pull-request templates.**

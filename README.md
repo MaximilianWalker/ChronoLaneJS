@@ -5,7 +5,7 @@
 <h1 align="center">ChronoLaneJS</h1>
 
 <p align="center">
-  <strong>A modern, timezone-aware calendar for React.</strong>
+  <strong>An open-source React and TypeScript calendar and scheduler.</strong>
 </p>
 
 <p align="center">
@@ -38,10 +38,11 @@
 
 ---
 
-ChronoLaneJS is a customizable React calendar with day, week, month, agenda,
-and custom time-grid views. It provides timezone-aware date handling,
-range navigation, event layout, interactions, and accessible defaults while
-keeping state management and persistence outside the component.
+ChronoLaneJS is a customizable React and TypeScript calendar and scheduler with
+day, week, month, agenda, and custom time-grid views. It provides resource
+scheduling, timezone-aware date handling, range navigation, event layout,
+selection, movement, resizing, and accessible defaults while keeping state
+management and persistence outside the component.
 
 > [!NOTE]
 > `@chronolanejs/react` is published on npm through a provenance-enabled trusted

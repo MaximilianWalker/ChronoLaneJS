@@ -1,11 +1,19 @@
+import type { DocumentSource } from "./content.js";
+import type { DocumentId } from "./documentManifest.js";
 import { Footer, Header, REPOSITORY_URL } from "./Chrome.js";
 import Docs from "./Docs.js";
 
-export default function DocsPage() {
+interface DocsPageProps {
+    activeId: DocumentId;
+    baseUrl: string;
+    documents: readonly DocumentSource[];
+}
+
+export default function DocsPage({ activeId, baseUrl, documents }: DocsPageProps) {
     return (
         <div className="site-shell docs-page">
             <a className="skip-link" href="#main">Skip to content</a>
-            <Header activePage="docs" />
+            <Header activePage="docs" baseUrl={baseUrl} />
 
             <main className="docs-main section" id="main">
                 <header className="docs-intro">
@@ -25,10 +33,10 @@ export default function DocsPage() {
                     </div>
                 </header>
 
-                <Docs />
+                <Docs activeId={activeId} baseUrl={baseUrl} documents={documents} />
             </main>
 
-            <Footer />
+            <Footer baseUrl={baseUrl} />
         </div>
     );
 }
