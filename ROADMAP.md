@@ -343,15 +343,17 @@ Last reviewed: 2026-08-24
   - Make direct requests to every public path return its content on GitHub
     Pages, and connect documents with ordinary crawlable links.
 - [ ] **[P1][WEB-02] Establish Google discovery and indexing infrastructure.**
-  - Publish a root `sitemap.xml` containing fully qualified canonical URLs for
+  - [x] Publish a root `sitemap.xml` containing fully qualified canonical URLs for
     the homepage and every public document. Reference it from the host-root
     `robots.txt` when a project-owned domain or controllable GitHub Pages user
     site makes that file available; a project-path robots file is not valid.
-  - Add a canonical URL, unique title, specific description, and matching Open
+  - [x] Add a canonical URL, unique title, specific description, and matching Open
     Graph URL to every generated page.
-  - Verify the exact GitHub Pages URL-prefix property in Google Search Console,
+  - [ ] Verify the exact GitHub Pages URL-prefix property in Google Search Console,
     submit the sitemap, inspect representative URLs, and record or resolve all
-    reported discovery, rendering, canonicalization, and indexing problems.
+    reported discovery, rendering, canonicalization, and indexing problems. The
+    exact owner procedure and current pending state are recorded in
+    `DEVELOPMENT.md`.
 - [ ] **[P1][WEB-03] Make the library's search intent explicit.**
   - Describe ChronoLaneJS consistently as an open-source React and TypeScript
     calendar and scheduler across the website, GitHub repository, npm package,

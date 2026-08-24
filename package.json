@@ -79,8 +79,9 @@
     "storybook:test:watch": "vitest --project=storybook",
     "check:storybook": "npm run types:check:storybook && npm run storybook:test && npm run storybook:build",
     "site": "vite --config vite.site.config.ts",
-    "site:build": "tsc -p tsconfig.site.json && vite build --config vite.site.config.ts && tsx --tsconfig tsconfig.site.json scripts/generateSite.ts",
+    "site:build": "tsc -p tsconfig.site.json && vite build --config vite.site.config.ts && tsx --tsconfig tsconfig.site.json scripts/generateSite.ts && npm run site:verify",
     "site:bundle": "npm run site:build && storybook build --output-dir site-dist/storybook",
+    "site:verify": "tsx --tsconfig tsconfig.site.json scripts/verifySite.ts",
     "site:preview": "vite preview --config vite.site.config.ts"
   },
   "peerDependencies": {

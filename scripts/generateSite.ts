@@ -12,11 +12,10 @@ import {
     type DocumentDefinition
 } from "../site/src/documentManifest.js";
 import DocsPage from "../site/src/DocsPage.js";
+import { createPublicUrl, siteMetadata } from "../site/src/siteMetadata.js";
 
 const repositoryRoot = resolve(import.meta.dirname, "..");
 const outputRoot = resolve(repositoryRoot, "site-dist");
-const siteUrl = "https://maximilianwalker.github.io/ChronoLaneJS/";
-const siteBaseUrl = "/ChronoLaneJS/";
 
 const injectRoot = (html: string, markup: string): string => {
     const emptyRoot = '<div id="root"></div>';
@@ -30,28 +29,47 @@ const renderPage = (component: React.ReactNode): string => renderToString(
     createElement(StrictMode, null, component)
 );
 
-const canonicalUrl = (definition: DocumentDefinition): string => (
-    new URL(definition.route, siteUrl).href
+const canonicalUrl = (definition: DocumentDefinition): string => createPublicUrl(
+    definition.route
 );
+
+const replaceMetadata = (
+    html: string,
+    replacements: ReadonlyMap<string, string>,
+    pageName: string
+): string => {
+    let page = html;
+    for (const [token, value] of replacements) page = page.replaceAll(token, value);
+
+    if (/__(?:HOME|DOCUMENT)_(?:TITLE|SOCIAL_TITLE|DESCRIPTION|SOCIAL_DESCRIPTION|URL)__/.test(page)) {
+        throw new Error(`Metadata replacement failed for ${pageName}.`);
+    }
+    return page;
+};
 
 const applyDocumentMetadata = (
     html: string,
     definition: DocumentDefinition
 ): string => {
-    const replacements = new Map([
+    const replacements = new Map<string, string>([
         ["__DOCUMENT_TITLE__", definition.title],
         ["__DOCUMENT_DESCRIPTION__", definition.metaDescription],
         ["__DOCUMENT_URL__", canonicalUrl(definition)]
     ]);
-
-    let page = html;
-    for (const [token, value] of replacements) page = page.replaceAll(token, value);
-
-    if (/__DOCUMENT_(?:TITLE|DESCRIPTION|URL)__/.test(page)) {
-        throw new Error(`Document metadata replacement failed for ${definition.id}.`);
-    }
-    return page;
+    return replaceMetadata(html, replacements, definition.id);
 };
+
+const applyHomeMetadata = (html: string): string => replaceMetadata(
+    html,
+    new Map<string, string>([
+        ["__HOME_TITLE__", siteMetadata.title],
+        ["__HOME_SOCIAL_TITLE__", siteMetadata.socialTitle],
+        ["__HOME_DESCRIPTION__", siteMetadata.description],
+        ["__HOME_SOCIAL_DESCRIPTION__", siteMetadata.socialDescription],
+        ["__HOME_URL__", siteMetadata.url]
+    ]),
+    "homepage"
+);
 
 const loadDocuments = async (): Promise<readonly DocumentSource[]> => Promise.all(
     documentDefinitions.map(async (definition) => {
@@ -70,7 +88,7 @@ const writeDocumentPages = async (
     for (const document of documents) {
         const markup = renderPage(createElement(DocsPage, {
             activeId: document.id,
-            baseUrl: siteBaseUrl,
+            baseUrl: siteMetadata.basePath,
             documents
         }));
         const pageTemplate = document.id === "documentation"
@@ -86,7 +104,7 @@ const writeDocumentPages = async (
 const createLegacyRedirectScript = (): string => {
     const routes = Object.fromEntries(documentDefinitions.map((document) => [
         document.id,
-        `${siteBaseUrl}${document.route}`
+        `${siteMetadata.basePath}${document.route}`
     ]));
     return [
         "        <script>",
@@ -103,7 +121,7 @@ const createLegacyRedirectScript = (): string => {
 
 const writeSitemap = async (): Promise<void> => {
     const urls = [
-        siteUrl,
+        siteMetadata.url,
         ...documentDefinitions.map(canonicalUrl)
     ];
     const sitemap = [
@@ -118,9 +136,12 @@ const writeSitemap = async (): Promise<void> => {
 
 const homeTemplate = await readFile(resolve(outputRoot, "index.html"), "utf8");
 const docsTemplate = await readFile(resolve(outputRoot, "docs/index.html"), "utf8");
-const homeMarkup = renderPage(createElement(App, { baseUrl: siteBaseUrl }));
+const homeMarkup = renderPage(createElement(App, { baseUrl: siteMetadata.basePath }));
 const documents = await loadDocuments();
 
-await writeFile(resolve(outputRoot, "index.html"), injectRoot(homeTemplate, homeMarkup));
+await writeFile(
+    resolve(outputRoot, "index.html"),
+    injectRoot(applyHomeMetadata(homeTemplate), homeMarkup)
+);
 await writeDocumentPages(docsTemplate, documents);
 await writeSitemap();

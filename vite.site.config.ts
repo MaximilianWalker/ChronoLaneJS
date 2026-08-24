@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+import { siteMetadata } from "./site/src/siteMetadata.js";
+
 const docsRouteFallback = () => ({
     name: "chronolane-docs-route-fallback",
     configureServer: (server: { middlewares: { use: (middleware: (
@@ -36,7 +38,7 @@ const staticDocsBuild = (enabled: boolean) => ({
 
 export default defineConfig(({ command, isPreview }) => ({
     root: resolve(import.meta.dirname, "site"),
-    base: command === "serve" && !isPreview ? "/" : "/ChronoLaneJS/",
+    base: command === "serve" && !isPreview ? "/" : siteMetadata.basePath,
     publicDir: resolve(import.meta.dirname, "assets"),
     plugins: [docsRouteFallback(), staticDocsBuild(command === "build"), react()],
     build: {

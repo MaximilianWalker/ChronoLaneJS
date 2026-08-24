@@ -84,6 +84,35 @@ generates `sitemap.xml`; do not add fragment-routed documents or hand-maintained
 HTML copies. The built package runtime is also checked against an exact export
 allowlist so implementation helpers cannot appear silently.
 
+### Search indexing operations
+
+`npm run site:build` runs `site:verify` after prerendering. The verifier requires
+one unique canonical URL per public page, matching title, description, Open
+Graph URL, server-rendered content, and exact sitemap coverage. It also rejects
+a project-path `robots.txt`: GitHub Pages serves this project below
+`github.io/ChronoLaneJS/`, while robots rules only apply from the host root.
+
+Google Search Console is an owner-operated service and must be checked after
+the site deploys. Use this exact release procedure:
+
+1. Select or create the URL-prefix property
+   `https://maximilianwalker.github.io/ChronoLaneJS/`, including the protocol,
+   repository path, and trailing slash.
+2. Confirm ownership remains verified. Keep any Google-provided verification
+   file or meta value exactly as issued; do not record account data or tokens in
+   this guide.
+3. Submit `https://maximilianwalker.github.io/ChronoLaneJS/sitemap.xml` in the
+   Sitemaps report and resolve any fetch or parsing error.
+4. Inspect the homepage, `/docs/`, `/docs/getting-started/`, `/docs/api/`, and
+   `/docs/accessibility/`. Test the live URL and confirm that Google sees the
+   rendered content, the declared canonical, and an indexable page.
+5. Record the inspection date and every discovery, rendering,
+   canonicalization, or indexing problem in the relevant roadmap item. Request
+   indexing after resolving a problem; submission does not guarantee indexing.
+
+Account verification and sitemap submission are pending as of 2026-08-24. The
+repository-side metadata and sitemap checks are automated.
+
 Consumer documentation must describe current behavior rather than intended
 future behavior. Keep the API reference exhaustive, examples on the public API,
 styling guidance limited to stable hooks, and accessibility guidance explicit
