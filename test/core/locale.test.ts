@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { enUS } from 'date-fns/locale/en-US';
+import { enGB } from 'date-fns/locale/en-GB';
+import { faIR } from 'date-fns/locale/fa-IR';
 import type { CalendarLocale } from '../../src/types.js';
 
 import {
@@ -9,6 +11,7 @@ import {
     calendarLocaleNames,
     getLoadedCalendarLocale,
     loadCalendarLocale,
+    loadCalendarLocaleModule,
     resolveCalendarLocaleName,
     resolveCalendarWeekStart
 } from '../../src/core/locale.js';
@@ -47,6 +50,33 @@ test('week start follows the locale unless explicitly overridden', async () => {
 
     assert.equal(resolveCalendarWeekStart(locale), locale.options?.weekStartsOn ?? 0);
     assert.equal(resolveCalendarWeekStart(locale, 6), 6);
+});
+
+test('week starts cover Sunday, Monday, and Saturday locale conventions', () => {
+    assert.equal(resolveCalendarWeekStart(enUS), 0);
+    assert.equal(resolveCalendarWeekStart(enGB), 1);
+    assert.equal(resolveCalendarWeekStart(faIR), 6);
+    assert.equal(resolveCalendarWeekStart(faIR, 2), 2);
+});
+
+test('lazy locale module failures retain their cause and locale name', async () => {
+    const networkError = new Error('network unavailable');
+
+    await assert.rejects(
+        loadCalendarLocaleModule('pt', () => Promise.reject(networkError)),
+        (error: Error) => (
+            error.message === 'Failed to load calendar locale "pt".'
+            && error.cause === networkError
+        )
+    );
+    await assert.rejects(
+        loadCalendarLocaleModule('pt', () => Promise.resolve({ code: 'pt' })),
+        (error: Error) => (
+            error.message === 'Failed to load calendar locale "pt".'
+            && error.cause instanceof TypeError
+            && /Locale contract/.test(error.cause.message)
+        )
+    );
 });
 
 test('invalid and unsupported locale inputs fail explicitly', () => {

@@ -468,14 +468,16 @@ test("does not create empty segments at visible boundaries", () => {
     assert.deepEqual(layout.events, []);
 });
 
-test("uses wall-clock rows across Lisbon daylight-saving changes", () => {
-    const timeZone = "Europe/Lisbon";
+test("uses wall-clock rows across Lisbon and New York daylight-saving changes", () => {
     const clockChangeDays = [
-        new TZDate(2026, 2, 29, 0, 0, 0, 0, timeZone),
-        new TZDate(2026, 9, 25, 0, 0, 0, 0, timeZone)
+        new TZDate(2026, 2, 29, 0, 0, 0, 0, "Europe/Lisbon"),
+        new TZDate(2026, 9, 25, 0, 0, 0, 0, "Europe/Lisbon"),
+        new TZDate(2026, 2, 8, 0, 0, 0, 0, "America/New_York"),
+        new TZDate(2026, 10, 1, 0, 0, 0, 0, "America/New_York")
     ];
 
     const results = clockChangeDays.map((day) => {
+        const timeZone = day.timeZone;
         const nextDay = new TZDate(
             day.getFullYear(),
             day.getMonth(),
@@ -501,6 +503,7 @@ test("uses wall-clock rows across Lisbon daylight-saving changes", () => {
 
         assert.ok(segment);
         return {
+            timeZone,
             date: format(segment.start, "yyyy-MM-dd"),
             end: format(segment.end, "yyyy-MM-dd HH:mm"),
             startRow: segment.startRow,
@@ -510,8 +513,10 @@ test("uses wall-clock rows across Lisbon daylight-saving changes", () => {
     });
 
     assert.deepEqual(results, [
-        { date: "2026-03-29", end: "2026-03-30 00:00", startRow: 1, endRow: 1441, slotCount: 24 },
-        { date: "2026-10-25", end: "2026-10-26 00:00", startRow: 1, endRow: 1441, slotCount: 24 }
+        { timeZone: "Europe/Lisbon", date: "2026-03-29", end: "2026-03-30 00:00", startRow: 1, endRow: 1441, slotCount: 24 },
+        { timeZone: "Europe/Lisbon", date: "2026-10-25", end: "2026-10-26 00:00", startRow: 1, endRow: 1441, slotCount: 24 },
+        { timeZone: "America/New_York", date: "2026-03-08", end: "2026-03-09 00:00", startRow: 1, endRow: 1441, slotCount: 24 },
+        { timeZone: "America/New_York", date: "2026-11-01", end: "2026-11-02 00:00", startRow: 1, endRow: 1441, slotCount: 24 }
     ]);
 });
 

@@ -285,9 +285,11 @@ Last reviewed: 2026-08-24
   - Install the packed artifact into representative Vite and Next.js apps.
   - Verify ESM exports, declarations, CSS, the client directive, lazy locales,
     SSR import safety, and tree shaking.
-- [ ] **[P1][TEST-08] Expand timezone and locale scenarios.**
-  - Cover multiple positive and negative UTC offsets, DST boundaries,
-    locale-specific week starts, 12/24-hour conventions, and lazy-load errors.
+- [x] **[P1][TEST-08] Expand timezone and locale scenarios.**
+  - Configured-zone and host-timezone matrices cover multiple positive,
+    negative, and fractional UTC offsets plus Lisbon and New York DST changes.
+  - Locale tests cover Sunday, Monday, and Saturday week starts, 12/24-hour
+    clocks, and rejected or malformed lazy-loaded locale modules.
 - [ ] **[P2][TEST-09] Add visual regression coverage.**
   - Use deterministic Storybook screenshots for overlap, clipping, responsive
     widths, custom themes, and RTL.
