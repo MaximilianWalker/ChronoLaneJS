@@ -32,8 +32,6 @@
   <a href="#core-concepts">Core concepts</a>
   &middot;
   <a href="./ROADMAP.md">Roadmap</a>
-  &middot;
-  <a href="./DEVELOPMENT.md">Development</a>
 </p>
 
 ---
@@ -552,35 +550,6 @@ build target. Supported browsers require native ES modules, `Intl.Locale`, and
 ChronoLaneJS does not ship polyfills; older browsers and runtimes with
 incomplete internationalization data are unsupported.
 
-## Development
-
-Requires a supported Node.js version from the matrix above.
-
-```bash
-npm ci
-npm run check
-npm run examples:check
-npm run check:storybook
-npm pack --dry-run
-```
-
-Useful focused commands:
-
-| Command | Purpose |
-| --- | --- |
-| `npm run site` | Run the project website and compact playground |
-| `npm run site:build` | Build the GitHub Pages website |
-| `npm run storybook` | Run the exhaustive component catalog |
-| `npm run storybook:test` | Execute every story in Chromium and Firefox |
-| `npm run storybook:build` | Build the deployable static catalog |
-| `npm run examples:check` | Pack one artifact, install it into clean Vite and Next.js consumers, and verify both production builds |
-| `npm run locales:generate` | Regenerate date-fns locale loaders |
-| `npm run locales:check` | Verify the generated locale registry |
-
-GitHub Actions validates the package, packed-artifact consumers, and Storybook
-as independent boundaries. Releases use npm trusted publishing with
-provenance.
-
 ## Author
 
 **[Diogo Marques Crava](https://diogocrava.dev)**
@@ -588,6 +557,10 @@ provenance.
 - Website: [diogocrava.dev](https://diogocrava.dev)
 - GitHub: [@MaximilianWalker](https://github.com/MaximilianWalker)
 - LinkedIn: [Diogo Crava](https://www.linkedin.com/in/diogo-crava/)
+
+ChronoLaneJS is designed, developed, and maintained by its author as a solo
+project. Bug reports and feature requests are welcome through GitHub Issues;
+external pull requests are not part of the project workflow.
 
 Feel free to contact me through any of the platforms above.
 

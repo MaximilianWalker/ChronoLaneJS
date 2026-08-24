@@ -321,6 +321,13 @@ Last reviewed: 2026-08-24
 - [ ] **[P2][DOC-06] Document deliberate non-goals.**
   - Decide and document ownership of recurrence expansion, persistence,
     fetching, application state, and design-system styling.
+- [x] **[P1][DOC-07] Organize the documentation site around reader tasks.**
+  - Replace the promotional documentation masthead with direct access to each
+    document, grouped navigation, a mobile disclosure, breadcrumbs, and a
+    generated page outline.
+  - Move the documentation campaign to the homepage, use reader-oriented page
+    names, and keep maintainer-only repository rules out of the public
+    documentation navigation.
 
 ## Website discovery and search
 
@@ -386,13 +393,11 @@ Last reviewed: 2026-08-24
 
 ## Repository and maintenance
 
-- [x] **[P1][REPO-01] Add issue and pull-request templates.**
+- [x] **[P1][REPO-01] Add structured issue templates.**
   - Structured bug and feature forms capture reproduction or use-case details,
     browser/time-zone/locale considerations, accessibility impact, verification
     expectations, and the relevant roadmap identifier.
-  - The pull-request template records issue and roadmap tracking, compatibility
-    impact, tests, Storybook coverage, and validation results. Security reports
-    are directed to the private vulnerability-reporting form.
+  - Security reports are directed to the private vulnerability-reporting form.
 - [x] **[P1][REPO-02] Automate dependency maintenance.**
   - Weekly Dependabot updates cover the root package, locked Vite and Next.js
     consumers, and pinned GitHub Actions; routine minor/patch updates are

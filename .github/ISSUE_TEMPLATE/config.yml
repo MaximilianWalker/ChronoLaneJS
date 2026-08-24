@@ -2,4 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: Report a security vulnerability
     url: https://github.com/MaximilianWalker/ChronoLaneJS/security/advisories/new
-    about: Privately report suspected vulnerabilities to the maintainers.
+    about: Privately report suspected vulnerabilities to the maintainer.

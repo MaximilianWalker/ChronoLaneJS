@@ -1,5 +1,4 @@
 import changelog from "../../CHANGELOG.md?raw";
-import development from "../../DEVELOPMENT.md?raw";
 import accessibility from "../../docs/accessibility.md?raw";
 import api from "../../docs/api.md?raw";
 import examples from "../../docs/examples.md?raw";
@@ -32,7 +31,6 @@ const sources: Record<DocumentId, string> = {
     "migration-v2": migrationV2,
     changelog,
     overview: readme,
-    development,
     roadmap,
     security
 };

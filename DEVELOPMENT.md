@@ -1,7 +1,8 @@
 # ChronoLaneJS development guide
 
-This guide defines the coding, documentation, validation, and release standards
-for repository development.
+This maintainer-only guide defines the coding, documentation, validation, and
+release standards for repository development. It is intentionally excluded
+from the public documentation navigation.
 
 ## Development
 
@@ -43,16 +44,29 @@ rather than disabling the global checks. Run `npm run storybook` for interactive
 development, `npm run storybook:test` for the Chromium and Firefox suites, and
 `npm run storybook:build` to verify the deployable catalog.
 
-The GitHub Pages website renders `README.md`, `DEVELOPMENT.md`, `ROADMAP.md`,
-`SECURITY.md`, and every file under `docs/` directly, so update the canonical
-Markdown instead of adding site-only documentation. Public exports and props
-must be present in `docs/api.md`; `npm run docs:check` rejects both missing and
-stale export or prop entries. `npm run site:build` prerenders the homepage and
-each document at the stable route declared in `site/src/documentManifest.ts`,
-adds route-specific search metadata, and generates `sitemap.xml`; do not add
-fragment-routed documents or hand-maintained HTML copies. The built package
-runtime is also checked against an exact export allowlist so implementation
-helpers cannot appear silently.
+## Documentation
+
+The GitHub Pages website renders `README.md`, `ROADMAP.md`, `SECURITY.md`, and
+every file under `docs/` directly, so update the canonical Markdown instead of
+adding site-only documentation. `DEVELOPMENT.md` remains the internal
+maintainer runbook and must not be added to the public document manifest.
+Public exports and props must be present in `docs/api.md`; `npm run docs:check`
+rejects both missing and stale export or prop entries. `npm run site:build`
+prerenders the homepage and each document at the stable route declared in
+`site/src/documentManifest.ts`, adds route-specific search metadata, and
+generates `sitemap.xml`; do not add fragment-routed documents or hand-maintained
+HTML copies. The built package runtime is also checked against an exact export
+allowlist so implementation helpers cannot appear silently.
+
+Consumer documentation must describe current behavior rather than intended
+future behavior. Keep the API reference exhaustive, examples on the public API,
+styling guidance limited to stable hooks, and accessibility guidance explicit
+about both supported behavior and known gaps. Every major release must include
+a complete versioned migration guide, and the changelog must record curated
+consumer-visible changes.
+
+## Verification
+
 Runnable Vite and Next.js integrations live under `examples/` as independent
 consumer packages. `npm run check` validates the publishable root package;
 `npm run examples:check` packs one artifact, installs that exact tarball into

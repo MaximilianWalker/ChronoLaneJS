@@ -28,7 +28,7 @@ const staticDocsBuild = (enabled: boolean) => ({
         order: "pre" as const,
         handler: (html: string, context: { path: string }) => (
             enabled && context.path.endsWith("/docs/index.html")
-                ? html.replace(/\s*<script type="module" src="\.\.\/src\/docs-main\.tsx"><\/script>/, "")
+                ? html.replace(/\s*<script type="module" src="\/src\/docs-main\.tsx"><\/script>/, "")
                 : html
         )
     }

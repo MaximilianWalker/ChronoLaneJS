@@ -2,7 +2,6 @@ import {
     CoffeeIcon,
     Footer,
     Header,
-    REPOSITORY_URL,
     SUPPORT_URL
 } from "./Chrome.js";
 import Playground from "./Playground.js";
@@ -146,26 +145,41 @@ export default function App({ baseUrl }: AppProps) {
                     </div>
                 </section>
 
-                <section className="brand-showcase section" aria-labelledby="brand-showcase-title">
-                    <img
-                        src={`${baseUrl}og.png`}
-                        alt="ChronoLaneJS — An open-source React and TypeScript calendar and scheduler."
-                        loading="lazy"
-                    />
-                    <div className="brand-showcase-copy">
-                        <p className="eyebrow">Open source by design</p>
-                        <h2 id="brand-showcase-title">Ready for real schedules.</h2>
+                <section className="docs-cta section" aria-labelledby="docs-cta-title">
+                    <div className="docs-cta-copy">
+                        <p className="eyebrow">Documentation</p>
+                        <h2 id="docs-cta-title">Build on a clear calendar model.</h2>
                         <p>
-                            Start with the built-in views, then customize
-                            interactions and rendering for your product.
+                            Start with a guided integration, then use the complete
+                            API and customization references as the implementation grows.
                         </p>
-                        <div className="hero-actions">
-                            <a className="button button--primary" href={REPOSITORY_URL} target="_blank" rel="noreferrer">
-                                View on GitHub <span aria-hidden="true">↗</span>
-                            </a>
-                            <a className="button button--secondary" href={`${baseUrl}docs/`}>Read the docs</a>
-                        </div>
                     </div>
+                    <nav className="docs-cta-links" aria-label="Documentation starting points">
+                        <a href={`${baseUrl}docs/getting-started/`}>
+                            <span>01</span>
+                            <span>
+                                <strong>Getting started</strong>
+                                <small>Install, model events, and connect application state.</small>
+                            </span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                        <a href={`${baseUrl}docs/api/`}>
+                            <span>02</span>
+                            <span>
+                                <strong>API reference</strong>
+                                <small>Components, props, callbacks, renderers, and types.</small>
+                            </span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                        <a href={`${baseUrl}docs/`}>
+                            <span>03</span>
+                            <span>
+                                <strong>Browse all guides</strong>
+                                <small>Examples, styling, accessibility, and release guidance.</small>
+                            </span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                    </nav>
                 </section>
 
                 <section className="author-section section" id="author" aria-labelledby="author-title">

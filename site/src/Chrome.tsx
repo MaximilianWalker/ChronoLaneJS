@@ -23,7 +23,7 @@ export function Header({ activePage, baseUrl }: HeaderProps) {
                 <img src={`${baseUrl}chronolane-logo.svg`} alt="" />
                 <span>ChronoLane<span className="brand-js">JS</span></span>
             </a>
-            <nav aria-label="Primary navigation">
+            <nav className="desktop-site-nav" aria-label="Primary navigation">
                 <a href={`${baseUrl}#playground`}>Playground</a>
                 <a
                     href={`${baseUrl}docs/`}
@@ -35,6 +35,22 @@ export function Header({ activePage, baseUrl }: HeaderProps) {
                 <a href={`${baseUrl}#author`}>Author</a>
             </nav>
             <div className="header-actions">
+                <details className="mobile-site-nav">
+                    <summary aria-label="Primary navigation">
+                        <span aria-hidden="true">☰</span>
+                    </summary>
+                    <nav aria-label="Mobile primary navigation">
+                        <a href={`${baseUrl}#playground`}>Playground</a>
+                        <a
+                            href={`${baseUrl}docs/`}
+                            aria-current={activePage === "docs" ? "page" : undefined}
+                        >
+                            Docs
+                        </a>
+                        <a href={`${baseUrl}storybook/`}>Storybook</a>
+                        <a href={`${baseUrl}#author`}>Author</a>
+                    </nav>
+                </details>
                 <a
                     className="support-link"
                     href={SUPPORT_URL}
