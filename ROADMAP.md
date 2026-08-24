@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-18
+Last reviewed: 2026-08-24
 
 ## Tracking rules
 
@@ -57,6 +57,10 @@ Last reviewed: 2026-08-18
     and breaking changes publish majors.
   - The bootstrap release candidate uses npm's `next` tag; automatic stable
     releases from `main` use npm's `latest` tag.
+  - `CHANGELOG.md` provides curated consumer-visible history alongside the
+    generated release notes and is rendered on GitHub Pages.
+  - Every new major version includes a versioned `docs/migrations/v<major>.md`
+    guide covering all public contract breaks before promotion.
 
 ## Correctness
 

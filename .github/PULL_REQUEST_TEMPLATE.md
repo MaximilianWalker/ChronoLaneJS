@@ -23,6 +23,9 @@
 - [ ] `npm run check` passes.
 - [ ] `npm run check:storybook` passes for UI or interaction changes.
 - [ ] `npm run examples:check` passes for public API or integration changes.
+- [ ] `CHANGELOG.md` is updated for release-bearing consumer changes.
+- [ ] A new major version includes `docs/migrations/v<major>.md`, linked from
+      the changelog and documentation home.
 
 ### Results
 

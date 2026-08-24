@@ -9,7 +9,12 @@ import type { DocumentId } from "../../site/src/content.js";
 import { parseDocumentLocation } from "../../site/src/documentRouting.js";
 import { markdownRehypePlugins } from "../../site/src/markdown.js";
 
-const documentIds = new Set<DocumentId>(["documentation", "api"]);
+const documentIds = new Set<DocumentId>([
+    "documentation",
+    "api",
+    "migration-v2",
+    "changelog"
+]);
 const isDocumentId = (value: string): value is DocumentId => (
     documentIds.has(value as DocumentId)
 );
@@ -27,6 +32,10 @@ test("parses document routes without treating heading anchors as document change
         id: "api",
         anchor: undefined
     });
+    assert.deepEqual(
+        parseDocumentLocation("#doc-migration-v2/event-editing", isDocumentId),
+        { id: "migration-v2", anchor: "event-editing" }
+    );
     assert.equal(parseDocumentLocation("#quick-start", isDocumentId), undefined);
 });
 

@@ -34,7 +34,7 @@ body:
     id: version
     attributes:
       label: ChronoLaneJS version
-      placeholder: 1.0.0
+      placeholder: 2.0.0
     validations:
       required: true
 

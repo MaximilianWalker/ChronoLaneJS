@@ -27,6 +27,8 @@
   &middot;
   <a href="./docs/README.md">Documentation</a>
   &middot;
+  <a href="./CHANGELOG.md">Changelog</a>
+  &middot;
   <a href="#core-concepts">Core concepts</a>
   &middot;
   <a href="./ROADMAP.md">Roadmap</a>
@@ -510,6 +512,8 @@ rendered from the same files on the project site:
 - [Styling and theming](./docs/styling.md)
 - [Runnable examples](./docs/examples.md)
 - [Accessibility](./docs/accessibility.md)
+- [Migrating from v1 to v2](./docs/migrations/v2.md)
+- [Changelog](./CHANGELOG.md)
 
 ChronoLaneJS exports `Calendar` as the default, together with:
 

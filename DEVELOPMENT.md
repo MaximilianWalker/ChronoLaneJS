@@ -202,6 +202,16 @@ Documentation, test, build, refactor, style, and chore commits do not publish a
 version by themselves. Keep those changes on `dev` until a release-bearing
 promotion rather than opening a documentation-only pull request to `main`.
 
+Every release-bearing promotion must update the root `CHANGELOG.md` with the
+expected semantic-release version, date, and curated consumer-visible changes.
+Git tags and npm remain canonical if a historical source entry is ever wrong.
+Every promotion that selects a new major version must also add
+`docs/migrations/v<major>.md`. The guide must enumerate every removed, renamed,
+or newly required public contract; show before-and-after code; cover changed
+defaults and interaction semantics; link from the changelog and documentation
+home; and be rendered by the GitHub Pages documentation site. Do not publish a
+major release with migration work deferred to a follow-up commit.
+
 After a promotion is merged, the Release workflow validates the exact `main`
 commit before semantic-release selects the version, temporarily updates the
 package metadata in the runner, publishes the package under npm's `latest`
