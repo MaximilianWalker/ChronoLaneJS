@@ -96,6 +96,8 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
     const minimumValue = Math.min(firstBoundary.date.getTime(), currentValue);
     const maximumValue = Math.max(lastBoundary.date.getTime(), currentValue);
     const { formatters, messages, context } = rendering.text;
+    const boundaryDate = formatters.date(currentBoundary, context);
+    const boundaryTime = formatters.time(currentBoundary, context);
     const resizeOptions = {
         event,
         segment,
@@ -109,15 +111,17 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
         <div
             role="slider"
             tabIndex={0}
-            className={`time-grid-view_event-resize-handle is-${edge}`}
+            className={`time-grid-view_event-resize-handle is-${edge}${active
+                ? " is-active"
+                : ""}`}
             data-event-id={event.id}
             data-resize-edge={edge}
             aria-label={messages.eventResizeHandle({
                 view: context.view,
                 edge,
                 title: event.title,
-                date: formatters.date(currentBoundary, context),
-                time: formatters.time(currentBoundary, context)
+                date: boundaryDate,
+                time: boundaryTime
             })}
             aria-orientation="vertical"
             aria-valuemin={minimumValue}
@@ -125,8 +129,8 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
             aria-valuenow={currentValue}
             aria-valuetext={messages.slotLabel({
                 view: context.view,
-                date: formatters.date(currentBoundary, context),
-                time: formatters.time(currentBoundary, context)
+                date: boundaryDate,
+                time: boundaryTime
             })}
             onBlur={() => handleTimedResizeBlur(handleKey, interactions)}
             onKeyDown={(interaction) => (
@@ -145,7 +149,14 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
                 alignSelf: edge === "start" ? "start" : "end",
                 ...getLaneStyle(segment)
             }}
-        />
+        >
+            <span
+                aria-hidden="true"
+                className="time-grid-view_resize-value"
+            >
+                {boundaryTime}
+            </span>
+        </div>
     );
 }
 
@@ -192,7 +203,7 @@ export default function TimedEvent<
     };
 
     return (
-        <>
+        <div className="time-grid-view_event-region">
             <EventRenderer
                 event={event}
                 segment={model.segment}
@@ -294,6 +305,6 @@ export default function TimedEvent<
                     />
                 </>
             )}
-        </>
+        </div>
     );
 }

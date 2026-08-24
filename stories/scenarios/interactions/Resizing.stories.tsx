@@ -37,14 +37,25 @@ export const Keyboard: Story = {
         const handle = canvas.getByRole("slider", {
             name: /Resize end of Planning/i
         });
+        const event = getEventElement(canvasElement, "Planning");
+        const resizeValue = handle.querySelector<HTMLElement>(
+            ".time-grid-view_resize-value"
+        );
+        if (!resizeValue) throw new Error("Could not find the resize value.");
 
         handle.focus();
+        await expect(window.getComputedStyle(handle).outlineStyle).toBe("none");
+        await expect(window.getComputedStyle(handle, "::before").height)
+            .toBe("4px");
+        await expect(window.getComputedStyle(event).boxShadow).not.toBe("none");
+        await expect(window.getComputedStyle(resizeValue).visibility)
+            .toBe("visible");
+        await expect(resizeValue).toHaveTextContent("10:15 AM");
         await userEvent.keyboard("{ArrowDown}");
-        await expect(
-            getEventElement(canvasElement, "Planning").style.gridRow
-        ).toBe("61 / 151");
-        await expect(getEventElement(canvasElement, "Planning"))
-            .toHaveClass("is-resizing");
+        await expect(event.style.gridRow).toBe("61 / 151");
+        await expect(event).toHaveClass("is-resizing");
+        await expect(handle).toHaveClass("is-active");
+        await expect(resizeValue).toHaveTextContent("10:30 AM");
         await userEvent.keyboard("{Enter}");
 
         await expect(canvas.getByTestId("interaction-log")).toHaveTextContent(
@@ -143,6 +154,10 @@ export const Touch: Story = {
         });
         const handleBounds = handle.getBoundingClientRect();
         const destinationBounds = destinationSlot.getBoundingClientRect();
+        const resizeValue = handle.querySelector<HTMLElement>(
+            ".time-grid-view_resize-value"
+        );
+        if (!resizeValue) throw new Error("Could not find the resize value.");
         const pointer = {
             pointerId: 7,
             pointerType: "touch",
@@ -161,6 +176,10 @@ export const Touch: Story = {
         await expect(
             getEventElement(canvasElement, "Planning").style.gridRow
         ).toBe("61 / 181");
+        await expect(handle).toHaveClass("is-active");
+        await expect(window.getComputedStyle(resizeValue).visibility)
+            .toBe("visible");
+        await expect(resizeValue).toHaveTextContent("11:00 AM");
         await fireEvent.pointerUp(handle, {
             ...pointer,
             clientY: destinationBounds.bottom
@@ -171,6 +190,7 @@ export const Touch: Story = {
         ).toHaveBeenCalledOnce();
         await expect(getEventElement(canvasElement, "Planning"))
             .not.toHaveClass("is-resizing");
+        await expect(handle).not.toHaveClass("is-active");
     }
 };
 
@@ -189,12 +209,27 @@ export const DedicatedMultiDayKeyboard: Story = {
         const resizeHandle = canvas.getByRole("slider", {
             name: /Resize end of Design systems conference/i
         });
+        const resizeValue = resizeHandle.querySelector<HTMLElement>(
+            ".time-grid-view_resize-value"
+        );
+        if (!resizeValue) throw new Error("Could not find the resize value.");
 
         await expect(resizeHandle).toHaveAttribute("aria-orientation", "horizontal");
         resizeHandle.focus();
+        await expect(window.getComputedStyle(resizeHandle).outlineStyle)
+            .toBe("none");
+        await expect(window.getComputedStyle(resizeHandle, "::before").width)
+            .toBe("4px");
+        await expect(window.getComputedStyle(event).boxShadow).not.toBe("none");
+        await expect(resizeValue).toHaveTextContent(
+            "Wednesday 16th, 11:00 AM"
+        );
         await userEvent.keyboard("{ArrowRight}");
         await expect(event.style.gridColumn).toBe("2 / span 4");
         await expect(event).toHaveClass("is-resizing");
+        await expect(resizeValue).toHaveTextContent(
+            "Thursday 17th, 11:00 AM"
+        );
         await userEvent.keyboard("{Enter}");
         await expect(
             getTimeGridViewProps(args)?.onEventResize

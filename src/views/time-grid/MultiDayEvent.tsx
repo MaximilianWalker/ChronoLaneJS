@@ -136,6 +136,9 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
     if (!firstBoundary || !lastBoundary) return null;
 
     const { formatters, messages, context } = rendering.text;
+    const boundaryDate = formatters.date(currentBoundary, context);
+    const boundaryTime = formatters.time(currentBoundary, context);
+    const boundaryHeading = formatters.dayHeader(currentBoundary, context);
     const options = {
         segment,
         edge,
@@ -148,15 +151,17 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
         <div
             role="slider"
             tabIndex={0}
-            className={`time-grid-view_multi-day-resize-handle is-${edge}`}
+            className={`time-grid-view_multi-day-resize-handle is-${edge}${active
+                ? " is-active"
+                : ""}`}
             data-event-id={event.id}
             data-resize-edge={edge}
             aria-label={messages.eventResizeHandle({
                 view: context.view,
                 edge,
                 title: event.title,
-                date: formatters.date(currentBoundary, context),
-                time: formatters.time(currentBoundary, context)
+                date: boundaryDate,
+                time: boundaryTime
             })}
             aria-orientation="horizontal"
             aria-valuemin={firstBoundary.getTime()}
@@ -164,8 +169,8 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
             aria-valuenow={currentBoundary.getTime()}
             aria-valuetext={messages.slotLabel({
                 view: context.view,
-                date: formatters.date(currentBoundary, context),
-                time: formatters.time(currentBoundary, context)
+                date: boundaryDate,
+                time: boundaryTime
             })}
             onBlur={() => handleMultiDayResizeBlur(handleKey, interactions)}
             onKeyDown={(interaction) => (
@@ -183,7 +188,14 @@ function ResizeControl<Event extends CalendarEvent, Resource>({
                 gridRow: segment.laneIndex + 1,
                 justifySelf: edge === "start" ? "start" : "end"
             }}
-        />
+        >
+            <span
+                aria-hidden="true"
+                className="time-grid-view_resize-value"
+            >
+                {boundaryHeading}, {boundaryTime}
+            </span>
+        </div>
     );
 }
 
@@ -240,7 +252,7 @@ export default function MultiDayEvent<
     };
 
     return (
-        <>
+        <div className="time-grid-view_event-region">
             <EventRenderer
                 event={event}
                 segment={model.segment}
@@ -325,6 +337,6 @@ export default function MultiDayEvent<
                     <ResizeControl {...controls} edge="end" />
                 </>
             )}
-        </>
+        </div>
     );
 }

@@ -156,7 +156,13 @@
     white-space: nowrap;
 }
 
+.time-grid-view_event-region {
+    display: contents;
+}
+
 .time-grid-view_multi-day-resize-handle {
+    --resize-accent: #2563eb;
+
     position: relative;
     box-sizing: border-box;
     width: 12px;
@@ -166,6 +172,35 @@
     pointer-events: auto;
     touch-action: none;
     z-index: 14;
+}
+
+.time-grid-view_multi-day-resize-handle::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 3px;
+    height: 18px;
+    max-height: 70%;
+    border-radius: 999px;
+    background: var(--resize-accent);
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.28);
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleY(0.72);
+    transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.time-grid-view_multi-day-resize-handle:hover::before {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) scaleY(1);
+}
+
+.time-grid-view_multi-day-resize-handle:focus::before,
+.time-grid-view_multi-day-resize-handle.is-active::before {
+    width: 4px;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleY(1);
 }
 
 .time-grid-view_multi-day-resize-handle.is-start {
@@ -383,6 +418,8 @@ button.time-grid-view_slot {
 }
 
 .time-grid-view_event-resize-handle {
+    --resize-accent: #2563eb;
+
     position: relative;
     box-sizing: border-box;
     height: 12px;
@@ -394,12 +431,104 @@ button.time-grid-view_slot {
     z-index: 14;
 }
 
+.time-grid-view_event-resize-handle::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    max-width: 70%;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--resize-accent);
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.28);
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(0.72);
+    transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.time-grid-view_event-resize-handle:hover::before {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) scaleX(1);
+}
+
+.time-grid-view_event-resize-handle:focus::before,
+.time-grid-view_event-resize-handle.is-active::before {
+    height: 4px;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(1);
+}
+
 .time-grid-view_event-resize-handle.is-start {
     transform: translateY(-4px);
 }
 
 .time-grid-view_event-resize-handle.is-end {
     transform: translateY(4px);
+}
+
+.time-grid-view_resize-value {
+    position: absolute;
+    box-sizing: border-box;
+    max-width: 180px;
+    padding: 3px 6px;
+    border-radius: 5px;
+    background: #172033;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.2);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 600;
+    line-height: 1.2;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    text-overflow: ellipsis;
+    transition: opacity 120ms ease, transform 120ms ease;
+    visibility: hidden;
+    white-space: nowrap;
+    z-index: 16;
+}
+
+.time-grid-view_event-resize-handle .time-grid-view_resize-value {
+    left: 50%;
+    transform: translate(-50%, 2px);
+}
+
+.time-grid-view_event-resize-handle.is-start .time-grid-view_resize-value {
+    top: calc(50% + 6px);
+}
+
+.time-grid-view_event-resize-handle.is-end .time-grid-view_resize-value {
+    bottom: calc(50% + 6px);
+}
+
+.time-grid-view_multi-day-resize-handle .time-grid-view_resize-value {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.time-grid-view_multi-day-resize-handle.is-start .time-grid-view_resize-value {
+    left: calc(50% + 7px);
+}
+
+.time-grid-view_multi-day-resize-handle.is-end .time-grid-view_resize-value {
+    right: calc(50% + 7px);
+}
+
+:is(
+    .time-grid-view_event-resize-handle,
+    .time-grid-view_multi-day-resize-handle
+):is(:focus, .is-active) .time-grid-view_resize-value {
+    opacity: 1;
+    visibility: visible;
+}
+
+.time-grid-view_event-resize-handle:is(
+    :focus,
+    .is-active
+) .time-grid-view_resize-value {
+    transform: translate(-50%, 0);
 }
 
 .time-grid-view_move-preview {
@@ -435,7 +564,14 @@ button.time-grid-view_slot {
 
 .time-grid-view_event:hover::after,
 .time-grid-view_event.is-selected::after,
-.time-grid-view_event:focus-visible::after {
+.time-grid-view_event:focus-visible::after,
+.time-grid-view_event.is-resizing::after,
+.time-grid-view_event-region:has(
+    > .time-grid-view_event-resize-handle:focus
+) > .time-grid-view_event::after,
+.time-grid-view_event-region:has(
+    > .time-grid-view_multi-day-resize-handle:focus
+) > .time-grid-view_event::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -452,13 +588,27 @@ button.time-grid-view_slot {
     background: rgba(15, 23, 42, 0.1);
 }
 
-.time-grid-view_event:focus-visible {
+.time-grid-view_event:focus-visible,
+.time-grid-view_event.is-resizing,
+.time-grid-view_event-region:has(
+    > .time-grid-view_event-resize-handle:focus
+) > .time-grid-view_event,
+.time-grid-view_event-region:has(
+    > .time-grid-view_multi-day-resize-handle:focus
+) > .time-grid-view_event {
     outline: 0;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
     z-index: 12;
 }
 
-.time-grid-view_event:focus-visible::after {
+.time-grid-view_event:focus-visible::after,
+.time-grid-view_event.is-resizing::after,
+.time-grid-view_event-region:has(
+    > .time-grid-view_event-resize-handle:focus
+) > .time-grid-view_event::after,
+.time-grid-view_event-region:has(
+    > .time-grid-view_multi-day-resize-handle:focus
+) > .time-grid-view_event::after {
     background: rgba(37, 99, 235, 0.08);
     box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.58);
 }
@@ -550,15 +700,13 @@ button.time-grid-view_slot {
     );
 }
 
-.time-grid-view_navigation-button:focus-visible,
-.time-grid-view_event-resize-handle:focus-visible {
+.time-grid-view_navigation-button:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: -2px;
     z-index: 12;
 }
 
-.time-grid-view_multi-day-resize-handle:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: -2px;
-    z-index: 15;
+.time-grid-view_event-resize-handle:focus,
+.time-grid-view_multi-day-resize-handle:focus {
+    outline: 0;
 }
