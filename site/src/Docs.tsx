@@ -121,6 +121,24 @@ export default function Docs({ activeId, baseUrl, documents }: DocsProps) {
                     {children}
                 </a>
             );
+        },
+        img: ({ src, alt, node: _node, ...props }) => {
+            if (!src || /^[a-z][a-z\d+.-]*:/i.test(src)) {
+                return <img {...props} src={src} alt={alt ?? ""} />;
+            }
+
+            const repositoryPath = resolveRepositoryPath(activeDocument.githubPath, src);
+            const publicPath = repositoryPath.startsWith("assets/")
+                ? repositoryPath.slice("assets/".length)
+                : repositoryPath;
+            return (
+                <img
+                    {...props}
+                    src={`${baseUrl}${publicPath}`}
+                    alt={alt ?? ""}
+                    loading="lazy"
+                />
+            );
         }
     }), [activeDocument.githubPath, baseUrl, documents]);
 

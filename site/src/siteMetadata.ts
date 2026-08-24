@@ -1,5 +1,6 @@
 export const siteMetadata = {
     basePath: "/ChronoLaneJS/",
+    currentRelease: "2.0.0",
     description: "ChronoLaneJS is an open-source React and TypeScript calendar and scheduler with accessible views, resources, event interactions, and timezone support.",
     socialDescription: "An open-source React and TypeScript calendar and scheduler with accessible views, resources, event interactions, and timezone support.",
     title: "ChronoLaneJS — React Calendar and Scheduler for TypeScript",

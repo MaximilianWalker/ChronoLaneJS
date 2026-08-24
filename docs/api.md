@@ -1,4 +1,4 @@
-# API reference
+# TypeScript API reference
 
 This is the exhaustive reference for the `@chronolanejs/react` package root.
 All examples import from `@chronolanejs/react`; import the bundled CSS separately

@@ -419,7 +419,11 @@ is controlled separately by the complete `messages` registry.
 
 ## Next references
 
-- [Complete API reference](./api.md)
+- [Complete TypeScript API](./api.md)
 - [Styling and theming](./styling.md)
-- [Runnable integration patterns](./examples.md)
+- [Vite and Next.js integration](./framework-integration.md)
+- [Drag and resize events](./interactions.md)
+- [Resource scheduling](./resources.md)
+- [Time zones and locales](./time-zones.md)
+- [Custom renderers](./renderers.md)
 - [Accessibility contract](./accessibility.md)

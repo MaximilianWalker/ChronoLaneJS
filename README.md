@@ -36,7 +36,7 @@
 
 ---
 
-ChronoLaneJS is a customizable React and TypeScript calendar and scheduler with
+ChronoLaneJS is an open-source React and TypeScript calendar and scheduler with
 day, week, month, agenda, and custom time-grid views. It provides resource
 scheduling, timezone-aware date handling, range navigation, event layout,
 selection, movement, resizing, and accessible defaults while keeping state
@@ -77,6 +77,14 @@ every public customization point, including:
 
 Use Storybook's toolbar to change the locale, IANA timezone, and viewport. The
 website and full catalog are rebuilt and deployed together from `main`.
+
+Focused guides cover [event drag and resize](./docs/interactions.md),
+[resource scheduling](./docs/resources.md),
+[time zones and localization](./docs/time-zones.md),
+[custom renderers](./docs/renderers.md),
+[Vite and Next.js](./docs/framework-integration.md),
+[accessibility](./docs/accessibility.md), and the complete
+[TypeScript API](./docs/api.md).
 
 ## Installation
 
@@ -507,10 +515,14 @@ The complete consumer documentation is organized as GitHub-native Markdown and
 rendered from the same files on the project site:
 
 - [Getting started](./docs/getting-started.md)
-- [Complete API reference](./docs/api.md)
+- [Drag and resize events](./docs/interactions.md)
+- [Resource scheduling](./docs/resources.md)
+- [Time zones and locales](./docs/time-zones.md)
+- [Vite and Next.js integration](./docs/framework-integration.md)
 - [Styling and theming](./docs/styling.md)
-- [Runnable examples](./docs/examples.md)
+- [Custom renderers](./docs/renderers.md)
 - [Accessibility](./docs/accessibility.md)
+- [Complete TypeScript API](./docs/api.md)
 - [Migrating from v1 to v2](./docs/migrations/v2.md)
 - [Changelog](./CHANGELOG.md)
 

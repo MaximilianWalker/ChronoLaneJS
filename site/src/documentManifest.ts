@@ -1,9 +1,13 @@
 export type DocumentId =
     | "documentation"
     | "getting-started"
+    | "interactions"
+    | "resources"
+    | "time-zones"
     | "api"
     | "styling"
-    | "examples"
+    | "renderers"
+    | "framework-integration"
     | "accessibility"
     | "migration-v2"
     | "changelog"
@@ -43,13 +47,40 @@ export const documentDefinitions: readonly DocumentDefinition[] = [
         githubPath: "docs/getting-started.md"
     },
     {
-        id: "examples",
+        id: "interactions",
         category: "Guides",
-        label: "Examples",
-        metaDescription: "ChronoLaneJS React calendar examples for Vite and Next.js, including controlled state, resources, localization, interactions, and custom renderers.",
-        title: "React Calendar Examples for Vite and Next.js — ChronoLaneJS",
-        route: "docs/examples/",
-        githubPath: "docs/examples.md"
+        label: "Drag and resize events",
+        metaDescription: "Add pointer, touch, and keyboard event drag-and-drop and resizing to a controlled React calendar with ChronoLaneJS.",
+        title: "Drag and Resize Events in a React Calendar — ChronoLaneJS",
+        route: "docs/event-interactions/",
+        githubPath: "docs/interactions.md"
+    },
+    {
+        id: "resources",
+        category: "Guides",
+        label: "Resource scheduling",
+        metaDescription: "Build a typed React resource calendar for rooms, people, or equipment with grouped columns and multi-resource events.",
+        title: "React Resource Calendar and Scheduler — ChronoLaneJS",
+        route: "docs/resource-scheduling/",
+        githubPath: "docs/resources.md"
+    },
+    {
+        id: "time-zones",
+        category: "Guides",
+        label: "Time zones and locales",
+        metaDescription: "Handle IANA time zones, absolute timestamps, wall-clock events, daylight-saving transitions, locales, and messages in a React calendar.",
+        title: "Time Zone Aware React Calendar and Localization — ChronoLaneJS",
+        route: "docs/time-zones/",
+        githubPath: "docs/time-zones.md"
+    },
+    {
+        id: "framework-integration",
+        category: "Guides",
+        label: "Vite and Next.js",
+        metaDescription: "Integrate the ChronoLaneJS React calendar with Vite or the Next.js App Router using complete TypeScript consumer examples.",
+        title: "React Calendar Integration for Vite and Next.js — ChronoLaneJS",
+        route: "docs/framework-integration/",
+        githubPath: "docs/framework-integration.md"
     },
     {
         id: "styling",
@@ -59,6 +90,15 @@ export const documentDefinitions: readonly DocumentDefinition[] = [
         title: "React Calendar Styling and Theming — ChronoLaneJS",
         route: "docs/styling/",
         githubPath: "docs/styling.md"
+    },
+    {
+        id: "renderers",
+        category: "Guides",
+        label: "Custom renderers",
+        metaDescription: "Replace event, slot, header, navigation, month, and agenda renderers in a typed React calendar without losing layout or accessibility behavior.",
+        title: "Custom React Calendar Renderers — ChronoLaneJS",
+        route: "docs/custom-renderers/",
+        githubPath: "docs/renderers.md"
     },
     {
         id: "accessibility",
@@ -72,7 +112,7 @@ export const documentDefinitions: readonly DocumentDefinition[] = [
     {
         id: "api",
         category: "Reference",
-        label: "API reference",
+        label: "TypeScript API",
         metaDescription: "Complete ChronoLaneJS React calendar API reference covering components, props, callbacks, renderers, TypeScript types, defaults, payloads, and errors.",
         title: "React Calendar API Reference — ChronoLaneJS",
         route: "docs/api/",

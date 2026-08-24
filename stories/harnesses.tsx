@@ -54,6 +54,17 @@ export const StoryCalendar = Calendar<StoryEvent, StoryResource>;
 
 const COMPARISON_LOCALES = ["en-US", "en-GB", "pt-PT", "fr-FR", "ja-JP"];
 const COMPARISON_TIME_ZONES = ["UTC", "America/New_York", "Europe/Lisbon", "Asia/Tokyo"];
+const TIME_ZONE_COMPARISONS = COMPARISON_TIME_ZONES.map((timeZone) => ({
+    timeZone,
+    events: [{
+        id: "shared-instant",
+        title: "Global release",
+        description: "The same instant in every zone",
+        start: calendarDateFromTimestamp(Date.parse("2026-09-14T08:00:00Z"), timeZone),
+        end: calendarDateFromTimestamp(Date.parse("2026-09-14T08:45:00Z"), timeZone),
+        color: "#0f766e"
+    }] satisfies readonly StoryEvent[]
+}));
 
 /** Demonstrates controlled navigation while exposing the latest anchor date. */
 export function ControlledNavigation({
@@ -211,16 +222,16 @@ export function TimeZoneComparison({
 }) {
     return (
         <div className="story-grid">
-            {COMPARISON_TIME_ZONES.map((timeZone) => (
+            {TIME_ZONE_COMPARISONS.map(({ timeZone, events }) => (
                 <section key={timeZone} className="story-panel">
                     <h3>{timeZone}</h3>
                     <DayView
                         date={ANCHOR_DATE}
-                        events={basicEvents.slice(0, 2)}
+                        events={events}
                         locale={locale}
                         timeZone={timeZone}
-                        minTime={MIN_TIME}
-                        maxTime={MAX_TIME}
+                        minTime="03:00"
+                        maxTime="18:00"
                     />
                 </section>
             ))}

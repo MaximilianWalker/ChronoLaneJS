@@ -6,6 +6,8 @@ props. It does not make an application accessible automatically: data labels,
 custom renderers, surrounding layout, and action outcomes remain consumer
 responsibilities.
 
+![A week view with visible keyboard focus on the previous-period control](../assets/docs/accessible-week-view.png)
+
 This page documents current behavior, including known limitations tracked in
 the [roadmap](../ROADMAP.md#localization-and-accessibility).
 

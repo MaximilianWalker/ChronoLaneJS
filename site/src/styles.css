@@ -1253,7 +1253,13 @@ a {
 }
 
 .markdown-document img {
+    display: block;
     max-width: 100%;
+    height: auto;
+    margin: 24px 0 32px;
+    border: 1px solid #dce3ed;
+    border-radius: 6px;
+    background: #f4f7fb;
 }
 
 .markdown-document input[type="checkbox"] {

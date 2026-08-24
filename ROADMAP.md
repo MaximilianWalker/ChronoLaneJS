@@ -354,7 +354,7 @@ Last reviewed: 2026-08-24
     reported discovery, rendering, canonicalization, and indexing problems. The
     exact owner procedure and current pending state are recorded in
     `DEVELOPMENT.md`.
-- [ ] **[P1][WEB-03] Make the library's search intent explicit.**
+- [x] **[P1][WEB-03] Make the library's search intent explicit.**
   - Describe ChronoLaneJS consistently as an open-source React and TypeScript
     calendar and scheduler across the website, GitHub repository, npm package,
     release pages, and README files.

@@ -28,13 +28,13 @@ export default function App({ baseUrl }: AppProps) {
                             Open source · MIT licensed
                         </div>
                         <h1>
-                            A calendar and scheduler,
-                            <span> built for React.</span>
+                            ChronoLaneJS
+                            <span> React calendar and scheduler.</span>
                         </h1>
                         <p className="hero-summary">
-                            Build accessible day, week, month, agenda, and custom
-                            time-grid views with TypeScript, resource scheduling,
-                            event resizing, and timezone-aware behavior.
+                            An open-source React and TypeScript calendar and scheduler
+                            with accessible views, resource scheduling, event drag and
+                            resize interactions, and time-zone-aware behavior.
                         </p>
                         <div className="hero-actions">
                             <a className="button button--primary" href="#playground">
@@ -175,7 +175,7 @@ export default function App({ baseUrl }: AppProps) {
                             <span>03</span>
                             <span>
                                 <strong>Browse all guides</strong>
-                                <small>Examples, styling, accessibility, and release guidance.</small>
+                                <small>Interactions, resources, time zones, renderers, and accessibility.</small>
                             </span>
                             <span aria-hidden="true">→</span>
                         </a>

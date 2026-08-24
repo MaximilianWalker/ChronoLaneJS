@@ -1,6 +1,7 @@
 # Changelog
 
 All notable consumer-facing changes to ChronoLaneJS are documented here.
+ChronoLaneJS is an open-source React and TypeScript calendar and scheduler.
 
 The project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Git tags and npm are the canonical version record; this file provides the
@@ -9,7 +10,13 @@ release notes.
 
 ## [Unreleased]
 
-No unreleased changes.
+### Documentation
+
+- Added focused, illustrated guides for event movement and resizing, resource
+  scheduling, time zones and localization, custom renderers, accessibility,
+  and Vite and Next.js integration.
+- Aligned the website, repository, package manifest, and release description on
+  the open-source React and TypeScript calendar and scheduler category.
 
 ## [2.0.0] - 2026-08-24
 

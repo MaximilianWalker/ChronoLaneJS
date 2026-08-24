@@ -41,7 +41,7 @@ const replaceMetadata = (
     let page = html;
     for (const [token, value] of replacements) page = page.replaceAll(token, value);
 
-    if (/__(?:HOME|DOCUMENT)_(?:TITLE|SOCIAL_TITLE|DESCRIPTION|SOCIAL_DESCRIPTION|URL)__/.test(page)) {
+    if (/__(?:(?:HOME|DOCUMENT)_(?:TITLE|SOCIAL_TITLE|DESCRIPTION|SOCIAL_DESCRIPTION|URL)|CURRENT_RELEASE)__/.test(page)) {
         throw new Error(`Metadata replacement failed for ${pageName}.`);
     }
     return page;
@@ -66,6 +66,7 @@ const applyHomeMetadata = (html: string): string => replaceMetadata(
         ["__HOME_SOCIAL_TITLE__", siteMetadata.socialTitle],
         ["__HOME_DESCRIPTION__", siteMetadata.description],
         ["__HOME_SOCIAL_DESCRIPTION__", siteMetadata.socialDescription],
+        ["__CURRENT_RELEASE__", siteMetadata.currentRelease],
         ["__HOME_URL__", siteMetadata.url]
     ]),
     "homepage"

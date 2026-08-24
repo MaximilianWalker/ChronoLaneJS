@@ -19,7 +19,7 @@ interface PageMetadata {
 
 const readElements = (
     html: string,
-    tagName: "link" | "meta"
+    tagName: "img" | "link" | "meta"
 ): readonly Readonly<Record<string, string>>[] => Array.from(
     html.matchAll(new RegExp(`<${tagName}\\b[^>]*>`, "g")),
     ([tag]) => Object.fromEntries(Array.from(
@@ -59,9 +59,19 @@ const verifyPage = async (
     assertMetadata(meta, { property: "og:url" }, metadata.url, outputPath);
     assertMetadata(meta, { name: "twitter:title" }, metadata.socialTitle, outputPath);
     assertMetadata(meta, { name: "twitter:description" }, metadata.socialDescription, outputPath);
-    assert.doesNotMatch(html, /__(?:HOME|DOCUMENT)_[A-Z_]+__/);
+    assert.doesNotMatch(html, /__(?:(?:HOME|DOCUMENT)_[A-Z_]+|CURRENT_RELEASE)__/);
     assert.doesNotMatch(html, /<meta[^>]+(?:name|property)="robots"[^>]+noindex/i);
     assert.doesNotMatch(html, /<div id="root"><\/div>/);
+
+    for (const image of readElements(html, "img")) {
+        const source = image.src;
+        if (!source?.startsWith(siteMetadata.basePath)) continue;
+        const publicPath = source.slice(siteMetadata.basePath.length);
+        assert.ok(
+            existsSync(resolve(outputRoot, publicPath)),
+            `${outputPath} references missing public image ${source}.`
+        );
+    }
 };
 
 await verifyPage("index.html", {
@@ -71,6 +81,40 @@ await verifyPage("index.html", {
     socialDescription: siteMetadata.socialDescription,
     url: siteMetadata.url
 });
+
+const homepage = await readFile(resolve(outputRoot, "index.html"), "utf8");
+const structuredDataBlocks = Array.from(
+    homepage.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g),
+    ([, source]) => JSON.parse(source!) as { "@graph"?: readonly Record<string, unknown>[] }
+);
+assert.equal(structuredDataBlocks.length, 1, "The homepage must contain one JSON-LD block.");
+const sourceCode = structuredDataBlocks[0]!["@graph"]?.find(
+    (entry) => entry["@type"] === "SoftwareSourceCode"
+);
+assert.ok(sourceCode, "The homepage must describe ChronoLaneJS as SoftwareSourceCode.");
+assert.deepEqual(sourceCode, {
+    "@type": "SoftwareSourceCode",
+    name: "ChronoLaneJS",
+    description: siteMetadata.socialDescription,
+    url: siteMetadata.url,
+    codeRepository: "https://github.com/MaximilianWalker/ChronoLaneJS",
+    license: "https://github.com/MaximilianWalker/ChronoLaneJS/blob/main/LICENSE",
+    programmingLanguage: ["TypeScript", "JavaScript"],
+    runtimePlatform: ["React 18", "React 19", "Modern web browsers"],
+    version: siteMetadata.currentRelease,
+    sameAs: [
+        "https://github.com/MaximilianWalker/ChronoLaneJS",
+        "https://www.npmjs.com/package/@chronolanejs/react"
+    ]
+});
+
+const changelog = await readFile(resolve(repositoryRoot, "CHANGELOG.md"), "utf8");
+const latestRelease = /^## \[(\d+\.\d+\.\d+)]/m.exec(changelog)?.[1];
+assert.equal(
+    siteMetadata.currentRelease,
+    latestRelease,
+    "Structured data must identify the latest published changelog release."
+);
 
 for (const definition of documentDefinitions) {
     await verifyPage(`${definition.route}index.html`, {
