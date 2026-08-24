@@ -710,3 +710,19 @@ button.time-grid-view_slot {
 .time-grid-view_multi-day-resize-handle:focus {
     outline: 0;
 }
+
+@media (forced-colors: active) {
+    .time-grid-view_slot:focus-visible,
+    .time-grid-view_event:focus-visible,
+    .time-grid-view_event-resize-handle:focus,
+    .time-grid-view_multi-day-resize-handle:focus {
+        outline: 2px solid Highlight;
+        outline-offset: -2px;
+    }
+
+    .time-grid-view_slot.is-selected,
+    .time-grid-view_event.is-selected {
+        outline: 1px solid Highlight;
+        outline-offset: -1px;
+    }
+}

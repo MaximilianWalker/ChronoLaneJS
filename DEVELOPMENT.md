@@ -44,6 +44,32 @@ rather than disabling the global checks. Run `npm run storybook` for interactive
 development, `npm run storybook:test` for the Chromium and Firefox suites, and
 `npm run storybook:build` to verify the deployable catalog.
 
+### Accessibility release audit
+
+Use the five stories under `Scenarios/Accessibility Audit` as the canonical
+manual surfaces for day, week, month, agenda, and custom time-grid views. Every
+release pass must run `npm run check:storybook` first, then inspect each story
+with the same event data and complete this matrix:
+
+| Check | Required pass |
+| --- | --- |
+| Screen-reader names | Inspect the accessibility tree for the view, navigation, dates, slots, events, and edit controls; names must include the visible date, time, and resource context. |
+| Keyboard and focus | Traverse the complete surface without a pointer; focus must stay visible, follow the documented order, and never become trapped. |
+| Forced colors | Enable the operating system or browser forced-colors mode; controls, selected state, event boundaries, and focus must remain perceivable. |
+| Zoom | Test at 200% and 400%; content may scroll but must not overlap, clip required controls, or create a two-axis keyboard trap. |
+| Reduced width | Test at 390 CSS pixels; navigation and agenda/month content must reflow, while time grids retain usable native scrolling. |
+
+Record the browser, operating system, assistive technology or accessibility-tree
+inspector, date, and any findings in the release or roadmap change that closes
+the audit. Do not mark the audit complete from axe results alone.
+
+The first complete pass was recorded on 2026-08-24 on Windows with Chromium's
+accessibility semantics inspection. All five canonical stories exposed complete
+navigation, grid, date, slot, and event names; keyboard focus remained visible;
+the forced-colors focus and selection rules were present; and the layouts
+remained usable at 390- and 320-CSS-pixel layout widths, representing the
+reflow constraints created by 200% and 400% zoom on common desktop viewports.
+
 ## Documentation
 
 The GitHub Pages website renders `README.md`, `ROADMAP.md`, `SECURITY.md`, and

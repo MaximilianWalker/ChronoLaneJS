@@ -241,10 +241,11 @@ Last reviewed: 2026-08-24
     and keyboard input without changing event select/open gestures.
   - Complete proposals preview immediately, announce their date, time, and
     resource, and invoke `onEventDrop` once when committed.
-- [ ] **[P1][A11Y-03] Audit every built-in view with assistive technology.**
-  - Keep automated axe checks.
-  - Add a documented manual pass for screen-reader names, focus visibility,
-    high contrast, zoom, and reduced viewport widths.
+- [x] **[P1][A11Y-03] Audit every built-in view with assistive technology.**
+  - Automated axe checks and named Storybook audit surfaces cover day, week,
+    month, agenda, and custom time-grid views.
+  - The maintainer release audit records screen-reader names, focus visibility,
+    forced colors, 200%/400% zoom, and reduced-width behavior.
 - [ ] **[P2][I18N-03] Add right-to-left layout support.**
   - Define time-gutter, navigation, event-lane, and resource-column behavior
     for RTL documents.

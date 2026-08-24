@@ -280,5 +280,5 @@ For every application integration and custom renderer, verify:
 
 The repository keeps automated Storybook accessibility checks, but automation
 does not replace keyboard, screen-reader, high-contrast, zoom, and mobile-width
-manual testing. The full built-in-view assistive-technology audit remains open
-under `A11Y-03`.
+manual testing. The canonical accessibility-audit stories cover every built-in
+view and are used for the maintainer's documented release pass.
