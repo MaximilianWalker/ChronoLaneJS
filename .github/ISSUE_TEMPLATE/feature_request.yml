@@ -1,0 +1,77 @@
+name: Feature request
+description: Propose a new capability or a change to existing behavior.
+title: "Feature: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the user problem before prescribing an implementation. The
+        canonical backlog remains ROADMAP.md; an accepted request may update
+        that document rather than establish a separate roadmap here.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: Explain who needs this capability and what they cannot do today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the observable behavior and public API you would expect.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe current workarounds or alternative designs, if any.
+    validations:
+      required: false
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Browser, time-zone, and locale considerations
+      description: Identify any relevant browser, time-zone, locale, or right-to-left behavior, or state "No known considerations."
+    validations:
+      required: true
+
+  - type: textarea
+    id: accessibility
+    attributes:
+      label: Accessibility impact
+      description: Explain the expected keyboard, screen-reader, focus, contrast, zoom, or touch behavior, or state "No known impact."
+    validations:
+      required: true
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Suggested tests and stories
+      description: Describe the unit, integration, browser, or Storybook coverage that would demonstrate the feature.
+    validations:
+      required: true
+
+  - type: input
+    id: roadmap
+    attributes:
+      label: Roadmap item
+      description: Enter the relevant ROADMAP.md identifier, such as DEC-02, or state "Unplanned."
+      placeholder: DEC-02
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched the existing issues and roadmap and did not find a duplicate.
+          required: true
+        - label: This request describes one cohesive capability.
+          required: true

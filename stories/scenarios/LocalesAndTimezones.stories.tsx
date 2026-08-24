@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, fn, within } from "storybook/test";
+import { expect, fn, waitFor, within } from "storybook/test";
 
 import {
     AgendaView,
@@ -55,7 +55,7 @@ const meta = {
     component: LocaleComparison,
     args: {
         locale: "en-US",
-        timeZone: "Europe/Lisbon"
+        timeZone: "UTC"
     },
     argTypes: {
         locale: { control: false },
@@ -113,9 +113,10 @@ export const PortugueseMessages: Story = {
         await expect(canvas.findByRole("button", {
             name: /Horário do calendário.*08:00/
         })).resolves.toBeTruthy();
-        await expect(canvas.findByRole("button", {
-            name: /Planning, De .*09:00.*10:15/
-        })).resolves.toBeTruthy();
+        await expect(canvas.findByLabelText(
+            /Planning, De .*09:00.*10:15/,
+            { selector: ".time-grid-view_event" }
+        )).resolves.toBeTruthy();
         await expect(canvas.findByText("08:00")).resolves.toBeTruthy();
     }
 };
@@ -140,6 +141,7 @@ export const PortugueseEmptyAndOverflowText: Story = {
                     maxEventsPerDay={0}
                     locale="pt-PT"
                     messages={portugueseMessages}
+                    onShowMore={fn()}
                 />
             </section>
         </div>
@@ -179,5 +181,20 @@ export const DaylightSavingChange: Story = {
             timeZone: "Europe/Lisbon"
         }
     },
-    render: (args) => <DstTransition {...args} />
+    render: (args) => <DstTransition {...args} />,
+    play: async ({ canvasElement }) => {
+        await waitFor(async () => {
+            const labels = [...canvasElement.querySelectorAll(
+                ".time-grid-view_time-label time"
+            )].map((label) => label.textContent);
+
+            await expect(labels).toEqual([
+                "00:00",
+                "01:00",
+                "02:00",
+                "03:00",
+                "04:00"
+            ]);
+        }, { timeout: 3_000 });
+    }
 };

@@ -13,6 +13,8 @@ the [project documentation site](https://maximilianwalker.github.io/ChronoLaneJS
 | [Styling and theming](./styling.md) | Applying dimensions, CSS variables, class hooks, responsive behavior, or custom renderers |
 | [Examples](./examples.md) | Building Vite and Next.js integrations, controlled navigation, resources, localization, renderers, or interactions |
 | [Accessibility](./accessibility.md) | Understanding keyboard behavior, focus, labels, drag limitations, and renderer responsibilities |
+| [Migrating from v1 to v2](./migrations/v2.md) | Upgrading through the v2 event interaction, message, position, renderer, and sizing changes |
+| [Changelog](../CHANGELOG.md) | Reviewing curated changes and upgrade context for every published version |
 
 ## Documentation contract
 
@@ -28,6 +30,10 @@ the [project documentation site](https://maximilianwalker.github.io/ChronoLaneJS
   layout implementation.
 - Accessibility documentation states both supported behavior and known gaps;
   it does not imply that open roadmap work is complete.
+- Every major release has a versioned migration guide that covers all public
+  contract breaks with before-and-after examples.
+- The root changelog records curated consumer-visible changes; Git tags and npm
+  remain the canonical version history.
 
 ## Project documentation
 
@@ -35,4 +41,5 @@ the [project documentation site](https://maximilianwalker.github.io/ChronoLaneJS
 - [Development guide](../DEVELOPMENT.md)
 - [Roadmap](../ROADMAP.md)
 - [Security policy](../SECURITY.md)
+- [Changelog](../CHANGELOG.md)
 - [Storybook](https://maximilianwalker.github.io/ChronoLaneJS/storybook/)

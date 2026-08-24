@@ -1,10 +1,10 @@
 import type { Decorator, Preview } from "@storybook/react-vite";
 
 import "../src/Calendar.css";
-import "../src/components/CalendarNavigation.css";
-import "../src/views/agenda/AgendaView.css";
-import "../src/views/month/MonthView.css";
-import "../src/views/time-grid/TimeGridView.css";
+import "../src/components/Navigation.css";
+import "../src/views/agenda/View.css";
+import "../src/views/month/View.css";
+import "../src/views/time-grid/View.css";
 import "../stories/story.css";
 import { chronoLaneJsTheme } from "./theme.js";
 
@@ -55,10 +55,10 @@ const preview: Preview = {
             toolbar: {
                 icon: "time",
                 items: [
-                    "Europe/Lisbon",
+                    "UTC",
                     "America/New_York",
-                    "Asia/Tokyo",
-                    "UTC"
+                    "Europe/Lisbon",
+                    "Asia/Tokyo"
                 ],
                 dynamicTitle: true
             }
@@ -66,7 +66,7 @@ const preview: Preview = {
     },
     initialGlobals: {
         locale: "en-US",
-        timeZone: "Europe/Lisbon"
+        timeZone: "UTC"
     },
     parameters: {
         a11y: {
@@ -90,7 +90,19 @@ const preview: Preview = {
                 order: [
                     "Introduction",
                     "Views",
-                    "Scenarios",
+                    "Scenarios", [
+                        "Events",
+                        "Navigation",
+                        "Interactions", [
+                            "Selection and Opening",
+                            "Movement",
+                            "Resizing",
+                            "Slot Selection",
+                            "Keyboard Navigation",
+                            "Customization and Permissions"
+                        ],
+                        "Locales and Timezones"
+                    ],
                     "Customization"
                 ]
             }

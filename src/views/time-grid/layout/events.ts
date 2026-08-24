@@ -27,6 +27,9 @@ interface CreateEventSegmentsOptions<
     getEventIds: (
         event: NormalizedCalendarEvent<Event>
     ) => Set<CalendarResourceId>;
+    getEventInterval?: (
+        event: NormalizedCalendarEvent<Event>
+    ) => { start: Date; end: Date };
 }
 
 /** Tests whether an event's resource assignments include a grid column. */
@@ -51,7 +54,8 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
     events,
     columns,
     timeWindow,
-    getEventIds
+    getEventIds,
+    getEventInterval
 }: CreateEventSegmentsOptions<Event, Resource>): LayoutEventSegment<Event, Resource>[] => {
     const resourceIdsByEvent = columns.some(({ resourceId }) => resourceId != null)
         ? new Map(events.map((event) => [event, getEventIds(event)]))
@@ -67,11 +71,13 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
                 column
             )) return [];
 
-            const visibleStart = event.start > visibleDayStart
-                ? event.start
+            const interval = getEventInterval?.(event) ?? event;
+
+            const visibleStart = interval.start > visibleDayStart
+                ? interval.start
                 : visibleDayStart;
-            const visibleEnd = event.end < visibleDayEnd
-                ? event.end
+            const visibleEnd = interval.end < visibleDayEnd
+                ? interval.end
                 : visibleDayEnd;
 
             if (visibleEnd <= visibleStart) return [];
@@ -97,6 +103,17 @@ export const createEventSegments = <Event extends CalendarEvent, Resource>({
         });
     });
 };
+
+/** Clips events and assigns overlap lanes using optional transient intervals. */
+export const createPositionedEvents = <
+    Event extends CalendarEvent,
+    Resource
+>(
+    options: CreateEventSegmentsOptions<Event, Resource>
+): LayoutEvent<Event, Resource>[] => assignEventLanes(
+    createEventSegments(options),
+    options.columns.length
+);
 
 /**
  * Assigns horizontal lanes to overlapping event segments within each column.

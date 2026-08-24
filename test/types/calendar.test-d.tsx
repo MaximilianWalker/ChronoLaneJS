@@ -11,6 +11,7 @@ import Calendar, {
 } from "../../src/index.js";
 import type {
     CalendarEvent,
+    CalendarEventInteractions,
     CalendarProps,
     CalendarRangeOptions,
     CalendarResourceConfig,
@@ -19,6 +20,9 @@ import type {
     SharedViewProps,
     TimeGridDayHeaderProps,
     TimeGridEventProps,
+    TimeGridEventResize,
+    TimeGridEventPosition,
+    TimeGridMultiDayEventLayout,
     TimeGridResourceHeaderProps,
     TimeGridSlotSizing,
     TimeGridSlotProps
@@ -75,6 +79,35 @@ const projectResources: CalendarResourceConfig<ProjectEvent, ProjectResource> = 
     getTitle: (resource) => resource.name,
     getEventIds: (event) => [event.category]
 };
+const projectEventInteractions = {
+    onClick: (event, interaction, context) => {
+        void event.category;
+        void interaction.detail;
+        void context.occurrence.resource?.name;
+    },
+    onKeyDown: (_event, interaction) => {
+        void interaction.key;
+    },
+    ariaKeyShortcuts: "E"
+} satisfies CalendarEventInteractions<ProjectEvent, ProjectResource>;
+const projectPosition: TimeGridEventPosition<ProjectResource> = {
+    day: new Date(2026, 8, 14),
+    resource: resources[0] ?? null,
+    resourceId: "studio"
+};
+const projectResize = {
+    event: {
+        ...events[0]!,
+        start: new Date(2026, 8, 14, 9),
+        end: new Date(2026, 8, 14, 10)
+    },
+    edge: "end",
+    start: new Date(2026, 8, 14, 9),
+    end: new Date(2026, 8, 14, 11),
+    source: projectPosition
+} satisfies TimeGridEventResize<ProjectEvent, ProjectResource>;
+
+void projectResize;
 
 void <Calendar view="month" events={events} viewProps={monthViewProps} />;
 void (
@@ -108,6 +141,7 @@ const ProjectEventRenderer = ({
     elementProps
 }: TimeGridEventProps<ProjectEvent, ProjectResource>) => {
     void event.category;
+    void segment.layout;
     void segment.day;
     void segment.resourceId;
     void segment.resource?.name;
@@ -162,7 +196,16 @@ const ProjectResourceHeader = ({
 const defaultWeekProps: CalendarProps<ProjectEvent, ProjectResource> = {
     events,
     viewProps: { minTime: "08:00" },
-    onEventSelect: (event) => event.category
+    canSelectEvent: (event, context) => (
+        event.category === "meeting" && context.occurrence.resourceId !== "locked"
+    ),
+    canOpenEvent: (event) => event.category === "meeting",
+    onEventSelect: (event, _interaction, context) => {
+        void event.category;
+        void context.occurrence.day;
+    },
+    onEventOpen: (event) => event.category,
+    eventInteractions: projectEventInteractions
 };
 
 void defaultWeekProps;
@@ -191,12 +234,18 @@ void (
     />
 );
 void <Calendar view="time-grid" events={events} viewProps={{ range: projectRange }} />;
+const multiDayEventLayout: TimeGridMultiDayEventLayout = "dedicated";
+void <Calendar view="week" viewProps={{ multiDayEventLayout }} />;
+void <TimeGridView multiDayEventLayout="timed" />;
+// @ts-expect-error Multi-day layout accepts only the documented policies.
+void <TimeGridView multiDayEventLayout="separate" />;
 void (
     <Calendar
         view="week"
         events={events}
         viewProps={{
             slotDuration: 30,
+            resizeStep: 15,
             labelInterval: 60,
             slotSizing
         }}
@@ -221,6 +270,27 @@ void <MonthView className="month" style={{ minHeight: 600 }} />;
 void <WeekView className="week" style={{ color: "navy" }} />;
 void <TimeGridView className="custom-range" style={{ minHeight: 600 }} />;
 void <DayView selectedRange={selectedRange} timeZone="Europe/Lisbon" />;
+void (
+    <DayView<ProjectEvent, ProjectResource>
+        events={events}
+        resources={projectResources}
+        onEventResize={(change) => {
+            void change.edge;
+            void change.source.resource?.name;
+        }}
+        canResizeEvent={(event, segment, edge) => (
+            event.category === "meeting"
+            && segment.resourceId !== "locked"
+            && edge === "end"
+        )}
+    />
+);
+
+// @ts-expect-error Editing was replaced by semantic opening.
+void <Calendar onEventEdit={() => undefined} />;
+
+// @ts-expect-error Editing permissions were replaced by opening permissions.
+void <Calendar canEditEvent={() => true} />;
 
 // @ts-expect-error Navigation behavior belongs to the range definition.
 void <TimeGridView navigationStep={7} />;

@@ -88,14 +88,27 @@ assert.deepEqual(
     `docs/api.md documents non-public properties: ${staleProps.join(", ")}`
 );
 
+const findMarkdownFiles = async (
+    directoryPath: string,
+    repositoryPath: string
+): Promise<string[]> => (await Promise.all(
+    (await readdir(directoryPath, { withFileTypes: true })).map(async (entry) => {
+        const entryPath = resolve(directoryPath, entry.name);
+        const entryRepositoryPath = `${repositoryPath}/${entry.name}`;
+        if (entry.isDirectory()) {
+            return findMarkdownFiles(entryPath, entryRepositoryPath);
+        }
+        return extname(entry.name) === ".md" ? [entryRepositoryPath] : [];
+    })
+)).flat().sort();
+
 const markdownFiles = [
     "README.md",
+    "CHANGELOG.md",
     "DEVELOPMENT.md",
     "ROADMAP.md",
     "SECURITY.md",
-    ...(await readdir(resolve(repositoryRoot, "docs")))
-        .filter((name) => extname(name) === ".md")
-        .map((name) => `docs/${name}`)
+    ...await findMarkdownFiles(resolve(repositoryRoot, "docs"), "docs")
 ];
 
 for (const markdownFile of markdownFiles) {
@@ -114,10 +127,13 @@ for (const markdownFile of markdownFiles) {
 }
 
 const siteContent = await readFile(resolve(repositoryRoot, "site/src/content.ts"), "utf8");
-for (const markdownFile of markdownFiles.filter((file) => file.startsWith("docs/"))) {
+const siteMarkdownFiles = markdownFiles.filter((file) => (
+    file === "CHANGELOG.md" || file.startsWith("docs/")
+));
+for (const markdownFile of siteMarkdownFiles) {
     assert.match(
         siteContent,
-        new RegExp(markdownFile.split("/").at(-1)!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+        new RegExp(markdownFile.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
         `${markdownFile} must be rendered by the GitHub Pages documentation site.`
     );
 }

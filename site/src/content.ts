@@ -1,8 +1,10 @@
+import changelog from "../../CHANGELOG.md?raw";
 import development from "../../DEVELOPMENT.md?raw";
 import accessibility from "../../docs/accessibility.md?raw";
 import api from "../../docs/api.md?raw";
 import examples from "../../docs/examples.md?raw";
 import gettingStarted from "../../docs/getting-started.md?raw";
+import migrationV2 from "../../docs/migrations/v2.md?raw";
 import documentation from "../../docs/README.md?raw";
 import styling from "../../docs/styling.md?raw";
 import readme from "../../README.md?raw";
@@ -16,12 +18,14 @@ export type DocumentId =
     | "styling"
     | "examples"
     | "accessibility"
+    | "migration-v2"
+    | "changelog"
     | "overview"
     | "development"
     | "roadmap"
     | "security";
 
-export type DocumentCategory = "Consumer guides" | "Project";
+export type DocumentCategory = "Consumer guides" | "Releases" | "Project";
 
 export interface DocumentSource {
     id: DocumentId;
@@ -82,6 +86,22 @@ export const documents: readonly DocumentSource[] = [
         description: "Keyboard behavior, names, focus, drag limitations, and responsibilities",
         source: accessibility,
         githubPath: "docs/accessibility.md"
+    },
+    {
+        id: "migration-v2",
+        category: "Releases",
+        label: "Migrate from v1 to v2",
+        description: "Breaking contracts, before-and-after examples, and upgrade verification",
+        source: migrationV2,
+        githubPath: "docs/migrations/v2.md"
+    },
+    {
+        id: "changelog",
+        category: "Releases",
+        label: "Changelog",
+        description: "Curated changes and upgrade context for every published version",
+        source: changelog,
+        githubPath: "CHANGELOG.md"
     },
     {
         id: "overview",

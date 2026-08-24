@@ -3,7 +3,12 @@ import test from "node:test";
 
 import { format } from "date-fns";
 
-import { createEventDrop } from "../../../src/views/time-grid/drop.js";
+import {
+    createEventDrop,
+    findAdjacentMoveSlot,
+    findEventMoveOrigin,
+    findPointerMoveSlot
+} from "../../../src/views/time-grid/move.js";
 import { createLayout } from "../../../src/views/time-grid/layout/createLayout.js";
 import type { CalendarEvent } from "../../../src/types.js";
 
@@ -63,7 +68,7 @@ test("describes a drop across days and resources", () => {
     assert.equal(format(drop.destination.day, "yyyy-MM-dd"), "2026-09-02");
 });
 
-test("uses the source event duration when dragging a clipped segment", () => {
+test("uses the source event duration when moving a clipped segment", () => {
     const event: TestEvent = {
         id: "overnight",
         title: "Overnight",
@@ -92,4 +97,43 @@ test("uses the source event duration when dragging a clipped segment", () => {
     assert.equal(format(segment.end, "yyyy-MM-dd HH:mm"), "2026-09-01 18:00");
     assert.equal(format(drop.start, "yyyy-MM-dd HH:mm"), "2026-09-04 10:00");
     assert.equal(format(drop.end, "yyyy-MM-dd HH:mm"), "2026-09-05 01:45");
+});
+
+test("resolves pointer and keyboard movement from the same slot scale", () => {
+    const event: TestEvent = {
+        id: "unsnapped",
+        start: date(1, 9, 20),
+        end: date(1, 10, 20)
+    };
+    const layout = createLayout<TestEvent, unknown>({
+        days: [date(1), date(2)],
+        events: [event],
+        backgroundEvents: [],
+        minTime: "08:00",
+        maxTime: "18:00",
+        slotDuration: 30,
+        labelInterval: 60
+    });
+    const segment = layout.events[0];
+    assert.ok(segment);
+    const origin = findEventMoveOrigin(layout.slots, segment);
+    assert.ok(origin);
+
+    assert.equal(format(origin.start, "HH:mm"), "09:00");
+    const next = findAdjacentMoveSlot(layout.slots, {
+        columnIndex: origin.columnIndex,
+        timeIndex: origin.timeIndex,
+        start: segment.start
+    }, "down");
+    const previous = findAdjacentMoveSlot(layout.slots, {
+        columnIndex: origin.columnIndex,
+        timeIndex: origin.timeIndex,
+        start: segment.start
+    }, "up");
+    assert.ok(next);
+    assert.ok(previous);
+    assert.equal(format(next.start, "HH:mm"), "09:30");
+    assert.equal(format(previous.start, "HH:mm"), "09:00");
+    assert.equal(findAdjacentMoveSlot(layout.slots, origin, "right")?.dayIndex, 1);
+    assert.equal(findPointerMoveSlot(layout.slots, 1, 46, 30)?.timeIndex, 2);
 });

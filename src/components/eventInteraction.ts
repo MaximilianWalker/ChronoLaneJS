@@ -1,73 +1,191 @@
 import type {
     KeyboardEventHandler,
     MouseEventHandler,
-    SyntheticEvent
+    PointerEventHandler
 } from "react";
 
 import type {
     CalendarEvent,
-    NormalizedCalendarEvent
+    CalendarEventInteractionContext,
+    CalendarEventInteractions,
+    NormalizedCalendarEvent,
+    SharedViewProps
 } from "../types.js";
 
-type EventAction<Event extends CalendarEvent> = (
-    event: NormalizedCalendarEvent<Event>,
-    interaction: SyntheticEvent
-) => void;
+const DOUBLE_TAP_MAX_DELAY = 500;
+const DOUBLE_TAP_MAX_DISTANCE = 24;
 
-interface CreateEventInteractionPropsOptions<Event extends CalendarEvent> {
-    event: NormalizedCalendarEvent<Event>;
-    onEventSelect?: EventAction<Event>;
-    onEventEdit?: EventAction<Event>;
-    canEditEvent?: (event: NormalizedCalendarEvent<Event>) => boolean;
+interface TouchTap {
+    timeStamp: number;
+    x: number;
+    y: number;
 }
 
-/** Shared renderer props implementing calendar event selection and editing. */
+const touchTaps = new WeakMap<HTMLElement, TouchTap>();
+const touchOpenTimes = new WeakMap<HTMLElement, number>();
+
+interface CreateEventInteractionPropsOptions<
+    Event extends CalendarEvent,
+    Resource
+> {
+    event: NormalizedCalendarEvent<Event>;
+    context: CalendarEventInteractionContext<Resource>;
+    canSelectEvent?: SharedViewProps<Event, Resource>["canSelectEvent"];
+    canOpenEvent?: SharedViewProps<Event, Resource>["canOpenEvent"];
+    onEventSelect?: SharedViewProps<Event, Resource>["onEventSelect"];
+    onEventOpen?: SharedViewProps<Event, Resource>["onEventOpen"];
+    eventInteractions?: CalendarEventInteractions<Event, Resource>;
+}
+
+/** Shared renderer props implementing semantic and raw event interactions. */
 export interface EventInteractionProps {
+    tabIndex?: number;
     onClick?: MouseEventHandler<HTMLElement>;
     onDoubleClick?: MouseEventHandler<HTMLElement>;
+    onContextMenu?: MouseEventHandler<HTMLElement>;
     onKeyDown?: KeyboardEventHandler<HTMLElement>;
-    "aria-keyshortcuts"?: "Enter" | "Shift+Enter";
+    onPointerUp?: PointerEventHandler<HTMLElement>;
+    onPointerCancel?: PointerEventHandler<HTMLElement>;
+    "aria-keyshortcuts"?: string;
 }
 
+const resolveShortcuts = <Event extends CalendarEvent, Resource>(
+    semanticShortcuts: string[],
+    event: NormalizedCalendarEvent<Event>,
+    context: CalendarEventInteractionContext<Resource>,
+    interactions?: CalendarEventInteractions<Event, Resource>
+): string | undefined => {
+    const rawValue = typeof interactions?.ariaKeyShortcuts === "function"
+        ? interactions.ariaKeyShortcuts(event, context)
+        : interactions?.ariaKeyShortcuts;
+    const shortcuts = new Set([
+        ...semanticShortcuts,
+        ...(rawValue?.trim().split(/\s+/).filter(Boolean) ?? [])
+    ]);
+
+    return shortcuts.size > 0 ? [...shortcuts].join(" ") : undefined;
+};
+
 /**
- * Creates consistent selection, editing, and keyboard behavior for an event.
+ * Creates the composed interaction props for one rendered event occurrence.
  *
- * Selection uses the renderer's primary click action. Editing uses a double
- * click and `Enter`, or `Shift+Enter` when ordinary `Enter` is reserved for
- * selection. Editing props are omitted when the callback is absent or the
- * event-specific predicate rejects the event.
+ * @remarks
+ * Click and Space consistently mean selection. Double click, double tap, and
+ * Enter consistently mean opening. Raw handlers run after the matching
+ * semantic handler and retain the browser's real event sequence.
  *
- * @param options - Source event, callbacks, and optional edit predicate.
- * @returns Handler and accessibility props ready for an event renderer.
+ * @param options - Source event, rendered occurrence, and interaction policy.
+ * @returns Standard React props ready for an event renderer root.
  */
-export const createEventInteractionProps = <Event extends CalendarEvent>({
+export const createEventInteractionProps = <
+    Event extends CalendarEvent,
+    Resource
+>({
     event,
+    context,
+    canSelectEvent,
+    canOpenEvent,
     onEventSelect,
-    onEventEdit,
-    canEditEvent
-}: CreateEventInteractionPropsOptions<Event>): EventInteractionProps => {
-    const selectable = onEventSelect != null;
-    const editable = onEventEdit != null && (canEditEvent?.(event) ?? true);
-    const keyboardShortcut = selectable ? "Shift+Enter" : "Enter";
+    onEventOpen,
+    eventInteractions
+}: CreateEventInteractionPropsOptions<Event, Resource>): EventInteractionProps => {
+    const selectable = onEventSelect != null
+        && (canSelectEvent?.(event, context) ?? true);
+    const openable = onEventOpen != null
+        && (canOpenEvent?.(event, context) ?? true);
+    const keyboardEnabled = selectable
+        || openable
+        || eventInteractions?.onKeyDown != null;
+    const semanticShortcuts = [
+        ...(selectable ? ["Space"] : []),
+        ...(openable ? ["Enter"] : [])
+    ];
 
     return {
-        onClick: selectable
-            ? (interaction) => onEventSelect(event, interaction)
-            : undefined,
-        onDoubleClick: editable
-            ? (interaction) => onEventEdit(event, interaction)
-            : undefined,
-        onKeyDown: editable
+        tabIndex: keyboardEnabled ? 0 : undefined,
+        onClick: selectable || eventInteractions?.onClick
             ? (interaction) => {
-                const shouldEdit = keyboardShortcut === "Shift+Enter"
-                    ? interaction.shiftKey && interaction.key === "Enter"
-                    : interaction.key === "Enter";
-                if (!shouldEdit) return;
+                const touchOpenTime = touchOpenTimes.get(interaction.currentTarget);
+                const followsTouchOpen = touchOpenTime != null
+                    && interaction.timeStamp - touchOpenTime < DOUBLE_TAP_MAX_DELAY;
 
-                interaction.preventDefault();
-                onEventEdit(event, interaction);
+                if (selectable && interaction.detail < 2 && !followsTouchOpen) {
+                    onEventSelect(event, interaction, context);
+                }
+                eventInteractions?.onClick?.(event, interaction, context);
             }
             : undefined,
-        "aria-keyshortcuts": editable ? keyboardShortcut : undefined
+        onDoubleClick: openable || eventInteractions?.onDoubleClick
+            ? (interaction) => {
+                const touchOpenTime = touchOpenTimes.get(interaction.currentTarget);
+                const alreadyOpenedByTouch = touchOpenTime != null
+                    && interaction.timeStamp - touchOpenTime < DOUBLE_TAP_MAX_DELAY;
+
+                if (openable && !alreadyOpenedByTouch) {
+                    onEventOpen(event, interaction, context);
+                }
+                eventInteractions?.onDoubleClick?.(event, interaction, context);
+            }
+            : undefined,
+        onContextMenu: eventInteractions?.onContextMenu
+            ? (interaction) => eventInteractions.onContextMenu?.(
+                event,
+                interaction,
+                context
+            )
+            : undefined,
+        onKeyDown: keyboardEnabled
+            ? (interaction) => {
+                if (!interaction.repeat && interaction.key === " " && selectable) {
+                    interaction.preventDefault();
+                    onEventSelect(event, interaction, context);
+                } else if (!interaction.repeat && interaction.key === "Enter" && openable) {
+                    interaction.preventDefault();
+                    onEventOpen(event, interaction, context);
+                }
+
+                eventInteractions?.onKeyDown?.(event, interaction, context);
+            }
+            : undefined,
+        onPointerUp: openable
+            ? (interaction) => {
+                if (interaction.pointerType !== "touch" || !interaction.isPrimary) return;
+
+                const target = interaction.currentTarget;
+                const previousTap = touchTaps.get(target);
+                const distance = previousTap == null
+                    ? Number.POSITIVE_INFINITY
+                    : Math.hypot(
+                        interaction.clientX - previousTap.x,
+                        interaction.clientY - previousTap.y
+                    );
+
+                if (
+                    previousTap != null
+                    && interaction.timeStamp - previousTap.timeStamp < DOUBLE_TAP_MAX_DELAY
+                    && distance <= DOUBLE_TAP_MAX_DISTANCE
+                ) {
+                    touchTaps.delete(target);
+                    touchOpenTimes.set(target, interaction.timeStamp);
+                    onEventOpen(event, interaction, context);
+                    return;
+                }
+
+                touchTaps.set(target, {
+                    timeStamp: interaction.timeStamp,
+                    x: interaction.clientX,
+                    y: interaction.clientY
+                });
+            }
+            : undefined,
+        onPointerCancel: openable
+            ? (interaction) => touchTaps.delete(interaction.currentTarget)
+            : undefined,
+        "aria-keyshortcuts": resolveShortcuts(
+            semanticShortcuts,
+            event,
+            context,
+            eventInteractions
+        )
     };
 };

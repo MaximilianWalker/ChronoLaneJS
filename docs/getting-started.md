@@ -5,8 +5,7 @@ view. See the [API reference](./api.md) for every prop and exported type.
 
 ## Install
 
-The package is prepared for its first public release but is not published yet.
-Once released, install it with its peer dependencies:
+Install the published package with its peer dependencies:
 
 ```bash
 npm install @chronolanejs/react react react-dom date-fns @date-fns/tz
@@ -65,11 +64,12 @@ export function Schedule() {
         <Calendar<Meeting>
             events={meetings}
             defaultDate="2026-09-14"
-            timeZone="Europe/Lisbon"
+            timeZone="UTC"
             viewProps={{
                 minTime: "08:00",
                 maxTime: "18:00",
                 slotDuration: 30,
+                resizeStep: 15,
                 labelInterval: 60
             }}
         />
@@ -146,13 +146,13 @@ throw `TypeError`; `minDate` after `maxDate` throws `RangeError`.
 
 `timeZone` applies one IANA zone to event boundaries, the anchor date, range
 calculations, and callbacks. Inputs are interpreted as calendar fields in that
-zone: attaching `Europe/Lisbon` to `09:00` keeps the wall clock at `09:00`.
+zone: attaching `America/New_York` to `09:00` keeps the wall clock at `09:00`.
 
 ```tsx
 <Calendar
-    date="2026-03-29"
+    date="2026-03-08"
     events={meetings}
-    timeZone="Europe/Lisbon"
+    timeZone="America/New_York"
 />
 ```
 
@@ -162,9 +162,9 @@ you need its visible fields in a zone:
 ```tsx
 import { calendarDateFromTimestamp } from "@chronolanejs/react";
 
-const lisbonDate = calendarDateFromTimestamp(
-    Date.parse("2026-09-14T08:00:00Z"),
-    "Europe/Lisbon"
+const newYorkDate = calendarDateFromTimestamp(
+    Date.parse("2026-09-14T13:00:00Z"),
+    "America/New_York"
 );
 ```
 
@@ -174,18 +174,19 @@ being parsed as UTC midnight.
 ## Event identity in callbacks
 
 Time-grid events may be clipped into visible day or resource segments. Public
-selection and editing callbacks always receive the complete normalized source
-event, including its original boundaries and application fields:
+selection and opening callbacks always receive the complete normalized source
+event plus the occurrence that was used:
 
 ```tsx
 <Calendar<Meeting>
     events={meetings}
-    onEventSelect={(event, interaction) => {
+    onEventSelect={(event, interaction, context) => {
         console.log(event.projectId);
         console.log(event.start, event.end); // complete normalized boundaries
         console.log(interaction.type);       // React synthetic event
+        console.log(context.view, context.occurrence.resourceId);
     }}
-    onEventEdit={(event) => openEditor(event)}
+    onEventOpen={(event) => openEditor(event)}
 />
 ```
 
@@ -289,14 +290,28 @@ Resource IDs compare by JavaScript `Map`/`Set` equality. Strings and numbers
 are distinct, so `101` does not match `"101"`. Missing, empty, non-finite, or
 duplicate IDs throw during rendering.
 
-## Selection, editing, and dropping
+## Selection, opening, resizing, and moving
 
-Callback presence enables the associated interaction:
+Callback presence enables the associated semantic without changing its gesture:
 
-- `onEventSelect` enables primary click selection.
-- `onEventEdit` enables double-click and keyboard editing.
+- `onEventSelect` enables selection by single click or Space.
+- `onEventOpen` enables opening by double-click, double-tap, or Enter.
 - `onSlotSelect` enables time-grid slot selection.
-- `onEventDrop` enables native time-grid dragging.
+- `onEventDrop` enables time-grid movement by pointer, touch, or keyboard.
+- `onEventResize` enables time-grid start/end resizing by pointer, touch, or
+  keyboard. Targets follow `resizeStep`, which defaults to `slotDuration` but
+  may provide finer precision than the visual slots.
+
+Set `multiDayEventLayout: "dedicated"` to move foreground events that cross
+local midnight into a compact region above the hourly slots. The default
+`"timed"` behavior is unchanged. Placement is derived from the event's
+half-open `start`/`end` interval; there is no separate all-day flag, and
+background events remain in the hourly grid.
+
+`eventInteractions` may add raw click, double-click, context-menu, and key-down
+callbacks. They are composed after the semantic behavior rather than replacing
+it. `canSelectEvent` and `canOpenEvent` restrict one semantic action for one
+rendered occurrence; view-specific predicates restrict movement and resize.
 
 State remains application-owned:
 
@@ -310,7 +325,15 @@ const [events, setEvents] = useState(meetings);
     onEventSelect={(event) => {
         if (event.id != null) setSelectedEventIds([event.id]);
     }}
+    onEventOpen={(event) => setEditorEvent(event)}
+    eventInteractions={{
+        onContextMenu: (event, interaction) => {
+            interaction.preventDefault();
+            openEventMenu(event, interaction.clientX, interaction.clientY);
+        }
+    }}
     viewProps={{
+        resizeStep: 15,
         onEventDrop: ({ event, start, end, destination }) => {
             setEvents((current) => current.map((item) => item.id === event.id
                 ? {
@@ -320,10 +343,27 @@ const [events, setEvents] = useState(meetings);
                     resourceId: destination.resourceId ?? undefined
                 }
                 : item));
+        },
+        onEventResize: ({ event, start, end }) => {
+            setEvents((current) => current.map((item) => item.id === event.id
+                ? { ...item, start, end }
+                : item));
         }
     }}
 />
 ```
+
+Drag a movable event from its body; a short press remains an ordinary click.
+From the focused event, Arrow Up/Down targets adjacent time slots and Arrow
+Left/Right targets adjacent day/resource columns. Transparent resize zones at
+the event edges expose the resize cursor and use Arrow keys for the adjacent
+`resizeStep` boundary when focused. The event follows an active resize instead
+of drawing a separate preview. Enter or blur commits, Escape cancels, and the
+application callback fires once. A no-op move or resize does not fire it.
+
+Focused dedicated multi-day events use Left/Right for visible day/resource
+movement; their edge zones resize by whole calendar days. Wall-clock times
+remain stable across DST.
 
 `selectedDate` and both `CalendarSelectionRange` boundaries accept the same
 `Date`, string, and timestamp inputs as events. The view clones and validates
@@ -333,7 +373,7 @@ events and the navigation date:
 ```tsx
 <Calendar
     view="day"
-    timeZone="Europe/Lisbon"
+    timeZone="UTC"
     viewProps={{
         selectedRange: {
             start: "2026-09-14T09:00:00",
@@ -348,8 +388,8 @@ duration. Invalid boundaries throw `TypeError`; equal or reversed boundaries
 throw `RangeError`. Selection remains controlled—the library never rewrites
 the supplied values.
 
-Dragging a clipped multi-day segment preserves the complete source duration.
-The drop payload includes concrete source and destination day/resource data.
+Moving a clipped multi-day segment preserves the complete source duration.
+The movement payload includes concrete source and destination day/resource data.
 
 ## Localization
 
@@ -362,16 +402,16 @@ import {
     preloadCalendarLocale
 } from "@chronolanejs/react";
 
-await preloadCalendarLocale("pt-PT");
+await preloadCalendarLocale("en-GB");
 
 const messages = {
     ...defaultCalendarMessages,
-    previous: () => "Anterior",
-    next: () => "Seguinte",
-    agendaEmpty: () => "Sem eventos neste período."
+    previous: () => "Previous period",
+    next: () => "Next period",
+    agendaEmpty: () => "No events in this period."
 };
 
-<Calendar locale="pt-PT" messages={messages} events={meetings} />
+<Calendar locale="en-GB" messages={messages} events={meetings} />
 ```
 
 `locale` formats dates and provides the default week start. Library-owned text

@@ -108,7 +108,7 @@ Time-grid slot dimensions are component behavior, so they use the typed
 | --- | --- |
 | `width` | Fixed positive pixel width for each day/resource track; the grid shrink-wraps until constrained and then scrolls. |
 | `minWidth` | Fluid equal-width tracks down to a non-negative pixel minimum, then horizontal scrolling. |
-| neither width property | Fully fluid columns with no minimum. |
+| neither width property | Fully fluid columns with no minimum. `WeekView` supplies a `96px` minimum unless either width property is explicit. |
 | `height` | Fixed positive pixel height for each `slotDuration`; the grid uses intrinsic total height. |
 | `minHeight` | Fluid rows down to a non-negative pixel minimum, then vertical scrolling. Use `0` for fully fluid rows. |
 | neither height property | Fixed `50px` slots. |
@@ -141,6 +141,11 @@ const event = {
   supplies `default` and `striped`; application classes may define others.
 - `style` is merged into the time-grid event root after required positioning.
 - `titleStyle` and `descriptionStyle` apply only to the default event content.
+
+Default time-grid titles and descriptions stay on complete lines and use an
+ellipsis when the available width is insufficient. Very short timed events
+place both fields on one compact line; events too short for even that line hide
+the visible text while retaining their native details tooltip.
 
 For structural markup changes, use a custom renderer instead of selectors that
 depend on default renderer descendants.
@@ -180,8 +185,12 @@ styles may change.
 
 - `.time-grid-view`, `.time-grid-view_grid-wrapper`
 - `.time-grid-view_header`, `.time-grid-view_header-cell`
+- `.time-grid-view_multi-day-region`, `.time-grid-view_multi-day-label`,
+  `.time-grid-view_multi-day-grid`, `.time-grid-view_multi-day-event`
 - `.time-grid-view_body`, `.time-grid-view_time-labels`, `.time-grid-view_time-label`
-- `.time-grid-view_grid`, `.time-grid-view_slot`
+- `.time-grid-view_grid-stage`, `.time-grid-view_grid`
+- `.time-grid-view_slot-row`, `.time-grid-view_slot-cell`, `.time-grid-view_slot`
+- `.time-grid-view_event-layer`
 - `.time-grid-view_background-events`, `.time-grid-view_background-event`
 - `.time-grid-view_column-events`, `.time-grid-view_event`
 - `.time-grid-view_event-color-bar`, `.time-grid-view_event-content`

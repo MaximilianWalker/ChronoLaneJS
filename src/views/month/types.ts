@@ -13,13 +13,13 @@ import type {
     SharedViewProps
 } from "../../types.js";
 
-export interface MonthDayHeaderProps {
+export interface DayHeaderProps {
     day: Date;
     label: string;
     outsideMonth: boolean;
 }
 
-export interface MonthEventProps<Event extends CalendarEvent = CalendarEvent> {
+export interface EventProps<Event extends CalendarEvent = CalendarEvent> {
     event: NormalizedCalendarEvent<Event>;
     day: Date;
     timeLabel: string;
@@ -28,14 +28,14 @@ export interface MonthEventProps<Event extends CalendarEvent = CalendarEvent> {
 }
 
 /** Replaceable render boundaries owned by the month view. */
-export interface MonthComponents<Event extends CalendarEvent = CalendarEvent>
+export interface Components<Event extends CalendarEvent = CalendarEvent>
     extends CalendarComponents {
-    event?: ComponentType<MonthEventProps<Event>>;
-    dayHeader?: ComponentType<MonthDayHeaderProps>;
+    event?: ComponentType<EventProps<Event>>;
+    dayHeader?: ComponentType<DayHeaderProps>;
 }
 
-export interface MonthViewProps<Event extends CalendarEvent = CalendarEvent>
-    extends SharedViewProps<Event> {
+export interface ViewProps<Event extends CalendarEvent = CalendarEvent>
+    extends SharedViewProps<Event, never> {
     weekStart?: CalendarWeekStart;
     showOutsideDays?: boolean;
     maxEventsPerDay?: number;
@@ -45,5 +45,5 @@ export interface MonthViewProps<Event extends CalendarEvent = CalendarEvent>
         group: { day: Date; events: NormalizedCalendarEvent<Event>[] },
         interaction: SyntheticEvent
     ) => void;
-    components?: MonthComponents<Event>;
+    components?: Components<Event>;
 }

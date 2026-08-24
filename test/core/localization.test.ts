@@ -40,6 +40,10 @@ test("default date headings use the active locale and view", () => {
 
 test("default messages compose prepared values without formatting dates", () => {
     assert.equal(defaultCalendarMessages.previous({ view: "day", range }), "Previous day");
+    assert.equal(
+        defaultCalendarMessages.multiDayRegionLabel({ view: "week" }),
+        "Multi-day events"
+    );
     assert.equal(defaultCalendarMessages.slotLabel({
         view: "day",
         date: "Monday, September 14th, 2026",
@@ -53,6 +57,24 @@ test("default messages compose prepared values without formatting dates", () => 
         endDate: "Monday",
         endTime: "2:05 PM"
     }), "Planning, Monday, 1:05 PM to Monday, 2:05 PM");
+    assert.equal(defaultCalendarMessages.eventMoveHandle({
+        view: "day",
+        title: "Planning"
+    }), "Move Planning");
+    assert.equal(defaultCalendarMessages.eventMoveTarget({
+        view: "day",
+        title: "Planning",
+        date: "Tuesday, September 15th, 2026",
+        time: "10:00 AM",
+        resource: "Studio"
+    }), "Move Planning to Tuesday, September 15th, 2026, 10:00 AM, Studio");
+    assert.equal(defaultCalendarMessages.eventResizeHandle({
+        view: "day",
+        edge: "end",
+        title: "Planning",
+        date: "Monday, September 14th, 2026",
+        time: "2:05 PM"
+    }), "Resize end of Planning, Monday, September 14th, 2026, 2:05 PM");
 });
 
 test("default localization registries are stable immutable objects", () => {

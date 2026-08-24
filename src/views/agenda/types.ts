@@ -10,33 +10,33 @@ import type {
     SharedViewProps
 } from "../../types.js";
 
-export interface AgendaDayHeaderProps {
+export interface DayHeaderProps {
     day: Date;
     label: string;
 }
 
-export interface AgendaEventProps<Event extends CalendarEvent = CalendarEvent> {
+export interface EventProps<Event extends CalendarEvent = CalendarEvent> {
     event: NormalizedCalendarEvent<Event>;
     timeLabel: string;
     selected: boolean;
     elementProps: CalendarRendererElementProps;
 }
 
-export interface AgendaEmptyProps {
+export interface EmptyProps {
     message: string;
 }
 
 /** Replaceable render boundaries owned by the agenda view. */
-export interface AgendaComponents<Event extends CalendarEvent = CalendarEvent>
+export interface Components<Event extends CalendarEvent = CalendarEvent>
     extends CalendarComponents {
-    event?: ComponentType<AgendaEventProps<Event>>;
-    dayHeader?: ComponentType<AgendaDayHeaderProps>;
-    empty?: ComponentType<AgendaEmptyProps>;
+    event?: ComponentType<EventProps<Event>>;
+    dayHeader?: ComponentType<DayHeaderProps>;
+    empty?: ComponentType<EmptyProps>;
 }
 
-export interface AgendaViewProps<Event extends CalendarEvent = CalendarEvent>
-    extends SharedViewProps<Event> {
+export interface ViewProps<Event extends CalendarEvent = CalendarEvent>
+    extends SharedViewProps<Event, never> {
     range?: CalendarRangeDefinition;
     weekStart?: CalendarWeekStart;
-    components?: AgendaComponents<Event>;
+    components?: Components<Event>;
 }

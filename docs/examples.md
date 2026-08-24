@@ -5,7 +5,8 @@ The repository contains two runnable consumer applications. The
 
 - [`examples/vite`](../examples/vite/) demonstrates a client-rendered Vite app
   with controlled navigation, resources, localization, a custom event
-  renderer, selection, editing, slot selection, and event-drop state updates.
+  renderer, selection, opening, slot selection, resizing, and event-drop state
+  updates.
 - [`examples/next`](../examples/next/) demonstrates the App Router boundary:
   CSS in the server layout and interactive calendar state in a client
   component.
@@ -22,9 +23,10 @@ npm install --prefix examples/next
 npm run dev --prefix examples/next
 ```
 
-Both examples use `file:../..` so they consume the local package exactly as an
-application dependency. The first public release can replace it with a normal
-published version.
+Both examples use `file:../..` for their interactive local-development
+workflow. `npm run examples:check` instead creates one package tarball and
+installs that exact artifact into temporary clean copies before type-checking
+and production-building both consumers.
 
 ## Minimal Vite integration
 
@@ -147,19 +149,19 @@ import {
     preloadCalendarLocale
 } from "@chronolanejs/react";
 
-void preloadCalendarLocale("pt-PT");
+void preloadCalendarLocale("en-GB");
 
-const portugueseMessages = {
+const messages = {
     ...defaultCalendarMessages,
-    previous: () => "Anterior",
-    next: () => "Seguinte",
-    agendaEmpty: () => "Sem eventos neste período."
+    previous: () => "Previous period",
+    next: () => "Next period",
+    agendaEmpty: () => "No events in this period."
 };
 
 <Calendar
-    locale="pt-PT"
-    localeFallback={<p role="status">A carregar calendário…</p>}
-    messages={portugueseMessages}
+    locale="en-GB"
+    localeFallback={<p role="status">Loading calendar…</p>}
+    messages={messages}
 />
 ```
 
@@ -172,20 +174,16 @@ loading uses React Suspense.
 import type { TimeGridEventProps } from "@chronolanejs/react";
 
 function ProductEvent({ event, segment, selected, elementProps }: TimeGridEventProps<Meeting, Room>) {
-    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Root = interactive ? "button" : "div";
-
     return (
-        <Root
+        <div
             {...elementProps}
-            type={interactive ? "button" : undefined}
             className={`${elementProps.className} product-event`}
             data-resource-id={segment.resourceId ?? undefined}
-            aria-pressed={interactive ? selected : undefined}
+            data-selected={selected || undefined}
         >
             <strong>{event.title}</strong>
             <small>{event.owner.name}</small>
-        </Root>
+        </div>
     );
 }
 
@@ -212,8 +210,15 @@ const [selectedRange, setSelectedRange] = useState<CalendarSelectionRange>();
     onEventSelect={(event) => {
         if (event.id != null) setSelectedEventIds([event.id]);
     }}
-    onEventEdit={(event) => setEditorEvent(event)}
+    onEventOpen={(event) => setEditorEvent(event)}
+    eventInteractions={{
+        onContextMenu: (event, interaction) => {
+            interaction.preventDefault();
+            setMenuEvent(event);
+        }
+    }}
     viewProps={{
+        resizeStep: 15,
         selectedRange,
         onSlotSelect: (slot) => {
             setSelectedRange({ start: slot.start, end: slot.end });
@@ -226,6 +231,11 @@ const [selectedRange, setSelectedRange] = useState<CalendarSelectionRange>();
                     end,
                     resourceId: destination.resourceId ?? undefined
                 }
+                : item));
+        },
+        onEventResize: ({ event, start, end }) => {
+            setEvents((current) => current.map((item) => item.id === event.id
+                ? { ...item, start, end }
                 : item));
         }
     }}

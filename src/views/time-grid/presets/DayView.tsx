@@ -1,6 +1,6 @@
 import type { CalendarEvent } from "../../../types.js";
-import type { TimeGridViewProps } from "../types.js";
-import TimeGridView from "../TimeGridView.js";
+import type { ViewProps } from "../types.js";
+import View from "../View.js";
 
 /**
  * Renders {@link TimeGridView} with the one-day range preset.
@@ -14,9 +14,9 @@ export default function DayView<
     range = "day",
     viewName = "day",
     ...props
-}: TimeGridViewProps<Event, Resource>) {
+}: ViewProps<Event, Resource>) {
     return (
-        <TimeGridView
+        <View
             {...props}
             range={range}
             viewName={viewName}

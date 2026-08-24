@@ -8,7 +8,7 @@ import type {
     CalendarResourceConfig,
     NormalizedCalendarEvent
 } from "../../src/types.js";
-import type { TimeGridGroupBy } from "../../src/views/time-grid/types.js";
+import type { GroupBy as TimeGridGroupBy } from "../../src/views/time-grid/types.js";
 
 type PlaygroundView = "day" | "week" | "month" | "agenda" | "resources" | "time-grid";
 
@@ -203,7 +203,7 @@ export default function Playground() {
         defaultDate: ANCHOR_DATE,
         events: visibleEvents,
         locale: "en-US",
-        timeZone: "Europe/Lisbon",
+        timeZone: "UTC",
         selectedEventIds,
         onEventSelect: selectEvent
     } as const;

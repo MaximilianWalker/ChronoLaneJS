@@ -53,6 +53,56 @@ export const WorkWeek: Story = {
     }
 };
 
+export const CompactEventDetails: Story = {
+    args: {
+        range: "day",
+        minTime: "10:00",
+        maxTime: "12:00",
+        slotDuration: 30,
+        slotSizing: { height: 26 },
+        events: [{
+            id: "compact-details",
+            title: "Design review",
+            description: "Review the complete interaction and accessibility specification",
+            start: "2026-09-14T10:00:00",
+            end: "2026-09-14T10:30:00",
+            color: "#7c3aed"
+        }]
+    },
+    render: (args) => (
+        <div style={{ width: 360 }}>
+            <TimeGridView {...args} />
+        </div>
+    ),
+    play: async ({ canvasElement }) => {
+        const event = canvasElement.querySelector<HTMLElement>(
+            '[data-event-id="compact-details"]'
+        );
+        const description = event?.querySelector<HTMLElement>(
+            ".time-grid-view_event-description"
+        );
+
+        if (!event || !description) {
+            throw new Error("The compact event did not render.");
+        }
+
+        const style = window.getComputedStyle(description);
+
+        await expect(event.getAttribute("title")).toContain("Design review");
+        await expect(event.getAttribute("title")).toContain(
+            "Review the complete interaction and accessibility specification"
+        );
+        await expect(event.getAttribute("title")).toContain("10:00 AM");
+        await expect(event.getAttribute("title")).toContain("10:30 AM");
+        await expect(style.textOverflow).toBe("ellipsis");
+        await expect(style.whiteSpace).toBe("nowrap");
+        await expect(description.scrollWidth).toBeGreaterThan(
+            description.clientWidth
+        );
+        await expect(description.scrollHeight).toBe(description.clientHeight);
+    }
+};
+
 export const NonContiguousDays: Story = {
     args: {
         range: {
@@ -69,6 +119,33 @@ export const NonContiguousDays: Story = {
 export const TwoDayRange: Story = {
     args: {
         range: 2
+    }
+};
+
+export const PassiveScheduleRegion: Story = {
+    args: {
+        range: "day"
+    },
+    play: async ({ canvasElement }) => {
+        const wrapper = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_grid-wrapper"
+        );
+        const grid = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_grid"
+        );
+        const slot = canvasElement.querySelector<HTMLElement>(
+            ".time-grid-view_slot"
+        );
+
+        if (!wrapper || !grid || !slot) {
+            throw new Error("The passive time-grid example did not render.");
+        }
+
+        await expect(wrapper).toHaveAttribute("aria-label", "Calendar grid");
+        await expect(wrapper).toHaveAttribute("tabindex", "0");
+        await expect(grid).not.toHaveAttribute("role");
+        await expect(slot.tagName).toBe("DIV");
+        await expect(slot).not.toHaveAttribute("tabindex");
     }
 };
 

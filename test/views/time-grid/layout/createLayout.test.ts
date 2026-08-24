@@ -7,15 +7,16 @@ import {
     format
 } from "date-fns";
 
-import { createLayout as buildTimeGridLayout } from "../../../../src/views/time-grid/layout/createLayout.js";
-import { createTimeGridHeaderRows } from "../../../../src/views/time-grid/layout/headers.js";
+import { createLayout as buildLayout } from "../../../../src/views/time-grid/layout/createLayout.js";
+import { createPositionedEvents } from "../../../../src/views/time-grid/layout/events.js";
+import { createHeaderRows } from "../../../../src/views/time-grid/layout/headers.js";
 import type {
     CalendarEvent,
     CalendarResourceConfig,
     CalendarResourceId
 } from "../../../../src/types.js";
 import type {
-    TimeGridGroupBy,
+    GroupBy,
     TimeOfDay
 } from "../../../../src/views/time-grid/types.js";
 
@@ -38,7 +39,7 @@ interface CreateLayoutOptions {
     backgroundEvents?: TestEvent[];
     days?: Date[];
     resources?: CalendarResourceConfig<TestEvent, TestResource>;
-    groupBy?: TimeGridGroupBy;
+    groupBy?: GroupBy;
     minTime?: TimeOfDay;
     maxTime?: TimeOfDay | "24:00";
     slotDuration?: number;
@@ -59,7 +60,7 @@ const createLayout = ({
     slotDuration = 60,
     labelInterval = slotDuration,
     ...options
-}: CreateLayoutOptions = {}) => buildTimeGridLayout<TestEvent, TestResource>({
+}: CreateLayoutOptions = {}) => buildLayout<TestEvent, TestResource>({
     days,
     events,
     backgroundEvents,
@@ -144,7 +145,7 @@ test("builds aligned day-first and resource-first header rows", () => {
             ]
         }
     });
-    const dayHeaders = createTimeGridHeaderRows(dayFirst.columns, "day");
+    const dayHeaders = createHeaderRows(dayFirst.columns, "day");
 
     assert.deepEqual(
         dayHeaders.primary.map(({ kind, columnIndex, columns }) => ({
@@ -181,7 +182,7 @@ test("builds aligned day-first and resource-first header rows", () => {
         },
         groupBy: "resource"
     });
-    const resourceHeaders = createTimeGridHeaderRows(
+    const resourceHeaders = createHeaderRows(
         resourceFirst.columns,
         "resource"
     );
@@ -203,7 +204,7 @@ test("builds aligned day-first and resource-first header rows", () => {
 
 test("omits resource headers when resources are not configured", () => {
     const layout = createLayout({ days: [date(1), date(2)] });
-    const headers = createTimeGridHeaderRows(layout.columns, "resource");
+    const headers = createHeaderRows(layout.columns, "resource");
 
     assert.equal(headers.primary.length, 2);
     assert.ok(headers.primary.every(({ kind }) => kind === "day"));
@@ -215,6 +216,8 @@ test("creates slots and dividers from one validated time scale", () => {
 
     assert.equal(layout.totalMinutes, 600);
     assert.equal(layout.slots.length, 20);
+    assert.equal(layout.slotRows.length, 20);
+    assert.ok(layout.slotRows.every((row) => row.length === 1));
     assert.equal(layout.dividers.length, 10);
     assert.equal(format(layout.slots[0]!.start, "HH:mm"), "08:00");
     assert.equal(format(layout.slots.at(-1)!.end, "HH:mm"), "18:00");
@@ -296,6 +299,30 @@ test("adjacent events do not consume separate lanes", () => {
             { laneIndex: 0, laneCount: 1 }
         ]
     );
+});
+
+test("positions a transient interval without replacing the source event", () => {
+    const event: TestEvent = {
+        id: "resizing",
+        title: "Resizing",
+        start: date(1, 9),
+        end: date(1, 10)
+    };
+    const layout = createLayout({ events: [event] });
+    const positioned = createPositionedEvents({
+        events: [event],
+        columns: layout.columns,
+        timeWindow: layout.timeWindow,
+        getEventIds: () => new Set(),
+        getEventInterval: () => ({
+            start: event.start,
+            end: date(1, 11)
+        })
+    });
+
+    assert.equal(positioned[0]?.event, event);
+    assert.equal(positioned[0]?.startRow, 61);
+    assert.equal(positioned[0]?.endRow, 181);
 });
 
 test("duplicates multi-resource events only into assigned columns", () => {
@@ -488,6 +515,23 @@ test("uses wall-clock rows across Lisbon daylight-saving changes", () => {
     ]);
 });
 
+test("keeps spring-forward divider labels on the requested wall-clock scale", () => {
+    const timeZone = "Europe/Lisbon";
+    const day = new TZDate(2026, 2, 29, 0, 0, 0, 0, timeZone);
+    const layout = createLayout({
+        days: [day],
+        minTime: "00:00",
+        maxTime: "05:00",
+        slotDuration: 30,
+        labelInterval: 60
+    });
+
+    assert.deepEqual(
+        layout.dividers.map(({ time }) => format(time, "HH:mm")),
+        ["00:00", "01:00", "02:00", "03:00", "04:00"]
+    );
+});
+
 test("rejects invalid time scales", () => {
     assert.throws(
         () => createLayout({ minTime: "18:00", maxTime: "08:00" }),
@@ -507,7 +551,7 @@ test("rejects invalid time scales", () => {
         /integer multiple of slotDuration/
     );
     assert.throws(
-        () => createLayout({ groupBy: "team" as TimeGridGroupBy }),
+        () => createLayout({ groupBy: "team" as GroupBy }),
         /groupBy must be either "day" or "resource"/
     );
 });

@@ -28,7 +28,7 @@ const navigationRangeName = ({
  * The registry is complete and immutable. Create a stable replacement by
  * spreading this object outside render and overriding the required functions.
  */
-export const defaultCalendarFormatters = Object.freeze<CalendarFormatters>({
+export const defaultCalendarFormatters = /* @__PURE__ */ Object.freeze<CalendarFormatters>({
     time: (date, { locale }) => format(date, "p", { locale }),
     date: (date, { locale }) => format(date, "PPPP", { locale }),
     weekday: (date, { locale }) => format(date, "EEE", { locale }),
@@ -65,10 +65,11 @@ export const defaultCalendarFormatters = Object.freeze<CalendarFormatters>({
  * automatically. Create a complete, stable translated registry by spreading
  * this object outside render and overriding its functions.
  */
-export const defaultCalendarMessages = Object.freeze<CalendarMessages>({
+export const defaultCalendarMessages = /* @__PURE__ */ Object.freeze<CalendarMessages>({
     previous: (context) => `Previous ${navigationRangeName(context)}`,
     next: (context) => `Next ${navigationRangeName(context)}`,
     timeGridLabel: () => "Calendar grid",
+    multiDayRegionLabel: () => "Multi-day events",
     monthGridLabel: () => "Month calendar grid",
     slotLabel: ({ date, time }) => `Calendar slot, ${date}, ${time}`,
     eventLabel: ({
@@ -83,6 +84,14 @@ export const defaultCalendarMessages = Object.freeze<CalendarMessages>({
         `${startDate}, ${startTime} to ${endDate}, ${endTime}`,
         description
     ].filter(Boolean).join(", "),
+    eventMoveHandle: ({ title }) => `Move ${title ?? "calendar event"}`,
+    eventMoveTarget: ({ title, date, time, resource }) => [
+        `Move ${title ?? "calendar event"} to ${date}, ${time}`,
+        resource
+    ].filter(Boolean).join(", "),
+    eventResizeHandle: ({ edge, title, date, time }) => (
+        `Resize ${edge} of ${title ?? "calendar event"}, ${date}, ${time}`
+    ),
     timeRange: ({ startTime, endTime }) => `${startTime}–${endTime}`,
     agendaEmpty: () => "No events in this range.",
     moreEvents: ({ count }) => `+${count} more`

@@ -19,6 +19,9 @@ behavioral changes, and avoid application-specific dependencies or styling.
 Use PascalCase filenames for React components and camelCase filenames for
 hooks, pure modules, scripts, and tests. Keep private component names scoped to
 their feature, and reserve domain prefixes for public or cross-feature symbols.
+Within a feature folder, rely on that folder for domain context instead of
+repeating its name in private files, components, functions, or types. Add the
+domain prefix only at an export boundary where the symbol leaves the feature.
 Shared types belong in `src/types.ts`; feature types stay beside their feature.
 Declarations are emitted from source, so do not maintain a separate declaration
 file.
@@ -48,8 +51,9 @@ stale export or prop entries. The built package runtime is also checked against
 an exact export allowlist so implementation helpers cannot appear silently.
 Runnable Vite and Next.js integrations live under `examples/` as independent
 consumer packages. `npm run check` validates the publishable root package;
-`npm run examples:check` installs each consumer's locked dependencies, lints
-both applications, and production-builds them against the package. Run
+`npm run examples:check` packs one artifact, installs that exact tarball into
+temporary clean copies of both consumers, verifies the public package boundary,
+and production-builds both applications. Run
 `npm run site` to preview the website and compact playground, or
 `npm run site:build` to verify its production output.
 
@@ -76,6 +80,13 @@ already owned by its parent and only forwards them into markup. That adds a
 private API without reducing coupling. Keep the render body in the owner, or
 first create a cohesive model or hook that materially shrinks the boundary.
 
+Do not create a React component merely to give a styled DOM element a name.
+Keep simple structural elements inline and use semantic HTML, clear stable
+class names, or named presentation models or style functions for readability.
+Create a component only when the name corresponds to a real layout,
+accessibility, behavior, occurrence, renderer, lifecycle, reuse, or performance
+boundary.
+
 Before extracting a component, verify that:
 
 - its purpose can be described without referring to the parent file;
@@ -84,9 +95,73 @@ Before extracting a component, verify that:
 - it is independently reusable, testable, stateful, or performance-relevant;
 - removing the boundary would lose a concrete architectural benefit.
 
+Do not stack private components around the same domain concept with names such
+as `EventLayer`, `EventItem`, and `EventComponent`. A reader should be able to
+identify one clear owner and distinguish injected renderers from library-owned
+behavior immediately. Keep repeated occurrence markup in that owner unless an
+occurrence has independent state, lifecycle, reuse, or a measured performance
+boundary.
+
+Do not introduce `config`, `context`, `options`, or similarly broad prop objects
+solely to conceal a long dependency list. Such an object must model a cohesive
+domain contract or be shared by multiple real boundaries; otherwise, redesign
+the ownership or keep the logic with its existing owner.
+
 Pure calculations should live in focused domain modules when independently
 testable. Default renderer components may remain separate because they are
 real replacement points in the public API.
+
+### Render structure and interaction ownership
+
+Render bodies should read as a short semantic description of the UI. A JSX
+collection callback may choose a key and pass data to one element, but it
+should not declare handlers, build presentation models, perform layout
+calculations, or contain multi-branch control flow. Move independently
+testable calculations to a focused domain module and move cohesive occurrence
+behavior to its occurrence owner. A trivial one-expression adapter that binds
+an event to a named module function is acceptable.
+
+Do not declare components inside components. Avoid non-trivial helper and event
+handler declarations inside a component render scope; put reusable interaction
+orchestration in a named module-scope function or a focused hook. Hooks may use
+callbacks where React requires stable closures, but one hook should not combine
+independent move, resize, selection, and navigation concerns merely because
+they are consumed by the same view. Compose focused hooks through one feature
+controller.
+
+Do not extract a hook solely to move calculations, handlers, collection
+mapping, or presentation-model construction out of a component. A hook must
+encapsulate cohesive stateful, lifecycle, or imperative behavior, provide a
+meaningful domain abstraction, or be reused. A single-use hook is justified
+only when its contract is materially smaller and more coherent than the
+component concerns it replaces. Prefer honest component-local code over a hook
+that mirrors the component inputs and returns JSX-adjacent props.
+
+For repeated calendar events, prefer the ownership chain `collection ->
+occurrence owner -> injected renderer`. The collection owns grouping and
+layering, the occurrence owns presentation plus its cohesive pointer, keyboard,
+selection, and resize controls, and the injected renderer owns replaceable
+markup. Do not add more same-domain wrappers around that chain.
+
+A collection owner must retain traversal of its purely structural hierarchy
+until it reaches a genuine occurrence owner or injected renderer. Do not
+extract generic `Row`, `Cell`, `Item`, or similar components merely to wrap
+styled elements, continue mapping a parent-owned collection, or conceal
+collection-owned behavior. When direct traversal would make JSX complex,
+prepare pure layout models in a focused domain module or stateful, lifecycle,
+or imperative behavior in a focused hook instead of hiding them behind
+structural components.
+
+The time-grid `Slots` component owns row and cell iteration, cell structure,
+selection and navigation wiring, and invocation of the injected slot renderer.
+Extract a slot occurrence component only if it gains independent state,
+lifecycle, reuse, or another concrete boundary beyond the collection
+controller.
+
+Structural components such as headers, rows, slots, and cells are useful only
+when they own concrete layout, accessibility, navigation, or interaction
+semantics. Do not extract a structural component that merely forwards parent
+data or moves JSX to another file.
 
 ## Roadmap discipline
 
@@ -127,6 +202,16 @@ Documentation, test, build, refactor, style, and chore commits do not publish a
 version by themselves. Keep those changes on `dev` until a release-bearing
 promotion rather than opening a documentation-only pull request to `main`.
 
+Every release-bearing promotion must update the root `CHANGELOG.md` with the
+expected semantic-release version, date, and curated consumer-visible changes.
+Git tags and npm remain canonical if a historical source entry is ever wrong.
+Every promotion that selects a new major version must also add
+`docs/migrations/v<major>.md`. The guide must enumerate every removed, renamed,
+or newly required public contract; show before-and-after code; cover changed
+defaults and interaction semantics; link from the changelog and documentation
+home; and be rendered by the GitHub Pages documentation site. Do not publish a
+major release with migration work deferred to a follow-up commit.
+
 After a promotion is merged, the Release workflow validates the exact `main`
 commit before semantic-release selects the version, temporarily updates the
 package metadata in the runner, publishes the package under npm's `latest`
@@ -135,25 +220,48 @@ Git tags and the npm registry are the canonical version history;
 semantic-release does not commit generated version changes back to the
 repository.
 
-The workflow is deliberately inactive until the repository variable
-`NPM_RELEASES_ENABLED` equals `true`. After every remaining P0 gate passes:
+The release bootstrap is complete. `0.1.0-rc.0` was published manually under
+the `next` tag with a matching GitHub prerelease, the trusted publisher was
+registered, and `NPM_RELEASES_ENABLED=true` enabled automatic releases. The
+first release-bearing promotion contained breaking commits, so
+semantic-release correctly selected `1.0.0`; subsequent qualifying promotions
+continue from the published Git tags.
 
-1. Promote this inactive release automation to `main` while
-   `NPM_RELEASES_ENABLED` remains unset.
-2. Enable two-factor authentication for the `maximilianwalker` npm account.
-3. Publish `0.1.0-rc.0` manually with the npm `next` tag to create the package.
-4. Create the matching `v0.1.0-rc.0` GitHub prerelease from the published
-   commit.
-5. Register the trusted publisher described below on the npm package.
-6. Require two-factor authentication and disallow token-based publication in
-   the package settings.
-7. Set `NPM_RELEASES_ENABLED=true` in the GitHub repository variables.
-8. Merge a release-bearing `dev` to `main` promotion. A `fix:` or `feat:`
-   promotion after the bootstrap prerelease publishes stable `0.1.0`.
+`npm run release:verify` checks that the workflow stays restricted to enabled
+`main` releases, retains OIDC permission, and runs every validation command
+before semantic-release. The workflow uses the default fail-closed step
+behavior, so any failed validation prevents the publication step.
+
+## Dependency maintenance
+
+Dependabot checks the root package, both locked consumer examples, and pinned
+GitHub Actions every Monday. Routine minor and patch updates are grouped by
+ecosystem. Major updates remain individual pull requests and require explicit
+compatibility review, including security fixes that cross a major version;
+they must not be folded into an update group.
+
+All Dependabot pull requests target the default `dev` branch and run the full
+pull-request CI matrix, including supported Node/React combinations, both
+consumer builds, browser stories, and the package checks. Dependabot security
+updates are enabled and grouped separately from scheduled version updates. Do
+not merge an automated update with failing checks or unresolved compatibility
+questions.
 
 Do not add an npm access token to the repository or workflow. Semantic-release
 publishes through npm trusted publishing with the workflow's short-lived OIDC
 identity.
+
+### Security releases
+
+The normal `dev`-to-`main` promotion path must not expose a confirmed
+vulnerability before a patched package is ready. Follow `SECURITY.md`: develop
+the remediation in the draft advisory's temporary private fork, validate it
+locally because CI cannot access that fork, and use the advisory merge control
+to land a release-bearing `fix:` commit based on `main`. Coordinate the gated
+npm release with publication of the advisory, then merge `main` back into
+`dev` immediately. Do not copy confidential advisory details into public
+branches, pull requests, workflow logs, or issues before the coordinated
+disclosure.
 
 The npm trusted publisher must match these values exactly:
 

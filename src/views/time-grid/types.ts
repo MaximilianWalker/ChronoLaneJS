@@ -25,9 +25,21 @@ type TimeMinute = `${"0" | "1" | "2" | "3" | "4" | "5"}${DecimalDigit}`;
 export type TimeOfDay = `${TimeHour}:${TimeMinute}`;
 
 /** Outer grouping dimension used when both days and resources are visible. */
-export type TimeGridGroupBy = "day" | "resource";
+export type GroupBy = "day" | "resource";
 
-type TimeGridSlotWidth =
+/** Placement policy for events that cross a local calendar-day boundary. */
+export type MultiDayEventLayout = "timed" | "dedicated";
+
+/**
+ * Mutually exclusive fixed or minimum dimensions for each time-grid slot axis.
+ *
+ * @remarks
+ * Omitting both width properties makes columns fully fluid in `TimeGridView`
+ * and `DayView`; `WeekView` supplies a 96px minimum. Omitting both height
+ * properties uses a fixed 50px slot height. Set `minHeight` to `0` for fully
+ * fluid rows.
+ */
+export type SlotSizing = (
     | {
         /** Fixed positive pixel width of each day or resource slot. */
         width?: number;
@@ -37,9 +49,8 @@ type TimeGridSlotWidth =
         width?: never;
         /** Non-negative pixel minimum for fluid day or resource slots. */
         minWidth?: number;
-    };
-
-type TimeGridSlotHeight =
+    }
+) & (
     | {
         /** Fixed positive pixel height of each `slotDuration` interval. */
         height?: number;
@@ -49,27 +60,18 @@ type TimeGridSlotHeight =
         height?: never;
         /** Non-negative pixel minimum for fluid `slotDuration` intervals. */
         minHeight?: number;
-    };
-
-/**
- * Mutually exclusive fixed or minimum dimensions for each time-grid slot axis.
- *
- * @remarks
- * Omitting both width properties makes columns fully fluid. Omitting both
- * height properties uses a fixed 50px slot height. Set `minHeight` to `0` for
- * fully fluid rows.
- */
-export type TimeGridSlotSizing = TimeGridSlotWidth & TimeGridSlotHeight;
+    }
+);
 
 /** Semantic day and resource identity exposed to time-grid header renderers. */
-export interface TimeGridColumn<Resource = unknown> {
+export interface Column<Resource = unknown> {
     day: Date;
     resource: Resource | null;
     resourceId: CalendarResourceId | null;
 }
 
 /** Application-facing time interval represented by one selectable grid slot. */
-export interface TimeGridSlot<Resource = unknown> {
+export interface Slot<Resource = unknown> {
     start: Date;
     end: Date;
     duration: number;
@@ -78,8 +80,9 @@ export interface TimeGridSlot<Resource = unknown> {
     resourceId: CalendarResourceId | null;
 }
 
-/** Visible, clipped portion of an event in one day and resource column. */
-export interface TimeGridEventSegment<Resource = unknown> {
+/** Semantic event portion rendered by the timed grid or dedicated region. */
+export interface EventSegment<Resource = unknown> {
+    layout: MultiDayEventLayout;
     start: Date;
     end: Date;
     day: Date;
@@ -87,98 +90,125 @@ export interface TimeGridEventSegment<Resource = unknown> {
     resourceId: CalendarResourceId | null;
 }
 
-/** Calendar position occupied by an event before or after a drop. */
-export interface TimeGridEventDropPosition<Resource = unknown> {
+/** Calendar position occupied by an event interaction in the time grid. */
+export interface EventPosition<Resource = unknown> {
     day: Date;
     resource: Resource | null;
     resourceId: CalendarResourceId | null;
 }
 
-/** Complete application-facing result of dropping a time-grid event. */
-export interface TimeGridEventDrop<
+/** Complete application-facing result of moving a time-grid event. */
+export interface EventDrop<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > {
     event: NormalizedCalendarEvent<Event>;
     start: Date;
     end: Date;
-    source: TimeGridEventDropPosition<Resource>;
-    destination: TimeGridEventDropPosition<Resource>;
+    source: EventPosition<Resource>;
+    destination: EventPosition<Resource>;
 }
 
-export interface TimeGridSlotProps<Resource = unknown> {
-    slot: TimeGridSlot<Resource>;
-    selected: boolean;
-    elementProps: CalendarRendererElementProps;
-}
+/** Event boundary changed by a time-grid resize interaction. */
+export type EventResizeEdge = "start" | "end";
 
-export interface TimeGridEventProps<
+/** Complete application-facing result of resizing a time-grid event. */
+export interface EventResize<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > {
     event: NormalizedCalendarEvent<Event>;
-    segment: TimeGridEventSegment<Resource>;
+    edge: EventResizeEdge;
+    start: Date;
+    end: Date;
+    source: EventPosition<Resource>;
+}
+
+export interface SlotProps<Resource = unknown> {
+    slot: Slot<Resource>;
     selected: boolean;
     elementProps: CalendarRendererElementProps;
 }
 
-export interface TimeGridBackgroundEventProps<
+export interface EventProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > {
     event: NormalizedCalendarEvent<Event>;
-    segment: TimeGridEventSegment<Resource>;
+    segment: EventSegment<Resource>;
+    selected: boolean;
     elementProps: CalendarRendererElementProps;
 }
 
-export interface TimeGridDayHeaderProps<Resource = unknown> {
+export interface BackgroundEventProps<
+    Event extends CalendarEvent = CalendarEvent,
+    Resource = unknown
+> {
+    event: NormalizedCalendarEvent<Event>;
+    segment: EventSegment<Resource>;
+    elementProps: CalendarRendererElementProps;
+}
+
+export interface DayHeaderProps<Resource = unknown> {
     day: Date;
-    columns: TimeGridColumn<Resource>[];
+    columns: Column<Resource>[];
     title: string;
 }
 
-export interface TimeGridResourceHeaderProps<Resource = unknown> {
+export interface ResourceHeaderProps<Resource = unknown> {
     resource: Resource;
     resourceId: CalendarResourceId;
-    columns: TimeGridColumn<Resource>[];
+    columns: Column<Resource>[];
     title: ReactNode;
 }
 
 /** Replaceable render boundaries owned by time-grid views and presets. */
-export interface TimeGridComponents<
+export interface Components<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > extends CalendarComponents {
-    event?: ComponentType<TimeGridEventProps<Event, Resource>>;
-    slot?: ComponentType<TimeGridSlotProps<Resource>>;
-    backgroundEvent?: ComponentType<TimeGridBackgroundEventProps<Event, Resource>>;
-    dayHeader?: ComponentType<TimeGridDayHeaderProps<Resource>>;
-    resourceHeader?: ComponentType<TimeGridResourceHeaderProps<Resource>>;
+    event?: ComponentType<EventProps<Event, Resource>>;
+    slot?: ComponentType<SlotProps<Resource>>;
+    backgroundEvent?: ComponentType<BackgroundEventProps<Event, Resource>>;
+    dayHeader?: ComponentType<DayHeaderProps<Resource>>;
+    resourceHeader?: ComponentType<ResourceHeaderProps<Resource>>;
 }
 
-export interface TimeGridViewProps<
+export interface ViewProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
-> extends SharedViewProps<Event> {
+> extends SharedViewProps<Event, Resource> {
     resources?: CalendarResourceConfig<Event, Resource>;
-    groupBy?: TimeGridGroupBy;
+    groupBy?: GroupBy;
+    /** Places multi-day foreground events in timed slots or a dedicated region. */
+    multiDayEventLayout?: MultiDayEventLayout;
     range?: CalendarRangeDefinition;
     weekStart?: CalendarWeekStart;
     minTime?: TimeOfDay;
     maxTime?: TimeOfDay | "24:00";
     slotDuration?: number;
+    /** Positive whole-minute increment used by pointer and keyboard resizing. */
+    resizeStep?: number;
     labelInterval?: number;
     /** Per-slot fixed or fluid-minimum dimensions. */
-    slotSizing?: TimeGridSlotSizing;
+    slotSizing?: SlotSizing;
     selectedRange?: CalendarSelectionRange;
+    /** Restricts movement controls for individual visible event segments. */
     canDragEvent?: (
         event: NormalizedCalendarEvent<Event>,
-        segment: TimeGridEventSegment<Resource>
+        segment: EventSegment<Resource>
     ) => boolean;
-    onEventDrop?: (change: TimeGridEventDrop<Event, Resource>) => void;
+    /** Reports one complete movement proposal when the user commits it. */
+    onEventDrop?: (change: EventDrop<Event, Resource>) => void;
+    canResizeEvent?: (
+        event: NormalizedCalendarEvent<Event>,
+        segment: EventSegment<Resource>,
+        edge: EventResizeEdge
+    ) => boolean;
+    onEventResize?: (change: EventResize<Event, Resource>) => void;
     onSlotSelect?: (
-        slot: TimeGridSlot<Resource>,
+        slot: Slot<Resource>,
         interaction: SyntheticEvent
     ) => void;
-    components?: TimeGridComponents<Event, Resource>;
+    components?: Components<Event, Resource>;
 }

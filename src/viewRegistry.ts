@@ -1,8 +1,8 @@
-import AgendaView from "./views/agenda/AgendaView.js";
-import MonthView from "./views/month/MonthView.js";
+import AgendaView from "./views/agenda/View.js";
+import MonthView from "./views/month/View.js";
 import DayView from "./views/time-grid/presets/DayView.js";
 import WeekView from "./views/time-grid/presets/WeekView.js";
-import TimeGridView from "./views/time-grid/TimeGridView.js";
+import TimeGridView from "./views/time-grid/View.js";
 
 import type { ElementType } from "react";
 
@@ -12,7 +12,7 @@ import type { ElementType } from "react";
  * Pass a `views` entry with the same key to the root `Calendar` component to
  * override one.
  */
-export const defaultCalendarViews: Readonly<Record<string, ElementType>> = Object.freeze({
+export const defaultCalendarViews: Readonly<Record<string, ElementType>> = /* @__PURE__ */ Object.freeze({
     agenda: AgendaView,
     day: DayView,
     month: MonthView,

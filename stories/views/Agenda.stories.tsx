@@ -38,6 +38,13 @@ export const Basic: Story = {
                 ".agenda-view_list.calendar-scroll-region"
             )
         ).not.toBeNull();
+        const event = canvasElement.querySelector<HTMLElement>(
+            '[data-event-id="planning"]'
+        );
+        await expect(event?.getAttribute("title")).toContain("Planning");
+        await expect(event?.getAttribute("title")).toContain(
+            "Set priorities for the week"
+        );
     }
 };
 

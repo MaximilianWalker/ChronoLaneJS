@@ -11,44 +11,65 @@ the [roadmap](../ROADMAP.md#localization-and-accessibility).
 
 ## Focus order
 
-With default renderers, browser tab order follows the DOM. Navigation comes
-first. Agenda then exposes interactive events in day order. Month exposes its
+With default renderers, browser tab order follows the DOM except inside the
+selectable time-slot grid, which uses roving focus. Navigation comes first.
+Agenda then exposes interactive events in day order. Month exposes its
 focusable scroll region followed by each enabled day control, that day's
-interactive events, and its overflow control. Time grid exposes its focusable
-scroll region, selectable slots in time/column construction order, then
-interactive events in column order.
+interactive events, and its overflow control.
+
+A passive time grid exposes its labelled scroll region, dedicated multi-day
+events when present, and timed events and controls in column order. When
+`onSlotSelect` is enabled, the scroll region leaves the Tab sequence and the
+slot grid contributes one active slot button. Dedicated multi-day events come
+before that button; timed events and their controls follow it. `Shift+Tab`
+returns to the slot that most recently held focus.
 
 Disabled navigation directions retain layout space as native disabled buttons,
 receive `aria-hidden`, have no click handler, and are visually hidden. They
 cannot receive focus or be activated, including through a custom navigation
 renderer that spreads the supplied button props. If `showControls={false}`,
 navigation controls are omitted.
-Month and time-grid scroll regions use `tabIndex={0}` so keyboard users can
-focus and scroll them without first reaching a child action.
+Month and passive time-grid scroll regions use `tabIndex={0}` so keyboard users
+can focus and scroll them without first reaching a child action. Selectable
+time grids scroll the focused slot into view instead.
 
-The exact order of events and slots follows visual day/resource construction,
-not chronological order across all columns. A complete roving-grid keyboard
-model is planned under `A11Y-01`; it is not implemented today.
+The exact event order follows visual day/resource construction, not
+chronological order across all columns. Slot Arrow-key movement follows the
+visible row and column structure without changing the controlled selection.
 
 ## Keyboard commands
 
 | Context | Command | Behavior |
 | --- | --- | --- |
 | Navigation | `Enter` or `Space` | Activates the focused previous/next button. |
-| Selectable event | `Enter` or `Space` | Activates the native button click and calls `onEventSelect`. |
-| Editable-only event | `Enter` | Calls `onEventEdit`. |
-| Selectable and editable event | `Shift+Enter` | Calls `onEventEdit`; ordinary activation remains selection. |
-| Mouse event | Double click | Calls `onEventEdit` when allowed. |
+| Selectable event | `Space` | Calls `onEventSelect`. |
+| Openable event | `Enter` | Calls `onEventOpen`. |
+| Pointer event | Single click | Calls `onEventSelect`; a double-click still selects only once. |
+| Pointer event | Double-click or double-tap | Calls `onEventOpen`. |
+| Focused movable time-grid event | Arrow keys | Previews the adjacent time or visible day/resource target. |
+| Focused movable time-grid event | `Enter` or blur | Commits one `onEventDrop` proposal after movement. |
+| Focused movable time-grid event | `Escape` | Cancels without calling `onEventDrop`. |
+| Event resize handle | Arrow keys | Previews the adjacent valid `resizeStep` boundary. |
+| Event resize handle | `Enter` or blur | Commits one `onEventResize` proposal after movement. |
+| Event resize handle | `Escape` | Cancels without calling `onEventResize`. |
+| Dedicated multi-day resize handle | `ArrowLeft` or `ArrowRight` | Previews the adjacent whole-calendar-day boundary. |
 | Selectable month day | `Enter` or `Space` | Calls `onSelectDay`. |
 | Month overflow | `Enter` or `Space` | Calls `onShowMore`. |
+| Selectable time grid | Arrow keys | Moves one slot in the corresponding time or day/resource direction without wrapping. |
+| Selectable time grid | `Home` or `End` | Moves to the first or last slot in the current time row. |
+| Selectable time grid | `Control+Home` or `Control+End` | Moves to the first or last slot in the complete grid. |
+| Selectable time grid | `PageUp` or `PageDown` | Moves approximately one visible page while retaining the current column. |
 | Selectable time slot | `Enter` or `Space` | Calls `onSlotSelect`. |
-| Focused scroll region | browser/platform scrolling keys | Scrolls the calendar surface. |
+| Focused passive scroll region | browser/platform scrolling keys | Scrolls the calendar surface. |
 
-Editable event roots receive `aria-keyshortcuts="Enter"` or
-`aria-keyshortcuts="Shift+Enter"` as appropriate. `canEditEvent` may remove
-editing behavior for one source event.
+Focusable event roots receive `aria-keyshortcuts="Space"`, `"Enter"`, or both
+according to their enabled semantics. Movable time-grid events additionally
+expose their Arrow and cancellation shortcuts plus an accessible movement
+description. `canSelectEvent` and `canOpenEvent` may remove one action for one
+rendered occurrence without remapping the remaining gesture. Consumer-provided
+`eventInteractions.ariaKeyShortcuts` is merged with the semantic shortcuts.
 
-## Selection and editing feedback
+## Selection and opening feedback
 
 Selection is controlled. Update `selectedEventIds`, `selectedDate`, or
 `selectedRange` after a callback to expose the resulting visual state:
@@ -71,12 +92,12 @@ const [announcement, setAnnouncement] = useState("No event selected.");
             if (event.id != null) setSelectedEventIds([event.id]);
             setAnnouncement(`Selected ${event.title ?? "calendar event"}.`);
         }}
-        onEventEdit={(event) => openAccessibleDialog(event)}
+        onEventOpen={(event) => openAccessibleDialog(event)}
     />
 </>
 ```
 
-ChronoLaneJS does not announce application outcomes such as a saved edit,
+ChronoLaneJS does not announce application outcomes such as a saved change,
 failed persistence request, or rejected move. Use an application live region
 and move focus intentionally when opening dialogs or changing views.
 
@@ -86,15 +107,20 @@ The `messages` registry owns all library-generated labels:
 
 - previous/next navigation labels;
 - month and time-grid names;
+- the dedicated multi-day region name;
 - selectable slot labels;
 - interactive event labels;
+- movable-event descriptions and movement announcements;
 - visible event time ranges;
+- event resize handles;
 - agenda empty state;
 - month overflow controls.
 
 Default event labels combine title, formatted start/end dates and times, and
-description. Provide meaningful event titles and descriptions, or override
-`messages.eventLabel` when the domain needs another name.
+description. The same prepared text is available as the native details tooltip
+on every foreground event, including passive events. Provide meaningful event
+titles and descriptions, or override `messages.eventLabel` when the domain
+needs another name.
 
 ```tsx
 const messages = {
@@ -121,50 +147,83 @@ application text. Translate the complete `messages` registry explicitly.
 
 ### Time grid
 
-- The focusable scroll surface has the configured time-grid accessible name.
-- Selectable slots are native buttons with formatted date/time labels.
-- Interactive events are native buttons with complete event labels.
-- Day and resource headers currently provide visible headings but do not yet
-  implement the complete grid/row/column-header model planned in `A11Y-01`.
+- Without `onSlotSelect`, the focusable scroll surface has the configured
+  time-grid accessible name and slots remain passive presentation elements.
+- With `onSlotSelect`, the slot surface is a labelled composite grid. Time
+  intervals are rows, each day/resource position is a grid cell, and one
+  concrete header per column combines the visible hierarchical header labels.
+- Exactly one selectable slot button participates in page Tab order. Arrow,
+  Home, End, and Page keys move focus without selecting; native Enter and Space
+  activation call `onSlotSelect`.
+- The first selected visible slot initially receives the roving Tab stop;
+  otherwise the first slot does. Focusing or activating another slot remembers
+  it for subsequent Tab entry while it remains visible.
+- The optional dedicated multi-day section is a labelled region before the
+  hourly slots and is omitted when empty.
+- The event layer is a sibling of the slot grid because timed events can span
+  and overlap several slots. Events therefore retain their independent labels,
+  focus order, and interaction semantics instead of being misrepresented as
+  grid-cell content.
+- Interactive events are focusable event elements with complete labels and
+  explicit Space/Enter keyboard handlers; they are not represented as buttons.
+- Timed resize handles use vertical slider semantics; dedicated multi-day
+  handles use horizontal slider semantics. Both expose current, minimum,
+  maximum, and formatted boundary values.
 
 ### Agenda
 
 - Each visible day is a section with a heading.
-- Interactive events are native buttons; non-interactive events are static.
+- Interactive events are focusable event elements; non-interactive events are
+  static.
 - The empty renderer receives application-configurable text.
 
-## Drag and drop limitation
+## Event resize behavior
 
-Time-grid movement currently uses native HTML drag events. It is mouse-oriented
-and does not provide an equivalent keyboard or reliable touch interaction.
-This is an explicit `A11Y-02` roadmap item.
+Time-grid resize handles are transparent edge hit zones and independent
+siblings of the event renderer, so operating one does not select, open, or drag
+the event. The resize cursor appears only over the relevant edge. Pointer and
+touch movement snaps to the configured `resizeStep` boundaries, and the real
+event geometry follows the active boundary. Keyboard Arrow keys use the same
+boundaries even when visual slots are larger. The event always contains at
+least one resize interval, including a shorter final interval when the
+configured time window is uneven.
 
-Applications must provide an alternative whenever `onEventDrop` is enabled.
-The recommended current fallback is an edit action that exposes date, time,
-and resource controls in an accessible dialog:
+Only the chosen start or end edge changes. Resizing may cross visible days on
+the same resource but never moves an event between resources. Pointer cancel
+and Escape restore the original geometry; releasing the pointer, pressing
+Enter, or leaving the keyboard handle commits one proposal. No movement
+produces no callback. Background events never expose interaction or resize
+controls.
 
-```tsx
-<Calendar
-    events={events}
-    onEventEdit={(event) => openMoveDialog(event)}
-    viewProps={{
-        onEventDrop: applyProposedMove
-    }}
-/>
-```
+## Event movement behavior
 
-The dialog should validate the same rules as a drag, announce errors, return
-focus to the invoking event, and update application state through the same
-move operation. Do not describe native dragging as keyboard- or touch-accessible.
+Movable time-grid events use their body as the pointer and touch drag surface.
+A movement threshold preserves ordinary click and double-click semantics, and
+the event retains the original pointer grab offset while targeting the nearest
+slot. On the focused event, Arrow Up/Down selects the previous or next time
+slot; Arrow Left/Right selects the adjacent visible day or resource column.
+Each target previews the complete event and is announced with its prepared
+date, time, and resource label.
+
+Pointer cancel and Escape discard the preview. Releasing the pointer, pressing
+Enter, or leaving the focused event commits one `onEventDrop` proposal. No
+movement produces no callback. Moving a clipped segment preserves the complete
+source duration, and background events never expose movement controls.
+
+Dedicated multi-day controls follow the same commit and cancellation model.
+Movement targets adjacent visible day/resource columns. Resizing moves only the
+chosen edge in whole calendar-day steps, preserving wall-clock fields across
+DST. Exact formatted start/end values remain in event and handle labels.
 
 ## Custom renderer responsibilities
 
 Custom renderers replace markup but must preserve library behavior.
 
 1. Spread `elementProps` onto the root element without dropping handlers,
-   styles, `className`, `aria-label`, `aria-keyshortcuts`, or drag attributes.
-2. Use a native `button` when `elementProps` contains click or double-click
-   behavior. Set `type="button"` to avoid accidental form submission.
+   styles, `className`, `tabIndex`, `aria-label`, `aria-description`, or
+   `aria-keyshortcuts`.
+2. Keep event roots as event/content elements. ChronoLaneJS supplies explicit
+   pointer and keyboard behavior; do not recast every event as a native button.
 3. Keep the supplied accessible name unless the replacement provides an
    equivalent or better name.
 4. Preserve visible focus indication and selected-state contrast.
@@ -173,27 +232,25 @@ Custom renderers replace markup but must preserve library behavior.
    distinguish day/resource groups.
 7. If a renderer introduces controls inside an event, define an intentional
    focus and event-propagation policy.
+8. Keep a slot renderer's supplied root as its only focus target. Nested slot
+   controls would conflict with the grid's one-widget-per-cell navigation
+   contract.
 
 ```tsx
 function AccessibleEvent({ event, selected, elementProps }: TimeGridEventProps) {
-    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Root = interactive ? "button" : "div";
-
     return (
-        <Root
+        <div
             {...elementProps}
-            type={interactive ? "button" : undefined}
-            aria-pressed={interactive ? selected : undefined}
+            data-selected={selected || undefined}
         >
             <strong>{event.title ?? "Untitled event"}</strong>
-        </Root>
+        </div>
     );
 }
 ```
 
 `selected` is presentation state, not an instruction to override the supplied
-accessible label. Add `aria-pressed` only when the event behaves as a toggle or
-selection button in the application interaction model.
+accessible label or add button semantics.
 
 ## Visual accessibility
 
@@ -218,7 +275,7 @@ For every application integration and custom renderer, verify:
 - [ ] the schedule remains usable at 200% zoom and narrow widths;
 - [ ] high-contrast/forced-color modes retain boundaries and focus;
 - [ ] reduced-motion preference does not introduce unexpected animation;
-- [ ] touch users have an alternative to native drag-and-drop;
+- [ ] pointer, touch, and keyboard event movement reaches equivalent targets;
 - [ ] at least one target screen reader is included in release testing.
 
 The repository keeps automated Storybook accessibility checks, but automation

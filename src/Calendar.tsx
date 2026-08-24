@@ -25,13 +25,13 @@ import type {
     CalendarViewDefinition,
     SharedViewProps
 } from "./types.js";
-import type { AgendaViewProps } from "./views/agenda/types.js";
-import type { MonthViewProps } from "./views/month/types.js";
-import type { TimeGridViewProps } from "./views/time-grid/types.js";
+import type { ViewProps as AgendaViewProps } from "./views/agenda/types.js";
+import type { ViewProps as MonthViewProps } from "./views/month/types.js";
+import type { ViewProps as TimeGridViewProps } from "./views/time-grid/types.js";
 
 const EMPTY_EVENTS: never[] = [];
-const EMPTY_PROPS = Object.freeze({});
-const EMPTY_VIEWS: CalendarViewRegistry = Object.freeze({});
+const EMPTY_PROPS = /* @__PURE__ */ Object.freeze({});
+const EMPTY_VIEWS: CalendarViewRegistry = /* @__PURE__ */ Object.freeze({});
 
 /** A component or component definition registered under an application view name. */
 export type CalendarViewRegistration = ElementType | CalendarViewDefinition;
@@ -39,13 +39,13 @@ export type CalendarViewRegistration = ElementType | CalendarViewDefinition;
 /** Application-defined views accepted by the root `Calendar` component. */
 export type CalendarViewRegistry = Record<string, CalendarViewRegistration>;
 
-interface CalendarRootProps {
+interface RootProps {
     className?: string;
     style?: CalendarStyle;
     localeFallback?: ReactNode;
 }
 
-interface CalendarBuiltInViewProps<
+interface BuiltInViewProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
 > {
@@ -56,16 +56,22 @@ interface CalendarBuiltInViewProps<
     week: TimeGridViewProps<Event, Resource>;
 }
 
-export type CalendarBuiltInView = keyof CalendarBuiltInViewProps;
-type CalendarSharedProps<Event extends CalendarEvent> = Omit<
-    SharedViewProps<Event>,
+export type CalendarBuiltInView = keyof BuiltInViewProps;
+type SharedProps<
+    Event extends CalendarEvent,
+    Resource
+> = Omit<
+    SharedViewProps<Event, Resource>,
     "className" | "style" | "viewName"
 >;
-type ForwardedCalendarSharedProps<Event extends CalendarEvent> = Omit<
-    CalendarSharedProps<Event>,
+type ForwardedSharedProps<
+    Event extends CalendarEvent,
+    Resource
+> = Omit<
+    SharedProps<Event, Resource>,
     "events" | "backgroundEvents" | "locale" | "formatters" | "messages"
 >;
-type DisallowedViewProps = keyof SharedViewProps | keyof CalendarRootProps | "viewName";
+type DisallowedViewProps = keyof SharedViewProps | keyof RootProps | "viewName";
 type ViewProps<Props> = Omit<
     Props,
     DisallowedViewProps
@@ -76,25 +82,25 @@ export type CalendarViewProps<
     View extends CalendarBuiltInView,
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown
-> = ViewProps<CalendarBuiltInViewProps<Event, Resource>[View]>;
+> = ViewProps<BuiltInViewProps<Event, Resource>[View]>;
 
-type CalendarBuiltInBranch<
+type BuiltInBranch<
     View extends CalendarBuiltInView,
     Event extends CalendarEvent,
     Resource
-> = CalendarRootProps
-    & CalendarSharedProps<Event>
+> = RootProps
+    & SharedProps<Event, Resource>
     & {
         viewProps?: Partial<CalendarViewProps<View, Event, Resource>>;
         views?: CalendarViewRegistry;
     }
     & (View extends "week" ? { view?: View } : { view: View });
 
-type CalendarBuiltInProps<
+type BuiltInProps<
     Event extends CalendarEvent,
     Resource
 > = {
-    [View in CalendarBuiltInView]: CalendarBuiltInBranch<View, Event, Resource>
+    [View in CalendarBuiltInView]: BuiltInBranch<View, Event, Resource>
 }[CalendarBuiltInView];
 
 type RegisteredViewProps<Registration> = Registration extends {
@@ -122,12 +128,13 @@ type ValidatedViewRegistry<Views extends CalendarViewRegistry> = {
 
 type CustomViewProps<Registration> = ViewProps<RegisteredViewProps<Registration>>;
 
-type CalendarCustomProps<
+type CustomProps<
     Event extends CalendarEvent,
+    Resource,
     Views extends CalendarViewRegistry
 > = {
-    [View in keyof Views & string]: CalendarRootProps
-        & CalendarSharedProps<Event>
+    [View in keyof Views & string]: RootProps
+        & SharedProps<Event, Resource>
         & {
             view: View;
             views: Views & ValidatedViewRegistry<Views>;
@@ -153,52 +160,67 @@ export type CalendarProps<
     Event extends CalendarEvent = CalendarEvent,
     Resource = unknown,
     Views extends CalendarViewRegistry | undefined = undefined
-> = StrictUnion<CalendarBuiltInProps<Event, Resource>>
+> = StrictUnion<BuiltInProps<Event, Resource>>
     | (Views extends CalendarViewRegistry
-        ? StrictUnion<CalendarCustomProps<Event, Views>>
+        ? StrictUnion<CustomProps<Event, Resource, Views>>
         : never);
 
-interface ResolvedCalendarViewProps<Event extends CalendarEvent> {
-    ViewComponent: ElementType;
+interface ViewSelection {
+    component: ElementType;
+    defaultProps: object;
+    viewProps: object;
+    name: string;
+}
+
+interface ViewLocalization {
     locale: CalendarLocale;
     formatters: CalendarFormatters;
     messages: CalendarMessages;
-    sharedProps: ForwardedCalendarSharedProps<Event>;
-    defaultViewProps: object;
-    viewProps: object;
+}
+
+interface ViewInput<
+    Event extends CalendarEvent,
+    Resource
+> {
+    sharedProps: ForwardedSharedProps<Event, Resource>;
     events: Event[];
     backgroundEvents: Event[];
-    view: string;
+}
+
+interface ResolvedViewProps<
+    Event extends CalendarEvent,
+    Resource
+> {
+    selection: ViewSelection;
+    localization: ViewLocalization;
+    input: ViewInput<Event, Resource>;
 }
 
 /**
  * Resolves a locale inside `Suspense` and applies the ordered prop layers to a
  * registered view component.
  */
-const ResolvedCalendarView = <Event extends CalendarEvent>({
-    ViewComponent,
-    locale,
-    formatters,
-    messages,
-    sharedProps,
-    defaultViewProps,
-    viewProps,
-    events,
-    backgroundEvents,
-    view
-}: ResolvedCalendarViewProps<Event>) => (
-    <ViewComponent
-        {...sharedProps}
-        {...defaultViewProps}
-        {...viewProps}
-        locale={readCalendarLocale(locale)}
-        formatters={formatters}
-        messages={messages}
-        events={events}
-        backgroundEvents={backgroundEvents}
-        viewName={view}
-    />
-);
+const ResolvedView = <Event extends CalendarEvent, Resource>({
+    selection,
+    localization,
+    input
+}: ResolvedViewProps<Event, Resource>) => {
+    const ViewComponent = selection.component;
+
+    return (
+        <ViewComponent
+            {...input.sharedProps}
+            {...selection.defaultProps}
+            {...selection.viewProps}
+            locale={readCalendarLocale(localization.locale)}
+            formatters={localization.formatters}
+            messages={localization.messages}
+            events={input.events}
+            backgroundEvents={input.backgroundEvents}
+            viewName={selection.name}
+        />
+    );
+};
 
 /** Distinguishes a view registration with defaults from a bare component. */
 const isViewDefinition = (
@@ -243,13 +265,15 @@ export default function Calendar<
     maxDate,
     showControls,
     selectedEventIds,
-    canEditEvent,
+    canSelectEvent,
+    canOpenEvent,
     onDateChange,
     onRangeChange,
     onEventSelect,
-    onEventEdit
+    onEventOpen,
+    eventInteractions
 }: CalendarProps<Event, Resource, Views>): ReactElement {
-    const sharedProps: ForwardedCalendarSharedProps<Event> = {
+    const sharedProps: ForwardedSharedProps<Event, Resource> = {
         date,
         defaultDate,
         timeZone,
@@ -257,11 +281,13 @@ export default function Calendar<
         maxDate,
         showControls,
         selectedEventIds,
-        canEditEvent,
+        canSelectEvent,
+        canOpenEvent,
         onDateChange,
         onRangeChange,
         onEventSelect,
-        onEventEdit
+        onEventOpen,
+        eventInteractions
     };
     const registeredViews: CalendarViewRegistry = views ?? EMPTY_VIEWS;
     const builtInView = view in defaultCalendarViews
@@ -286,17 +312,15 @@ export default function Calendar<
             style={style}
         >
             <Suspense fallback={localeFallback as ReactNode}>
-                <ResolvedCalendarView
-                    ViewComponent={ViewComponent}
-                    locale={locale}
-                    formatters={formatters}
-                    messages={messages}
-                    sharedProps={sharedProps}
-                    defaultViewProps={defaultViewProps}
-                    viewProps={viewProps}
-                    events={events}
-                    backgroundEvents={backgroundEvents}
-                    view={view}
+                <ResolvedView
+                    selection={{
+                        component: ViewComponent,
+                        defaultProps: defaultViewProps,
+                        viewProps,
+                        name: view
+                    }}
+                    localization={{ locale, formatters, messages }}
+                    input={{ sharedProps, events, backgroundEvents }}
                 />
             </Suspense>
         </div>

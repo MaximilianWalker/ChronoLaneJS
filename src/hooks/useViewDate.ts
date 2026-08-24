@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { asCalendarDate } from "../core/date.js";
 import type { CalendarDateInput } from "../types.js";
 
-interface UseCalendarViewDateOptions {
+interface UseViewDateOptions {
     date?: CalendarDateInput;
     defaultDate?: CalendarDateInput;
     timeZone?: string;
@@ -22,12 +22,12 @@ interface UseCalendarViewDateOptions {
  * @param options - Controlled value, initial values, time zone, and change callback.
  * @returns The normalized anchor date and a setter that respects controlled mode.
  */
-export const useCalendarViewDate = ({
+export const useViewDate = ({
     date: controlledDate,
     defaultDate,
     timeZone,
     onDateChange
-}: UseCalendarViewDateOptions): {
+}: UseViewDateOptions): {
     anchorDate: Date;
     setDate: (date: CalendarDateInput) => void;
 } => {

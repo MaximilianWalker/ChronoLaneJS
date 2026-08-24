@@ -11,7 +11,9 @@ import type { CSSProperties } from 'react';
 import type { ElementType } from 'react';
 import type { HTMLAttributes } from 'react';
 import { JSX } from 'react';
+import type { KeyboardEvent as KeyboardEvent_2 } from 'react';
 import type { Locale } from 'date-fns';
+import type { MouseEvent as MouseEvent_2 } from 'react';
 import type { ReactElement } from 'react';
 import type { ReactNode } from 'react';
 import type { SyntheticEvent } from 'react';
@@ -57,7 +59,7 @@ export interface AgendaEventProps<Event extends CalendarEvent = CalendarEvent> {
 export function AgendaView<Event extends CalendarEvent = CalendarEvent>(input: AgendaViewProps<Event>): JSX.Element;
 
 // @public (undocumented)
-export interface AgendaViewProps<Event extends CalendarEvent = CalendarEvent> extends SharedViewProps<Event> {
+export interface AgendaViewProps<Event extends CalendarEvent = CalendarEvent> extends SharedViewProps<Event, never> {
     // (undocumented)
     components?: AgendaComponents<Event>;
     // (undocumented)
@@ -73,10 +75,10 @@ export function asCalendarDate(value: CalendarDateInput, timeZone?: string): Dat
 function Calendar<Event extends CalendarEvent = CalendarEvent, Resource = unknown, Views extends CalendarViewRegistry | undefined = undefined>(input: CalendarProps<Event, Resource, Views>): ReactElement;
 export default Calendar;
 
-// Warning: (ae-forgotten-export) The symbol "CalendarBuiltInViewProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "BuiltInViewProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type CalendarBuiltInView = keyof CalendarBuiltInViewProps;
+export type CalendarBuiltInView = keyof BuiltInViewProps;
 
 // @public
 export interface CalendarComponents {
@@ -153,6 +155,28 @@ export interface CalendarEvent {
 export type CalendarEventId = string | number;
 
 // @public
+export interface CalendarEventInteractionContext<Resource = unknown> {
+    // (undocumented)
+    occurrence: CalendarEventOccurrence<Resource>;
+    // (undocumented)
+    view: string;
+}
+
+// @public
+export interface CalendarEventInteractions<Event extends CalendarEvent = CalendarEvent, Resource = unknown> {
+    // (undocumented)
+    ariaKeyShortcuts?: string | ((event: NormalizedCalendarEvent<Event>, context: CalendarEventInteractionContext<Resource>) => string | undefined);
+    // (undocumented)
+    onClick?: (event: NormalizedCalendarEvent<Event>, interaction: MouseEvent_2<HTMLElement>, context: CalendarEventInteractionContext<Resource>) => void;
+    // (undocumented)
+    onContextMenu?: (event: NormalizedCalendarEvent<Event>, interaction: MouseEvent_2<HTMLElement>, context: CalendarEventInteractionContext<Resource>) => void;
+    // (undocumented)
+    onDoubleClick?: (event: NormalizedCalendarEvent<Event>, interaction: MouseEvent_2<HTMLElement>, context: CalendarEventInteractionContext<Resource>) => void;
+    // (undocumented)
+    onKeyDown?: (event: NormalizedCalendarEvent<Event>, interaction: KeyboardEvent_2<HTMLElement>, context: CalendarEventInteractionContext<Resource>) => void;
+}
+
+// @public
 export interface CalendarEventMessageContext extends CalendarMessageContext {
     // (undocumented)
     description?: string;
@@ -164,6 +188,44 @@ export interface CalendarEventMessageContext extends CalendarMessageContext {
     startDate: string;
     // (undocumented)
     startTime: string;
+    // (undocumented)
+    title?: string;
+}
+
+// @public
+export interface CalendarEventMoveHandleMessageContext extends CalendarMessageContext {
+    // (undocumented)
+    title?: string;
+}
+
+// @public
+export interface CalendarEventMoveTargetMessageContext extends CalendarEventMoveHandleMessageContext {
+    // (undocumented)
+    date: string;
+    // (undocumented)
+    resource?: string;
+    // (undocumented)
+    time: string;
+}
+
+// @public
+export interface CalendarEventOccurrence<Resource = unknown> {
+    // (undocumented)
+    day: Date;
+    // (undocumented)
+    resource: Resource | null;
+    // (undocumented)
+    resourceId: CalendarResourceId | null;
+}
+
+// @public
+export interface CalendarEventResizeHandleMessageContext extends CalendarMessageContext {
+    // (undocumented)
+    date: string;
+    // (undocumented)
+    edge: "start" | "end";
+    // (undocumented)
+    time: string;
     // (undocumented)
     title?: string;
 }
@@ -209,9 +271,17 @@ export interface CalendarMessages {
     // (undocumented)
     eventLabel: (context: CalendarEventMessageContext) => string;
     // (undocumented)
+    eventMoveHandle: (context: CalendarEventMoveHandleMessageContext) => string;
+    // (undocumented)
+    eventMoveTarget: (context: CalendarEventMoveTargetMessageContext) => string;
+    // (undocumented)
+    eventResizeHandle: (context: CalendarEventResizeHandleMessageContext) => string;
+    // (undocumented)
     monthGridLabel: (context: CalendarMessageContext) => string;
     // (undocumented)
     moreEvents: (context: CalendarMoreEventsMessageContext) => string;
+    // (undocumented)
+    multiDayRegionLabel: (context: CalendarMessageContext) => string;
     // (undocumented)
     next: (context: CalendarNavigationMessageContext) => string;
     // (undocumented)
@@ -251,11 +321,11 @@ export interface CalendarNavigationMessageContext extends CalendarMessageContext
 export type CalendarPixelSize = `${number}px`;
 
 // Warning: (ae-forgotten-export) The symbol "StrictUnion" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "CalendarBuiltInProps" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "CalendarCustomProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "BuiltInProps" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "CustomProps" needs to be exported by the entry point index.d.ts
 //
 // @public
-export type CalendarProps<Event extends CalendarEvent = CalendarEvent, Resource = unknown, Views extends CalendarViewRegistry | undefined = undefined> = StrictUnion<CalendarBuiltInProps<Event, Resource>> | (Views extends CalendarViewRegistry ? StrictUnion<CalendarCustomProps<Event, Views>> : never);
+export type CalendarProps<Event extends CalendarEvent = CalendarEvent, Resource = unknown, Views extends CalendarViewRegistry | undefined = undefined> = StrictUnion<BuiltInProps<Event, Resource>> | (Views extends CalendarViewRegistry ? StrictUnion<CustomProps<Event, Resource, Views>> : never);
 
 // @public (undocumented)
 export interface CalendarRange {
@@ -361,7 +431,7 @@ export interface CalendarViewDefinition<Component extends ElementType = ElementT
 // Warning: (ae-forgotten-export) The symbol "ViewProps" needs to be exported by the entry point index.d.ts
 //
 // @public
-export type CalendarViewProps<View extends CalendarBuiltInView, Event extends CalendarEvent = CalendarEvent, Resource = unknown> = ViewProps<CalendarBuiltInViewProps<Event, Resource>[View]>;
+export type CalendarViewProps<View extends CalendarBuiltInView, Event extends CalendarEvent = CalendarEvent, Resource = unknown> = ViewProps<BuiltInViewProps<Event, Resource>[View]>;
 
 // @public
 export type CalendarViewRegistration = ElementType | CalendarViewDefinition;
@@ -426,7 +496,7 @@ export interface MonthEventProps<Event extends CalendarEvent = CalendarEvent> {
 export function MonthView<Event extends CalendarEvent = CalendarEvent>(input: MonthViewProps<Event>): JSX.Element;
 
 // @public (undocumented)
-export interface MonthViewProps<Event extends CalendarEvent = CalendarEvent> extends SharedViewProps<Event> {
+export interface MonthViewProps<Event extends CalendarEvent = CalendarEvent> extends SharedViewProps<Event, never> {
     // (undocumented)
     components?: MonthComponents<Event>;
     // (undocumented)
@@ -473,17 +543,21 @@ export interface ResolvedCalendarRange extends CalendarRange {
 }
 
 // @public (undocumented)
-export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
+export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent, Resource = unknown> {
     // (undocumented)
     backgroundEvents?: Event[];
     // (undocumented)
-    canEditEvent?: (event: NormalizedCalendarEvent<Event>) => boolean;
+    canOpenEvent?: (event: NormalizedCalendarEvent<Event>, context: CalendarEventInteractionContext<Resource>) => boolean;
+    // (undocumented)
+    canSelectEvent?: (event: NormalizedCalendarEvent<Event>, context: CalendarEventInteractionContext<Resource>) => boolean;
     // (undocumented)
     className?: string;
     // (undocumented)
     date?: CalendarDateInput;
     // (undocumented)
     defaultDate?: CalendarDateInput;
+    // (undocumented)
+    eventInteractions?: CalendarEventInteractions<Event, Resource>;
     // (undocumented)
     events?: Event[];
     // (undocumented)
@@ -499,9 +573,9 @@ export interface SharedViewProps<Event extends CalendarEvent = CalendarEvent> {
     // (undocumented)
     onDateChange?: (date: Date) => void;
     // (undocumented)
-    onEventEdit?: (event: NormalizedCalendarEvent<Event>, interaction: SyntheticEvent) => void;
+    onEventOpen?: (event: NormalizedCalendarEvent<Event>, interaction: SyntheticEvent, context: CalendarEventInteractionContext<Resource>) => void;
     // (undocumented)
-    onEventSelect?: (event: NormalizedCalendarEvent<Event>, interaction: SyntheticEvent) => void;
+    onEventSelect?: (event: NormalizedCalendarEvent<Event>, interaction: SyntheticEvent, context: CalendarEventInteractionContext<Resource>) => void;
     // (undocumented)
     onRangeChange?: (range: CalendarRange) => void;
     // (undocumented)
@@ -563,19 +637,19 @@ export interface TimeGridDayHeaderProps<Resource = unknown> {
 // @public
 export interface TimeGridEventDrop<Event extends CalendarEvent = CalendarEvent, Resource = unknown> {
     // (undocumented)
-    destination: TimeGridEventDropPosition<Resource>;
+    destination: TimeGridEventPosition<Resource>;
     // (undocumented)
     end: Date;
     // (undocumented)
     event: NormalizedCalendarEvent<Event>;
     // (undocumented)
-    source: TimeGridEventDropPosition<Resource>;
+    source: TimeGridEventPosition<Resource>;
     // (undocumented)
     start: Date;
 }
 
 // @public
-export interface TimeGridEventDropPosition<Resource = unknown> {
+export interface TimeGridEventPosition<Resource = unknown> {
     // (undocumented)
     day: Date;
     // (undocumented)
@@ -597,11 +671,30 @@ export interface TimeGridEventProps<Event extends CalendarEvent = CalendarEvent,
 }
 
 // @public
+export interface TimeGridEventResize<Event extends CalendarEvent = CalendarEvent, Resource = unknown> {
+    // (undocumented)
+    edge: TimeGridEventResizeEdge;
+    // (undocumented)
+    end: Date;
+    // (undocumented)
+    event: NormalizedCalendarEvent<Event>;
+    // (undocumented)
+    source: TimeGridEventPosition<Resource>;
+    // (undocumented)
+    start: Date;
+}
+
+// @public
+export type TimeGridEventResizeEdge = "start" | "end";
+
+// @public
 export interface TimeGridEventSegment<Resource = unknown> {
     // (undocumented)
     day: Date;
     // (undocumented)
     end: Date;
+    // (undocumented)
+    layout: TimeGridMultiDayEventLayout;
     // (undocumented)
     resource: Resource | null;
     // (undocumented)
@@ -612,6 +705,9 @@ export interface TimeGridEventSegment<Resource = unknown> {
 
 // @public
 export type TimeGridGroupBy = "day" | "resource";
+
+// @public
+export type TimeGridMultiDayEventLayout = "timed" | "dedicated";
 
 // @public (undocumented)
 export interface TimeGridResourceHeaderProps<Resource = unknown> {
@@ -651,19 +747,29 @@ export interface TimeGridSlotProps<Resource = unknown> {
     slot: TimeGridSlot<Resource>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "TimeGridSlotWidth" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "TimeGridSlotHeight" needs to be exported by the entry point index.d.ts
-//
 // @public
-export type TimeGridSlotSizing = TimeGridSlotWidth & TimeGridSlotHeight;
+export type TimeGridSlotSizing = ({
+    width?: number;
+    minWidth?: never;
+} | {
+    width?: never;
+    minWidth?: number;
+}) & ({
+    height?: number;
+    minHeight?: never;
+} | {
+    height?: never;
+    minHeight?: number;
+});
 
 // @public
 export function TimeGridView<Event extends CalendarEvent = CalendarEvent, Resource = unknown>(input: TimeGridViewProps<Event, Resource>): JSX.Element;
 
 // @public (undocumented)
-export interface TimeGridViewProps<Event extends CalendarEvent = CalendarEvent, Resource = unknown> extends SharedViewProps<Event> {
-    // (undocumented)
+export interface TimeGridViewProps<Event extends CalendarEvent = CalendarEvent, Resource = unknown> extends SharedViewProps<Event, Resource> {
     canDragEvent?: (event: NormalizedCalendarEvent<Event>, segment: TimeGridEventSegment<Resource>) => boolean;
+    // (undocumented)
+    canResizeEvent?: (event: NormalizedCalendarEvent<Event>, segment: TimeGridEventSegment<Resource>, edge: TimeGridEventResizeEdge) => boolean;
     // (undocumented)
     components?: TimeGridComponents<Event, Resource>;
     // (undocumented)
@@ -674,12 +780,15 @@ export interface TimeGridViewProps<Event extends CalendarEvent = CalendarEvent, 
     maxTime?: TimeOfDay | "24:00";
     // (undocumented)
     minTime?: TimeOfDay;
-    // (undocumented)
+    multiDayEventLayout?: TimeGridMultiDayEventLayout;
     onEventDrop?: (change: TimeGridEventDrop<Event, Resource>) => void;
+    // (undocumented)
+    onEventResize?: (change: TimeGridEventResize<Event, Resource>) => void;
     // (undocumented)
     onSlotSelect?: (slot: TimeGridSlot<Resource>, interaction: SyntheticEvent) => void;
     // (undocumented)
     range?: CalendarRangeDefinition;
+    resizeStep?: number;
     // (undocumented)
     resources?: CalendarResourceConfig<Event, Resource>;
     // (undocumented)
@@ -708,7 +817,7 @@ export function WeekView<Event extends CalendarEvent = CalendarEvent, Resource =
 
 // Warnings were encountered during analysis:
 //
-// src/types.ts:142:9 - (ae-forgotten-export) The symbol "CalendarRangeBoundary" needs to be exported by the entry point index.d.ts
+// src/types.ts:188:9 - (ae-forgotten-export) The symbol "CalendarRangeBoundary" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
