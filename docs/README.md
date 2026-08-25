@@ -31,8 +31,9 @@ integrations.
 
 ## Look up a contract
 
-The [TypeScript API](./api.md) documents every exported component, prop,
-callback, renderer payload, type, function, default, and thrown error.
+The [TypeScript API reference](./api.md) links to focused pages for every
+exported component, prop, callback, renderer payload, type, function, default,
+and thrown error.
 
 ## Upgrade and release history
 

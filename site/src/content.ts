@@ -1,6 +1,11 @@
 import changelog from "../../CHANGELOG.md?raw";
 import accessibility from "../../docs/accessibility.md?raw";
 import api from "../../docs/api.md?raw";
+import apiCalendarViews from "../../docs/api/calendar-and-views.md?raw";
+import apiEventsResourcesRanges from "../../docs/api/events-resources-ranges.md?raw";
+import apiInteractionsCallbacks from "../../docs/api/interactions-callbacks.md?raw";
+import apiLocalizationUtilities from "../../docs/api/localization-utilities.md?raw";
+import apiRendererContracts from "../../docs/api/renderer-contracts.md?raw";
 import frameworkIntegration from "../../docs/framework-integration.md?raw";
 import gettingStarted from "../../docs/getting-started.md?raw";
 import interactions from "../../docs/interactions.md?raw";
@@ -32,6 +37,11 @@ const sources: Record<DocumentId, string> = {
     resources,
     "time-zones": timeZones,
     api,
+    "api-calendar-views": apiCalendarViews,
+    "api-events-resources-ranges": apiEventsResourcesRanges,
+    "api-interactions-callbacks": apiInteractionsCallbacks,
+    "api-renderer-contracts": apiRendererContracts,
+    "api-localization-utilities": apiLocalizationUtilities,
     styling,
     renderers,
     "framework-integration": frameworkIntegration,

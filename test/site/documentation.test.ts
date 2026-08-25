@@ -55,6 +55,10 @@ test("parses document routes without treating heading anchors as document change
 test("matches crawlable document paths beneath development and production bases", () => {
     assert.equal(findDocumentByPath("/docs/api/", "/")?.id, "api");
     assert.equal(
+        findDocumentByPath("/docs/api/renderer-contracts/", "/")?.id,
+        "api-renderer-contracts"
+    );
+    assert.equal(
         findDocumentByPath("/ChronoLaneJS/docs/migrations/v2/", "/ChronoLaneJS/")?.id,
         "migration-v2"
     );
@@ -83,7 +87,12 @@ test("organizes documentation around reader tasks", () => {
             "Guides: Styling and theming",
             "Guides: Custom renderers",
             "Guides: Accessibility",
-            "Reference: TypeScript API",
+            "Reference: API overview",
+            "Reference: Calendar and views",
+            "Reference: Events, resources, and ranges",
+            "Reference: Interactions and callbacks",
+            "Reference: Renderer contracts",
+            "Reference: Localization and utilities",
             "Releases: Upgrade to v2",
             "Releases: Changelog",
             "Project: About ChronoLaneJS",

@@ -118,4 +118,4 @@ Keep these rules:
 Use [Styling and theming](./styling.md) when markup can remain unchanged. Review
 [Accessibility](./accessibility.md#custom-renderer-responsibilities) before
 shipping any renderer replacement, and use the
-[renderer API](./api.md#renderer-contracts) for exact payload types.
+[renderer contracts](./api/renderer-contracts.md) for exact payload types.

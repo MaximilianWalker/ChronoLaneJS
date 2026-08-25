@@ -2,6 +2,8 @@
 
 This guide establishes the data and state contracts used by every built-in
 view. See the [API reference](./api.md) for every prop and exported type.
+Examples use TypeScript and TSX as the canonical format. JavaScript consumers
+use the same runtime API without type imports, interfaces, or generic arguments.
 
 ## Install
 
@@ -72,6 +74,33 @@ export function Schedule() {
                 resizeStep: 15,
                 labelInterval: 60
             }}
+        />
+    );
+}
+```
+
+### JavaScript quick start
+
+The equivalent JavaScript setup uses the same event shape and component props:
+
+```jsx
+import Calendar from "@chronolanejs/react";
+import "@chronolanejs/react/styles.css";
+
+const meetings = [{
+    id: "planning",
+    title: "Planning",
+    start: "2026-09-14T09:00:00",
+    end: "2026-09-14T10:15:00"
+}];
+
+export function Schedule() {
+    return (
+        <Calendar
+            events={meetings}
+            defaultDate="2026-09-14"
+            timeZone="UTC"
+            viewProps={{ minTime: "08:00", maxTime: "18:00" }}
         />
     );
 }

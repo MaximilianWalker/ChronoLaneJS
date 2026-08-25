@@ -5,10 +5,16 @@ import { dirname, extname, resolve } from "node:path";
 
 import ts from "typescript";
 
+import { documentDefinitions } from "../site/src/documentManifest.js";
+
 const repositoryRoot = resolve(import.meta.dirname, "..");
-const apiPath = resolve(repositoryRoot, "docs/api.md");
 const publicEntryPath = resolve(repositoryRoot, "src/index.ts");
-const apiSource = await readFile(apiPath, "utf8");
+const apiPaths = documentDefinitions
+    .filter(({ category }) => category === "Reference")
+    .map(({ githubPath }) => githubPath);
+const apiSource = (await Promise.all(apiPaths.map((path) => (
+    readFile(resolve(repositoryRoot, path), "utf8")
+)))).join("\n");
 
 const markerValues = (name: "api" | "props"): string[] => Array.from(
     apiSource.matchAll(new RegExp(`<!-- ${name}:[^>]+-->`, "g")),
@@ -44,7 +50,7 @@ const undocumentedExports = publicExports.filter((name) => !documentedExports.ha
 assert.deepEqual(
     undocumentedExports,
     [],
-    `docs/api.md is missing public exports: ${undocumentedExports.join(", ")}`
+    `Reference documentation is missing public exports: ${undocumentedExports.join(", ")}`
 );
 const staleExports = [...documentedExports]
     .filter((name) => !publicExportNames.has(name))
@@ -52,7 +58,7 @@ const staleExports = [...documentedExports]
 assert.deepEqual(
     staleExports,
     [],
-    `docs/api.md documents non-public exports: ${staleExports.join(", ")}`
+    `Reference documentation includes non-public exports: ${staleExports.join(", ")}`
 );
 
 const publicProperties = new Set<string>();
@@ -77,7 +83,7 @@ const undocumentedProps = [...publicProperties]
 assert.deepEqual(
     undocumentedProps,
     [],
-    `docs/api.md is missing public properties: ${undocumentedProps.join(", ")}`
+    `Reference documentation is missing public properties: ${undocumentedProps.join(", ")}`
 );
 const staleProps = [...documentedProps]
     .filter((property) => !publicProperties.has(property))
@@ -85,7 +91,7 @@ const staleProps = [...documentedProps]
 assert.deepEqual(
     staleProps,
     [],
-    `docs/api.md documents non-public properties: ${staleProps.join(", ")}`
+    `Reference documentation includes non-public properties: ${staleProps.join(", ")}`
 );
 
 const findMarkdownFiles = async (

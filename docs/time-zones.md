@@ -106,5 +106,6 @@ Test application-specific schedules in every supported zone, including both
 DST boundaries and fractional offsets. The Storybook locale/time-zone toolbar
 and daylight-saving story provide deterministic inspection surfaces.
 
-See [TypeScript API](./api.md#date-helpers) for date helper contracts and
+See [Localization and utilities](./api/localization-utilities.md#date-functions)
+for date helper contracts and
 [Accessibility](./accessibility.md) for localized accessible-name requirements.

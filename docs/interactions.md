@@ -127,5 +127,6 @@ for each rendered occurrence. Use `segment.day`, `segment.resource`, and
 never expose movement or resize controls.
 
 See [Accessibility](./accessibility.md#event-movement-behavior) for the complete
-keyboard contract and [TypeScript API](./api.md#time-grid-view-props) for the
-callback payloads.
+keyboard contract, [Calendar and views](./api/calendar-and-views.md#dayview-weekview-and-timegridview)
+for callback props, and [Interactions and callbacks](./api/interactions-callbacks.md)
+for their payloads.

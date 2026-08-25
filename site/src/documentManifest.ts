@@ -5,6 +5,11 @@ export type DocumentId =
     | "resources"
     | "time-zones"
     | "api"
+    | "api-calendar-views"
+    | "api-events-resources-ranges"
+    | "api-interactions-callbacks"
+    | "api-renderer-contracts"
+    | "api-localization-utilities"
     | "styling"
     | "renderers"
     | "framework-integration"
@@ -112,11 +117,56 @@ export const documentDefinitions: readonly DocumentDefinition[] = [
     {
         id: "api",
         category: "Reference",
-        label: "TypeScript API",
-        metaDescription: "Complete ChronoLaneJS React calendar API reference covering components, props, callbacks, renderers, TypeScript types, defaults, payloads, and errors.",
+        label: "API overview",
+        metaDescription: "ChronoLaneJS TypeScript API reference index for calendar components, views, events, resources, callbacks, renderers, localization, utilities, and errors.",
         title: "React Calendar API Reference — ChronoLaneJS",
         route: "docs/api/",
         githubPath: "docs/api.md"
+    },
+    {
+        id: "api-calendar-views",
+        category: "Reference",
+        label: "Calendar and views",
+        metaDescription: "ChronoLaneJS TypeScript reference for the Calendar component, shared props, built-in React calendar views, navigation boundaries, and custom views.",
+        title: "Calendar Components and Views API — ChronoLaneJS",
+        route: "docs/api/calendar-views/",
+        githubPath: "docs/api/calendar-and-views.md"
+    },
+    {
+        id: "api-events-resources-ranges",
+        category: "Reference",
+        label: "Events, resources, and ranges",
+        metaDescription: "ChronoLaneJS TypeScript reference for calendar events, resource scheduling configuration, selection ranges, and visible calendar ranges.",
+        title: "Events, Resources, and Ranges API — ChronoLaneJS",
+        route: "docs/api/events-resources-ranges/",
+        githubPath: "docs/api/events-resources-ranges.md"
+    },
+    {
+        id: "api-interactions-callbacks",
+        category: "Reference",
+        label: "Interactions and callbacks",
+        metaDescription: "ChronoLaneJS TypeScript reference for time-grid occurrences, event movement, event resizing, and callback payloads.",
+        title: "Calendar Interactions and Callbacks API — ChronoLaneJS",
+        route: "docs/api/interactions-callbacks/",
+        githubPath: "docs/api/interactions-callbacks.md"
+    },
+    {
+        id: "api-renderer-contracts",
+        category: "Reference",
+        label: "Renderer contracts",
+        metaDescription: "ChronoLaneJS TypeScript reference for custom calendar renderer extension points, element props, and view-specific renderer payloads.",
+        title: "Custom Renderer Contracts API — ChronoLaneJS",
+        route: "docs/api/renderer-contracts/",
+        githubPath: "docs/api/renderer-contracts.md"
+    },
+    {
+        id: "api-localization-utilities",
+        category: "Reference",
+        label: "Localization and utilities",
+        metaDescription: "ChronoLaneJS TypeScript reference for locales, formatters, messages, date and range helpers, and public errors.",
+        title: "Localization and Utility APIs — ChronoLaneJS",
+        route: "docs/api/localization-utilities/",
+        githubPath: "docs/api/localization-utilities.md"
     },
     {
         id: "migration-v2",

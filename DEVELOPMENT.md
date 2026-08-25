@@ -76,8 +76,9 @@ The GitHub Pages website renders `README.md`, `ROADMAP.md`, `SECURITY.md`, and
 every file under `docs/` directly, so update the canonical Markdown instead of
 adding site-only documentation. `DEVELOPMENT.md` remains the internal
 maintainer runbook and must not be added to the public document manifest.
-Public exports and props must be present in `docs/api.md`; `npm run docs:check`
-rejects both missing and stale export or prop entries. `npm run site:build`
+Public exports and props must be present in the `Reference` documentation;
+`npm run docs:check` rejects both missing and stale export or prop entries.
+`npm run site:build`
 prerenders the homepage and each document at the stable route declared in
 `site/src/documentManifest.ts`, adds route-specific search metadata, and
 generates `sitemap.xml`; do not add fragment-routed documents or hand-maintained
