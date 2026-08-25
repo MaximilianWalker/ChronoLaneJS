@@ -10,13 +10,28 @@ release notes.
 
 ## [Unreleased]
 
-### Documentation
+## [2.1.0] - 2026-08-25
 
+### Added
+
+- Published every documentation page at a stable, crawlable URL with
+  prerendered content, canonical metadata, and sitemap coverage.
 - Added focused, illustrated guides for event movement and resizing, resource
   scheduling, time zones and localization, custom renderers, accessibility,
   and Vite and Next.js integration.
+
+### Changed
+
+- Reorganized the documentation around reader tasks and split the TypeScript
+  API reference into focused component, data, interaction, renderer, and
+  localization references.
 - Aligned the website, repository, package manifest, and release description on
   the open-source React and TypeScript calendar and scheduler category.
+
+### Fixed
+
+- Improved built-in view accessibility with explicit month-grid ownership,
+  accessible month-day controls, and forced-color focus and selection states.
 
 ## [2.0.0] - 2026-08-24
 
@@ -113,7 +128,8 @@ See [Migrating from v1 to v2](./docs/migrations/v2.md) before upgrading.
 
 - First public release candidate of ChronoLaneJS under npm's `next` tag.
 
-[Unreleased]: https://github.com/MaximilianWalker/ChronoLaneJS/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/MaximilianWalker/ChronoLaneJS/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/MaximilianWalker/ChronoLaneJS/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/MaximilianWalker/ChronoLaneJS/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/MaximilianWalker/ChronoLaneJS/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/MaximilianWalker/ChronoLaneJS/releases/tag/v1.0.0
