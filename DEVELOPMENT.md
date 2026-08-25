@@ -118,8 +118,8 @@ indexable. The homepage was submitted to the priority crawl queue.
 
 The sitemap was submitted on 2026-08-25. Its initial report remained
 `Couldn't fetch` while unprocessed, but the exact sitemap URL passed Google's
-live fetch test and independently returned a valid 21-URL `application/xml`
-document. Treat that initial state as processing latency unless a later crawl
+live fetch test and independently returned a valid `application/xml` document.
+Treat that initial state as processing latency unless a later crawl
 reports a specific access or parsing error. Recheck the Sitemaps report after
 each release; investigate if the status persists after Google's retry window.
 The repository-side metadata and sitemap checks remain automated.
