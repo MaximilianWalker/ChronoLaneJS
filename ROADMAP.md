@@ -5,7 +5,7 @@ ChronoLaneJS can be considered stable. GitHub issues may be created for
 individual work items, but they should reference the identifier here rather
 than becoming a second roadmap.
 
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-25
 
 ## Tracking rules
 
@@ -342,18 +342,18 @@ Last reviewed: 2026-08-24
     time so their primary content does not depend on client-side rendering.
   - Make direct requests to every public path return its content on GitHub
     Pages, and connect documents with ordinary crawlable links.
-- [ ] **[P1][WEB-02] Establish Google discovery and indexing infrastructure.**
+- [x] **[P1][WEB-02] Establish Google discovery and indexing infrastructure.**
   - [x] Publish a root `sitemap.xml` containing fully qualified canonical URLs for
     the homepage and every public document. Reference it from the host-root
     `robots.txt` when a project-owned domain or controllable GitHub Pages user
     site makes that file available; a project-path robots file is not valid.
   - [x] Add a canonical URL, unique title, specific description, and matching Open
     Graph URL to every generated page.
-  - [ ] Verify the exact GitHub Pages URL-prefix property in Google Search Console,
+  - [x] Verify the exact GitHub Pages URL-prefix property in Google Search Console,
     submit the sitemap, inspect representative URLs, and record or resolve all
     reported discovery, rendering, canonicalization, and indexing problems. The
-    exact owner procedure and current pending state are recorded in
-    `DEVELOPMENT.md`.
+    2026-08-25 inspection result and the initial sitemap-processing state are
+    recorded in `DEVELOPMENT.md`.
 - [x] **[P1][WEB-03] Make the library's search intent explicit.**
   - Describe ChronoLaneJS consistently as an open-source React and TypeScript
     calendar and scheduler across the website, GitHub repository, npm package,
