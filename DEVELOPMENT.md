@@ -111,8 +111,18 @@ the site deploys. Use this exact release procedure:
    canonicalization, or indexing problem in the relevant roadmap item. Request
    indexing after resolving a problem; submission does not guarantee indexing.
 
-Account verification and sitemap submission are pending as of 2026-08-24. The
-repository-side metadata and sitemap checks are automated.
+The URL-prefix property was verified and inspected on 2026-08-25. The homepage,
+`/docs/`, `/docs/getting-started/`, `/docs/api/`, `/docs/api/calendar-views/`,
+and `/docs/accessibility/` all passed Google's live test as available and
+indexable. The homepage was submitted to the priority crawl queue.
+
+The sitemap was submitted on 2026-08-25. Its initial report remained
+`Couldn't fetch` while unprocessed, but the exact sitemap URL passed Google's
+live fetch test and independently returned a valid `application/xml` document.
+Treat that initial state as processing latency unless a later crawl
+reports a specific access or parsing error. Recheck the Sitemaps report after
+each release; investigate if the status persists after Google's retry window.
+The repository-side metadata and sitemap checks remain automated.
 
 Consumer documentation must describe current behavior rather than intended
 future behavior. Keep the API reference exhaustive, examples on the public API,
