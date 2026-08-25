@@ -92,3 +92,9 @@
         transition: none;
     }
 }
+
+@media (forced-colors: active) {
+    .calendar-view_navigation-button:focus-visible {
+        outline-color: Highlight;
+    }
+}

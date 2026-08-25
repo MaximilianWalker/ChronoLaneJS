@@ -26,5 +26,5 @@ exports, declarations, CSS, the client directive, lazy locales, server
 rendering, and tree shaking before production-building Vite and Next.js.
 
 The canonical explanations and excerpts are in the
-[examples guide](../docs/examples.md), which is also published on the GitHub
-Pages documentation site.
+[Vite and Next.js integration guide](../docs/framework-integration.md), which
+is also published on the GitHub Pages documentation site.

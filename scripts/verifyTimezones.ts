@@ -1,6 +1,12 @@
 import { spawnSync } from "node:child_process";
 
-const timeZones = ["America/New_York", "Asia/Tokyo"];
+const timeZones = [
+    "Pacific/Honolulu",
+    "America/New_York",
+    "Europe/Lisbon",
+    "Asia/Kathmandu",
+    "Asia/Tokyo"
+];
 
 for (const timeZone of timeZones) {
     const result = spawnSync(

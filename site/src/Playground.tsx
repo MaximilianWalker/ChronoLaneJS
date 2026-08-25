@@ -181,7 +181,11 @@ const customRange = {
     navigation: { stepDays: 7 }
 };
 
-export default function Playground() {
+interface PlaygroundProps {
+    baseUrl: string;
+}
+
+export default function Playground({ baseUrl }: PlaygroundProps) {
     const [view, setView] = useState<PlaygroundView>("week");
     const [resourceGroupBy, setResourceGroupBy] = useState<TimeGridGroupBy>("day");
     const [selectedEventIds, setSelectedEventIds] = useState<CalendarEventId[]>([]);
@@ -351,7 +355,7 @@ export default function Playground() {
                         <span className="status-dot" aria-hidden="true" />
                         Live component
                     </span>
-                    <a href={`${import.meta.env.BASE_URL}storybook/`}>
+                    <a href={`${baseUrl}storybook/`}>
                         Explore every scenario in Storybook <span aria-hidden="true">↗</span>
                     </a>
                 </div>

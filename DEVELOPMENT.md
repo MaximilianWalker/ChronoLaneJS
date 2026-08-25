@@ -1,7 +1,8 @@
 # ChronoLaneJS development guide
 
-This guide defines the coding, documentation, validation, and release standards
-for repository development.
+This maintainer-only guide defines the coding, documentation, validation, and
+release standards for repository development. It is intentionally excluded
+from the public documentation navigation.
 
 ## Development
 
@@ -43,12 +44,85 @@ rather than disabling the global checks. Run `npm run storybook` for interactive
 development, `npm run storybook:test` for the Chromium and Firefox suites, and
 `npm run storybook:build` to verify the deployable catalog.
 
-The GitHub Pages website renders `README.md`, `DEVELOPMENT.md`, `ROADMAP.md`,
-`SECURITY.md`, and every file under `docs/` directly, so update the canonical
-Markdown instead of adding site-only documentation. Public exports and props
-must be present in `docs/api.md`; `npm run docs:check` rejects both missing and
-stale export or prop entries. The built package runtime is also checked against
-an exact export allowlist so implementation helpers cannot appear silently.
+### Accessibility release audit
+
+Use the five stories under `Scenarios/Accessibility Audit` as the canonical
+manual surfaces for day, week, month, agenda, and custom time-grid views. Every
+release pass must run `npm run check:storybook` first, then inspect each story
+with the same event data and complete this matrix:
+
+| Check | Required pass |
+| --- | --- |
+| Screen-reader names | Inspect the accessibility tree for the view, navigation, dates, slots, events, and edit controls; names must include the visible date, time, and resource context. |
+| Keyboard and focus | Traverse the complete surface without a pointer; focus must stay visible, follow the documented order, and never become trapped. |
+| Forced colors | Enable the operating system or browser forced-colors mode; controls, selected state, event boundaries, and focus must remain perceivable. |
+| Zoom | Test at 200% and 400%; content may scroll but must not overlap, clip required controls, or create a two-axis keyboard trap. |
+| Reduced width | Test at 390 CSS pixels; navigation and agenda/month content must reflow, while time grids retain usable native scrolling. |
+
+Record the browser, operating system, assistive technology or accessibility-tree
+inspector, date, and any findings in the release or roadmap change that closes
+the audit. Do not mark the audit complete from axe results alone.
+
+The first complete pass was recorded on 2026-08-24 on Windows with Chromium's
+accessibility semantics inspection. All five canonical stories exposed complete
+navigation, grid, date, slot, and event names; keyboard focus remained visible;
+the forced-colors focus and selection rules were present; and the layouts
+remained usable at 390- and 320-CSS-pixel layout widths, representing the
+reflow constraints created by 200% and 400% zoom on common desktop viewports.
+
+## Documentation
+
+The GitHub Pages website renders `README.md`, `ROADMAP.md`, `SECURITY.md`, and
+every file under `docs/` directly, so update the canonical Markdown instead of
+adding site-only documentation. `DEVELOPMENT.md` remains the internal
+maintainer runbook and must not be added to the public document manifest.
+Public exports and props must be present in the `Reference` documentation;
+`npm run docs:check` rejects both missing and stale export or prop entries.
+`npm run site:build`
+prerenders the homepage and each document at the stable route declared in
+`site/src/documentManifest.ts`, adds route-specific search metadata, and
+generates `sitemap.xml`; do not add fragment-routed documents or hand-maintained
+HTML copies. The built package runtime is also checked against an exact export
+allowlist so implementation helpers cannot appear silently.
+
+### Search indexing operations
+
+`npm run site:build` runs `site:verify` after prerendering. The verifier requires
+one unique canonical URL per public page, matching title, description, Open
+Graph URL, server-rendered content, and exact sitemap coverage. It also rejects
+a project-path `robots.txt`: GitHub Pages serves this project below
+`github.io/ChronoLaneJS/`, while robots rules only apply from the host root.
+
+Google Search Console is an owner-operated service and must be checked after
+the site deploys. Use this exact release procedure:
+
+1. Select or create the URL-prefix property
+   `https://maximilianwalker.github.io/ChronoLaneJS/`, including the protocol,
+   repository path, and trailing slash.
+2. Confirm ownership remains verified. Keep any Google-provided verification
+   file or meta value exactly as issued; do not record account data or tokens in
+   this guide.
+3. Submit `https://maximilianwalker.github.io/ChronoLaneJS/sitemap.xml` in the
+   Sitemaps report and resolve any fetch or parsing error.
+4. Inspect the homepage, `/docs/`, `/docs/getting-started/`, `/docs/api/`, and
+   `/docs/accessibility/`. Test the live URL and confirm that Google sees the
+   rendered content, the declared canonical, and an indexable page.
+5. Record the inspection date and every discovery, rendering,
+   canonicalization, or indexing problem in the relevant roadmap item. Request
+   indexing after resolving a problem; submission does not guarantee indexing.
+
+Account verification and sitemap submission are pending as of 2026-08-24. The
+repository-side metadata and sitemap checks are automated.
+
+Consumer documentation must describe current behavior rather than intended
+future behavior. Keep the API reference exhaustive, examples on the public API,
+styling guidance limited to stable hooks, and accessibility guidance explicit
+about both supported behavior and known gaps. Every major release must include
+a complete versioned migration guide, and the changelog must record curated
+consumer-visible changes.
+
+## Verification
+
 Runnable Vite and Next.js integrations live under `examples/` as independent
 consumer packages. `npm run check` validates the publishable root package;
 `npm run examples:check` packs one artifact, installs that exact tarball into

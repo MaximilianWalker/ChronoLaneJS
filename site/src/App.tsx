@@ -2,7 +2,6 @@ import {
     CoffeeIcon,
     Footer,
     Header,
-    REPOSITORY_URL,
     SUPPORT_URL
 } from "./Chrome.js";
 import Playground from "./Playground.js";
@@ -10,12 +9,16 @@ import Playground from "./Playground.js";
 const PORTFOLIO_URL = "https://diogocrava.dev";
 const LINKEDIN_URL = "https://www.linkedin.com/in/diogo-crava/";
 
-export default function App() {
+interface AppProps {
+    baseUrl: string;
+}
+
+export default function App({ baseUrl }: AppProps) {
     return (
         <div className="site-shell">
             <a className="skip-link" href="#main">Skip to content</a>
 
-            <Header activePage="home" />
+            <Header activePage="home" baseUrl={baseUrl} />
 
             <main id="main">
                 <section className="hero section" id="top">
@@ -25,26 +28,27 @@ export default function App() {
                             Open source · MIT licensed
                         </div>
                         <h1>
-                            A modern calendar,
-                            <span> built for React.</span>
+                            ChronoLaneJS
+                            <span> React calendar and scheduler.</span>
                         </h1>
                         <p className="hero-summary">
-                            Build day, week, month, agenda, and custom time-grid
-                            views with resource columns and timezone-aware behavior.
+                            An open-source React and TypeScript calendar and scheduler
+                            with accessible views, resource scheduling, event drag and
+                            resize interactions, and time-zone-aware behavior.
                         </p>
                         <div className="hero-actions">
                             <a className="button button--primary" href="#playground">
                                 Try the playground
                                 <span aria-hidden="true">↓</span>
                             </a>
-                            <a className="button button--secondary" href={`${import.meta.env.BASE_URL}docs/`}>
+                            <a className="button button--secondary" href={`${baseUrl}docs/`}>
                                 Read the docs
                             </a>
                         </div>
                         <div className="install-command" aria-label="Installation command">
                             <span aria-hidden="true">$</span>
                             <code>npm install @chronolanejs/react</code>
-                            <span className="command-note">First release in progress</span>
+                            <span className="command-note">Stable release available</span>
                         </div>
                     </div>
 
@@ -106,7 +110,7 @@ export default function App() {
                     <div><strong>0</strong><span>State assumptions</span></div>
                 </section>
 
-                <Playground />
+                <Playground baseUrl={baseUrl} />
 
                 <section className="principles section" aria-labelledby="principles-title">
                     <div className="section-heading">
@@ -141,26 +145,41 @@ export default function App() {
                     </div>
                 </section>
 
-                <section className="brand-showcase section" aria-labelledby="brand-showcase-title">
-                    <img
-                        src={`${import.meta.env.BASE_URL}og.png`}
-                        alt="ChronoLaneJS — A modern, timezone-aware calendar for React."
-                        loading="lazy"
-                    />
-                    <div className="brand-showcase-copy">
-                        <p className="eyebrow">Open source by design</p>
-                        <h2 id="brand-showcase-title">Ready for real schedules.</h2>
+                <section className="docs-cta section" aria-labelledby="docs-cta-title">
+                    <div className="docs-cta-copy">
+                        <p className="eyebrow">Documentation</p>
+                        <h2 id="docs-cta-title">Build on a clear calendar model.</h2>
                         <p>
-                            Start with the built-in views, then customize
-                            interactions and rendering for your product.
+                            Start with a guided integration, then use the complete
+                            API and customization references as the implementation grows.
                         </p>
-                        <div className="hero-actions">
-                            <a className="button button--primary" href={REPOSITORY_URL} target="_blank" rel="noreferrer">
-                                View on GitHub <span aria-hidden="true">↗</span>
-                            </a>
-                            <a className="button button--secondary" href={`${import.meta.env.BASE_URL}docs/`}>Read the docs</a>
-                        </div>
                     </div>
+                    <nav className="docs-cta-links" aria-label="Documentation starting points">
+                        <a href={`${baseUrl}docs/getting-started/`}>
+                            <span>01</span>
+                            <span>
+                                <strong>Getting started</strong>
+                                <small>Install, model events, and connect application state.</small>
+                            </span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                        <a href={`${baseUrl}docs/api/`}>
+                            <span>02</span>
+                            <span>
+                                <strong>API reference</strong>
+                                <small>Components, props, callbacks, renderers, and types.</small>
+                            </span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                        <a href={`${baseUrl}docs/`}>
+                            <span>03</span>
+                            <span>
+                                <strong>Browse all guides</strong>
+                                <small>Interactions, resources, time zones, renderers, and accessibility.</small>
+                            </span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                    </nav>
                 </section>
 
                 <section className="author-section section" id="author" aria-labelledby="author-title">
@@ -170,7 +189,7 @@ export default function App() {
                         <div className="author-orbit author-orbit--inner" />
                         <div className="author-portrait-frame">
                             <img
-                                src={`${import.meta.env.BASE_URL}diogo-crava.png`}
+                                src={`${baseUrl}diogo-crava.png`}
                                 alt=""
                                 loading="lazy"
                             />
@@ -228,7 +247,7 @@ export default function App() {
                 </section>
             </main>
 
-            <Footer />
+            <Footer baseUrl={baseUrl} />
         </div>
     );
 }

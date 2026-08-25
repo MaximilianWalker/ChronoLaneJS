@@ -69,6 +69,19 @@ const asDateFnsLocale = (locale: unknown): Locale => {
     return locale;
 };
 
+export const loadCalendarLocaleModule = async (
+    name: string,
+    loader: () => Promise<unknown>
+): Promise<Locale> => {
+    try {
+        return asDateFnsLocale(await loader());
+    } catch (error) {
+        throw new Error(`Failed to load calendar locale "${name}".`, {
+            cause: error
+        });
+    }
+};
+
 /**
  * Resolves a BCP 47-style locale name to a registered date-fns locale module.
  *
@@ -166,18 +179,13 @@ export const loadCalendarLocale = (
     if (!loader) {
         throw new RangeError(`Calendar locale "${normalizedLocale}" is not supported by date-fns.`);
     }
-    const promise = loader()
-        .then(asDateFnsLocale)
+    const promise = loadCalendarLocaleModule(normalizedLocale, loader)
         .then((dateFnsLocale) => {
             loadedLocales.set(normalizedLocale, dateFnsLocale);
-            pendingLocales.delete(normalizedLocale);
             return dateFnsLocale;
         })
-        .catch((error) => {
+        .finally(() => {
             pendingLocales.delete(normalizedLocale);
-            throw new Error(`Failed to load calendar locale "${normalizedLocale}".`, {
-                cause: error
-            });
         });
     pendingLocales.set(normalizedLocale, promise);
     return promise;

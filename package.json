@@ -1,7 +1,7 @@
 {
   "name": "@chronolanejs/react",
   "version": "0.1.0-rc.0",
-  "description": "A modern, timezone-aware calendar for React.",
+  "description": "An open-source React and TypeScript calendar and scheduler with accessible views, resources, event interactions, and timezone support.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -19,11 +19,14 @@
   "keywords": [
     "calendar",
     "date-fns",
+    "event-calendar",
     "react",
+    "react-calendar",
     "resource-calendar",
     "scheduler",
     "time-grid",
-    "timezone"
+    "timezone",
+    "typescript"
   ],
   "files": [
     "assets/chronolane-logo.png",
@@ -76,8 +79,9 @@
     "storybook:test:watch": "vitest --project=storybook",
     "check:storybook": "npm run types:check:storybook && npm run storybook:test && npm run storybook:build",
     "site": "vite --config vite.site.config.ts",
-    "site:build": "tsc -p tsconfig.site.json && vite build --config vite.site.config.ts",
+    "site:build": "tsc -p tsconfig.site.json && vite build --config vite.site.config.ts && tsx --tsconfig tsconfig.site.json scripts/generateSite.ts && npm run site:verify",
     "site:bundle": "npm run site:build && storybook build --output-dir site-dist/storybook",
+    "site:verify": "tsx --tsconfig tsconfig.site.json scripts/verifySite.ts",
     "site:preview": "vite preview --config vite.site.config.ts"
   },
   "peerDependencies": {
@@ -110,20 +114,24 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.4",
     "eslint-plugin-storybook": "^10.5.7",
+    "github-slugger": "^2.0.0",
     "globals": "^17.9.0",
     "playwright": "^1.62.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
     "rehype-raw": "^7.0.0",
     "rehype-sanitize": "^6.0.0",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
     "semantic-release": "^25.0.9",
     "storybook": "^10.5.7",
     "tsx": "^4.23.12",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.67.0",
+    "unified": "^11.0.5",
     "vite": "^8.2.1",
     "vitest": "^4.1.10"
   },

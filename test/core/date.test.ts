@@ -46,3 +46,86 @@ test('zoned dates retain their calendar fields when normalized again', () => {
     assert.equal(normalized.getTime(), nextWeek.getTime());
     assert.equal(format(normalized, 'yyyy-MM-dd'), '2026-09-21');
 });
+
+test('absolute timestamps resolve across positive, negative, and fractional offsets', () => {
+    const timestamp = Date.UTC(2026, 8, 14, 12);
+    const results = [
+        'Pacific/Honolulu',
+        'America/New_York',
+        'Europe/Lisbon',
+        'Asia/Kathmandu',
+        'Pacific/Auckland'
+    ].map((timeZone) => ({
+        timeZone,
+        value: format(
+            calendarDateFromTimestamp(timestamp, timeZone),
+            'yyyy-MM-dd HH:mm XXX'
+        )
+    }));
+
+    assert.deepEqual(results, [
+        { timeZone: 'Pacific/Honolulu', value: '2026-09-14 02:00 -10:00' },
+        { timeZone: 'America/New_York', value: '2026-09-14 08:00 -04:00' },
+        { timeZone: 'Europe/Lisbon', value: '2026-09-14 13:00 +01:00' },
+        { timeZone: 'Asia/Kathmandu', value: '2026-09-14 17:45 +05:45' },
+        { timeZone: 'Pacific/Auckland', value: '2026-09-15 00:00 +12:00' }
+    ]);
+});
+
+test('absolute timestamps expose both sides of daylight-saving boundaries', () => {
+    const boundaries = [
+        {
+            timeZone: 'America/New_York',
+            before: '2026-03-08T06:30:00Z',
+            after: '2026-03-08T07:30:00Z'
+        },
+        {
+            timeZone: 'America/New_York',
+            before: '2026-11-01T05:30:00Z',
+            after: '2026-11-01T06:30:00Z'
+        },
+        {
+            timeZone: 'Europe/Lisbon',
+            before: '2026-03-29T00:30:00Z',
+            after: '2026-03-29T01:30:00Z'
+        },
+        {
+            timeZone: 'Europe/Lisbon',
+            before: '2026-10-25T00:30:00Z',
+            after: '2026-10-25T01:30:00Z'
+        }
+    ].map(({ timeZone, before, after }) => ({
+        timeZone,
+        before: format(
+            calendarDateFromTimestamp(Date.parse(before), timeZone),
+            'yyyy-MM-dd HH:mm XXX'
+        ),
+        after: format(
+            calendarDateFromTimestamp(Date.parse(after), timeZone),
+            'yyyy-MM-dd HH:mm XXX'
+        )
+    }));
+
+    assert.deepEqual(boundaries, [
+        {
+            timeZone: 'America/New_York',
+            before: '2026-03-08 01:30 -05:00',
+            after: '2026-03-08 03:30 -04:00'
+        },
+        {
+            timeZone: 'America/New_York',
+            before: '2026-11-01 01:30 -04:00',
+            after: '2026-11-01 01:30 -05:00'
+        },
+        {
+            timeZone: 'Europe/Lisbon',
+            before: '2026-03-29 00:30 Z',
+            after: '2026-03-29 02:30 +01:00'
+        },
+        {
+            timeZone: 'Europe/Lisbon',
+            before: '2026-10-25 01:30 +01:00',
+            after: '2026-10-25 01:30 Z'
+        }
+    ]);
+});

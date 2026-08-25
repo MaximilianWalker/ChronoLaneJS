@@ -241,10 +241,11 @@ Last reviewed: 2026-08-24
     and keyboard input without changing event select/open gestures.
   - Complete proposals preview immediately, announce their date, time, and
     resource, and invoke `onEventDrop` once when committed.
-- [ ] **[P1][A11Y-03] Audit every built-in view with assistive technology.**
-  - Keep automated axe checks.
-  - Add a documented manual pass for screen-reader names, focus visibility,
-    high contrast, zoom, and reduced viewport widths.
+- [x] **[P1][A11Y-03] Audit every built-in view with assistive technology.**
+  - Automated axe checks and named Storybook audit surfaces cover day, week,
+    month, agenda, and custom time-grid views.
+  - The maintainer release audit records screen-reader names, focus visibility,
+    forced colors, 200%/400% zoom, and reduced-width behavior.
 - [ ] **[P2][I18N-03] Add right-to-left layout support.**
   - Define time-gutter, navigation, event-lane, and resource-column behavior
     for RTL documents.
@@ -284,9 +285,11 @@ Last reviewed: 2026-08-24
   - Install the packed artifact into representative Vite and Next.js apps.
   - Verify ESM exports, declarations, CSS, the client directive, lazy locales,
     SSR import safety, and tree shaking.
-- [ ] **[P1][TEST-08] Expand timezone and locale scenarios.**
-  - Cover multiple positive and negative UTC offsets, DST boundaries,
-    locale-specific week starts, 12/24-hour conventions, and lazy-load errors.
+- [x] **[P1][TEST-08] Expand timezone and locale scenarios.**
+  - Configured-zone and host-timezone matrices cover multiple positive,
+    negative, and fractional UTC offsets plus Lisbon and New York DST changes.
+  - Locale tests cover Sunday, Monday, and Saturday week starts, 12/24-hour
+    clocks, and rejected or malformed lazy-loaded locale modules.
 - [ ] **[P2][TEST-09] Add visual regression coverage.**
   - Use deterministic Storybook screenshots for overlap, clipping, responsive
     widths, custom themes, and RTL.
@@ -321,16 +324,85 @@ Last reviewed: 2026-08-24
 - [ ] **[P2][DOC-06] Document deliberate non-goals.**
   - Decide and document ownership of recurrence expansion, persistence,
     fetching, application state, and design-system styling.
+- [x] **[P1][DOC-07] Organize the documentation site around reader tasks.**
+  - Replace the promotional documentation masthead with direct access to each
+    document, grouped navigation, a mobile disclosure, breadcrumbs, and a
+    generated page outline.
+  - Move the documentation campaign to the homepage, use reader-oriented page
+    names, and keep maintainer-only repository rules out of the public
+    documentation navigation.
+
+## Website discovery and search
+
+- [x] **[P1][WEB-01] Publish every document at a crawlable URL.**
+  - Replace fragment-selected documents such as `/docs/#doc-api` with stable
+    paths such as `/docs/api/`, `/docs/accessibility/`,
+    `/docs/migrations/v2/`, and `/docs/changelog/`.
+  - Generate meaningful HTML for the homepage and every document at build
+    time so their primary content does not depend on client-side rendering.
+  - Make direct requests to every public path return its content on GitHub
+    Pages, and connect documents with ordinary crawlable links.
+- [ ] **[P1][WEB-02] Establish Google discovery and indexing infrastructure.**
+  - [x] Publish a root `sitemap.xml` containing fully qualified canonical URLs for
+    the homepage and every public document. Reference it from the host-root
+    `robots.txt` when a project-owned domain or controllable GitHub Pages user
+    site makes that file available; a project-path robots file is not valid.
+  - [x] Add a canonical URL, unique title, specific description, and matching Open
+    Graph URL to every generated page.
+  - [ ] Verify the exact GitHub Pages URL-prefix property in Google Search Console,
+    submit the sitemap, inspect representative URLs, and record or resolve all
+    reported discovery, rendering, canonicalization, and indexing problems. The
+    exact owner procedure and current pending state are recorded in
+    `DEVELOPMENT.md`.
+- [x] **[P1][WEB-03] Make the library's search intent explicit.**
+  - Describe ChronoLaneJS consistently as an open-source React and TypeScript
+    calendar and scheduler across the website, GitHub repository, npm package,
+    release pages, and README files.
+  - Give core capabilities dedicated pages with complete examples and
+    screenshots, including drag and resize interactions, resource scheduling,
+    time-zone handling, accessibility, custom renderers, TypeScript APIs, and
+    framework integration.
+  - Use capability-specific page titles and descriptions based on concrete
+    developer queries rather than broad terms such as "modern calendar".
+  - Add accurate `SoftwareSourceCode` structured data for the repository,
+    package, license, programming language, supported runtime, and current
+    release without treating structured data as a guaranteed rich result.
+- [ ] **[P2][WEB-04] Strengthen GitHub and npm package discovery.**
+  - Audit the GitHub description and topics and the npm description, keywords,
+    homepage, repository, and README opening for the exact project name and
+    its principal React calendar use cases.
+  - Cross-link the website, repository, npm package, documentation, changelog,
+    migration guides, and GitHub releases with stable public URLs.
+  - Keep version, installation, compatibility, and release information
+    consistent so search engines can associate those surfaces with one
+    project rather than several incomplete descriptions.
+- [ ] **[P2][WEB-05] Build legitimate external authority.**
+  - Publish substantial technical demonstrations for the library's distinctive
+    capabilities and link readers to the most relevant permanent guide rather
+    than only the homepage.
+  - Seek inclusion in maintained React and open-source directories, examples,
+    and community resources where the library is genuinely relevant.
+  - Encourage public adopters and integrations to reference the repository or
+    documentation without manufacturing links or duplicating promotional
+    content across sites.
+- [ ] **[P2][WEB-06] Measure search visibility and decide long-term site identity.**
+  - Track sitemap coverage, indexed URLs, crawl and rendering problems, search
+    queries, impressions, and clicks in Search Console after each release.
+  - Treat visibility of the official website, GitHub repository, and npm
+    package for the exact `ChronoLaneJS` query as the initial discovery
+    baseline; measure capability-query growth separately as a longer-term goal.
+  - Evaluate a project-owned domain for durable URLs and stronger branding,
+    including redirect, canonical, and Search Console migration requirements,
+    without treating a domain change as a substitute for crawlable content or
+    external authority.
 
 ## Repository and maintenance
 
-- [x] **[P1][REPO-01] Add issue and pull-request templates.**
+- [x] **[P1][REPO-01] Add structured issue templates.**
   - Structured bug and feature forms capture reproduction or use-case details,
     browser/time-zone/locale considerations, accessibility impact, verification
     expectations, and the relevant roadmap identifier.
-  - The pull-request template records issue and roadmap tracking, compatibility
-    impact, tests, Storybook coverage, and validation results. Security reports
-    are directed to the private vulnerability-reporting form.
+  - Security reports are directed to the private vulnerability-reporting form.
 - [x] **[P1][REPO-02] Automate dependency maintenance.**
   - Weekly Dependabot updates cover the root package, locked Vite and Next.js
     consumers, and pinned GitHub Actions; routine minor/patch updates are

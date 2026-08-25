@@ -1,16 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Markdown, { type Components } from "react-markdown";
 
-import {
-    documents,
-    isDocumentId,
-    type DocumentId
-} from "./content.js";
+import type { DocumentSource } from "./content.js";
+import type { DocumentCategory, DocumentId } from "./documentManifest.js";
 import { REPOSITORY_URL } from "./Chrome.js";
-import { parseDocumentLocation } from "./documentRouting.js";
-import { markdownRehypePlugins, markdownRemarkPlugins } from "./markdown.js";
-
-const getDocumentLocation = () => parseDocumentLocation(window.location.hash, isDocumentId);
+import { createDocumentHref } from "./documentRouting.js";
+import {
+    createDocumentOutline,
+    markdownRehypePlugins,
+    markdownRemarkPlugins
+} from "./markdown.js";
 
 const resolveRepositoryPath = (currentPath: string, href: string): string => {
     const currentDirectory = currentPath.includes("/")
@@ -21,13 +20,62 @@ const resolveRepositoryPath = (currentPath: string, href: string): string => {
         .replace(/^\//, "");
 };
 
-export default function Docs() {
-    const [activeId, setActiveId] = useState<DocumentId>(() => (
-        getDocumentLocation()?.id ?? "documentation"
-    ));
+interface DocsProps {
+    activeId: DocumentId;
+    baseUrl: string;
+    documents: readonly DocumentSource[];
+}
+
+interface DocumentGroup {
+    category: DocumentCategory;
+    documents: DocumentSource[];
+}
+
+const groupDocuments = (documents: readonly DocumentSource[]): readonly DocumentGroup[] => {
+    const groups: DocumentGroup[] = [];
+
+    for (const document of documents) {
+        const currentGroup = groups.at(-1);
+        if (currentGroup?.category === document.category) {
+            currentGroup.documents.push(document);
+        } else {
+            groups.push({ category: document.category, documents: [document] });
+        }
+    }
+
+    return groups;
+};
+
+export default function Docs({ activeId, baseUrl, documents }: DocsProps) {
     const activeDocument = documents.find(({ id }) => id === activeId) ?? documents[0]!;
+    const documentGroups = groupDocuments(documents);
+    const outline = useMemo(
+        () => createDocumentOutline(activeDocument.source),
+        [activeDocument.source]
+    );
+    const documentNavigation = documentGroups.map((group) => (
+        <details
+            className="docs-nav-group"
+            key={group.category}
+            open={group.documents.some(({ id }) => id === activeId)}
+        >
+            <summary>{group.category}</summary>
+            <div className="docs-nav-links">
+                {group.documents.map((document) => (
+                    <a
+                        className={`docs-nav-link${activeId === document.id ? " is-active" : ""}`}
+                        key={document.id}
+                        href={createDocumentHref(baseUrl, document)}
+                        aria-current={activeId === document.id ? "page" : undefined}
+                    >
+                        {document.label}
+                    </a>
+                ))}
+            </div>
+        </details>
+    ));
     const markdownComponents = useMemo<Components>(() => ({
-        a: ({ href, children, ...props }) => {
+        a: ({ href, children, node: _node, ...props }) => {
             if (!href) return <a {...props}>{children}</a>;
             if (/^[a-z][a-z\d+.-]*:/i.test(href)) {
                 const opensNewTab = /^https?:/i.test(href);
@@ -54,7 +102,7 @@ export default function Docs() {
                 return (
                     <a
                         {...props}
-                        href={`#doc-${document.id}${anchor ? `/${anchor}` : ""}`}
+                        href={createDocumentHref(baseUrl, document, anchor)}
                     >
                         {children}
                     </a>
@@ -73,58 +121,64 @@ export default function Docs() {
                     {children}
                 </a>
             );
+        },
+        img: ({ src, alt, node: _node, ...props }) => {
+            if (!src || /^[a-z][a-z\d+.-]*:/i.test(src)) {
+                return <img {...props} src={src} alt={alt ?? ""} />;
+            }
+
+            const repositoryPath = resolveRepositoryPath(activeDocument.githubPath, src);
+            const publicPath = repositoryPath.startsWith("assets/")
+                ? repositoryPath.slice("assets/".length)
+                : repositoryPath;
+            return (
+                <img
+                    {...props}
+                    src={`${baseUrl}${publicPath}`}
+                    alt={alt ?? ""}
+                    loading="lazy"
+                />
+            );
         }
-    }), [activeDocument.githubPath]);
-
-    useEffect(() => {
-        const syncFromHash = () => {
-            const location = getDocumentLocation();
-            if (!location) return;
-
-            setActiveId(location.id);
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                document.getElementById(location.anchor ?? "document")?.scrollIntoView();
-            }));
-        };
-        window.addEventListener("hashchange", syncFromHash);
-        syncFromHash();
-        return () => window.removeEventListener("hashchange", syncFromHash);
-    }, []);
+    }), [activeDocument.githubPath, baseUrl, documents]);
 
     return (
         <section className="docs-section" aria-label="Repository documentation">
             <div className="docs-shell">
-                <aside className="docs-nav" aria-label="Documentation pages">
-                    <div className="docs-nav-heading">
-                        <span>Library docs</span>
-                        <span className="docs-live-dot">Live source</span>
-                    </div>
-                    {documents.map((document, index) => (
-                        <div key={document.id} className="docs-nav-entry">
-                            {(index === 0 || documents[index - 1]?.category !== document.category) && (
-                                <h2>{document.category}</h2>
-                            )}
-                            <a
-                                className={`docs-nav-link${activeId === document.id ? " is-active" : ""}`}
-                                href={`#doc-${document.id}`}
-                                aria-current={activeId === document.id ? "page" : undefined}
-                            >
-                                <strong>{document.label}</strong>
-                                <span>{document.description}</span>
-                            </a>
-                        </div>
-                    ))}
+                <aside className="docs-nav">
+                    <nav
+                        className="docs-nav-groups docs-nav-groups--desktop"
+                        aria-label="Documentation pages"
+                    >
+                        {documentNavigation}
+                    </nav>
+                    <details className="docs-nav-disclosure">
+                        <summary>
+                            <span>Documentation</span>{" "}
+                            <strong>{activeDocument.label}</strong>
+                        </summary>
+                        <nav
+                            className="docs-nav-groups docs-nav-groups--mobile"
+                            aria-label="Documentation pages"
+                        >
+                            {documentNavigation}
+                        </nav>
+                    </details>
                 </aside>
 
                 <article className="markdown-document" id="document">
-                    <div className="markdown-source-bar">
-                        <span>{activeDocument.githubPath}</span>
+                    <div className="docs-toolbar">
+                        <nav className="docs-breadcrumb" aria-label="Breadcrumb">
+                            <a href={`${baseUrl}docs/`}>Docs</a>
+                            <span aria-hidden="true">/</span>
+                            <span aria-current="page">{activeDocument.label}</span>
+                        </nav>
                         <a
                             href={`${REPOSITORY_URL}/blob/main/${activeDocument.githubPath}`}
                             target="_blank"
                             rel="noreferrer"
                         >
-                            Edit on GitHub <span aria-hidden="true">↗</span>
+                            View on GitHub <span aria-hidden="true">↗</span>
                         </a>
                     </div>
                     <Markdown
@@ -135,6 +189,21 @@ export default function Docs() {
                         {activeDocument.source}
                     </Markdown>
                 </article>
+
+                {outline.length > 1 ? (
+                    <aside className="docs-outline" aria-label="On this page">
+                        <p>On this page</p>
+                        <nav>
+                            <ol>
+                                {outline.map((item) => (
+                                    <li className={`docs-outline-level-${item.level}`} key={item.id}>
+                                        <a href={`#${item.id}`}>{item.label}</a>
+                                    </li>
+                                ))}
+                            </ol>
+                        </nav>
+                    </aside>
+                ) : null}
             </div>
         </section>
     );

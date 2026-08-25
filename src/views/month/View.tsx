@@ -199,10 +199,11 @@ export default function View<Event extends CalendarEvent = CalendarEvent>({
             )}
             <div
                 className="month-view_grid-wrapper calendar-scroll-region"
+                role="grid"
                 aria-label={messages.monthGridLabel({ view: viewName })}
                 tabIndex={0}
             >
-                <div className="month-view_grid" role="grid">
+                <div className="month-view_grid">
                     <div className="month-view_weekdays" role="row">
                         {layout.weekdayHeaders.map(({ key, day }) => (
                             <div

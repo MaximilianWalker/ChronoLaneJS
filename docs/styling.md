@@ -211,32 +211,13 @@ Example:
 }
 ```
 
-## Custom renderer boundary
+## Renderer-owned markup
 
-Use `components` when presentation requires different markup. A renderer must
-spread its `elementProps` to preserve geometry, labels, focus, event handlers,
-and drag behavior:
-
-```tsx
-function EventRenderer({ event, selected, elementProps }: TimeGridEventProps<Meeting>) {
-    const interactive = Boolean(elementProps.onClick || elementProps.onDoubleClick);
-    const Root = interactive ? "button" : "div";
-
-    return (
-        <Root
-            {...elementProps}
-            type={interactive ? "button" : undefined}
-            className={`${elementProps.className} product-event`}
-            aria-pressed={interactive ? selected : undefined}
-        >
-            <span className="product-event__title">{event.title}</span>
-        </Root>
-    );
-}
-```
-
-See the [renderer API](./api.md#renderer-contracts) and
-[accessibility responsibilities](./accessibility.md#custom-renderer-responsibilities).
+Use a renderer when presentation requires different markup rather than another
+CSS rule. The [Custom renderers](./renderers.md) guide provides a complete typed
+example, all supported boundaries, and the root-attribute contract. Review the
+[accessibility responsibilities](./accessibility.md#custom-renderer-responsibilities)
+before replacing an interactive event or slot.
 
 ## Responsive behavior
 

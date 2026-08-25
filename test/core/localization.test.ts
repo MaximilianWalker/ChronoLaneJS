@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { enUS } from "date-fns/locale/en-US";
+import { enGB } from "date-fns/locale/en-GB";
+import { ja } from "date-fns/locale/ja";
 import { pt } from "date-fns/locale/pt";
 
 import {
@@ -13,14 +15,17 @@ const date = new Date(2026, 8, 14, 13, 5);
 const range = { start: date, end: date, days: [date] };
 
 test("default time formatting follows locale clock conventions", () => {
-    assert.equal(
-        defaultCalendarFormatters.time(date, { locale: enUS, view: "day" }),
-        "1:05 PM"
-    );
-    assert.equal(
-        defaultCalendarFormatters.time(date, { locale: pt, view: "day" }),
-        "13:05"
-    );
+    assert.deepEqual([
+        [enUS.code, defaultCalendarFormatters.time(date, { locale: enUS, view: "day" })],
+        [enGB.code, defaultCalendarFormatters.time(date, { locale: enGB, view: "day" })],
+        [pt.code, defaultCalendarFormatters.time(date, { locale: pt, view: "day" })],
+        [ja.code, defaultCalendarFormatters.time(date, { locale: ja, view: "day" })]
+    ], [
+        ["en-US", "1:05 PM"],
+        ["en-GB", "13:05"],
+        ["pt", "13:05"],
+        ["ja", "13:05"]
+    ]);
 });
 
 test("default date headings use the active locale and view", () => {

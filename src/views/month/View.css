@@ -95,6 +95,21 @@
         inset 0 0 0 2px rgba(37, 99, 235, 0.58);
 }
 
+@media (forced-colors: active) {
+    .month-view_day-button:focus-visible,
+    .month-view_more:focus-visible,
+    .month-view_event:focus-visible {
+        outline: 2px solid Highlight;
+        outline-offset: -2px;
+    }
+
+    .month-view_day.is-selected,
+    .month-view_event.is-selected {
+        outline: 1px solid Highlight;
+        outline-offset: -1px;
+    }
+}
+
 .month-view_background-event {
     position: absolute;
     inset: 0;

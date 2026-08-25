@@ -5,7 +5,7 @@
 <h1 align="center">ChronoLaneJS</h1>
 
 <p align="center">
-  <strong>A modern, timezone-aware calendar for React.</strong>
+  <strong>An open-source React and TypeScript calendar and scheduler.</strong>
 </p>
 
 <p align="center">
@@ -32,16 +32,15 @@
   <a href="#core-concepts">Core concepts</a>
   &middot;
   <a href="./ROADMAP.md">Roadmap</a>
-  &middot;
-  <a href="./DEVELOPMENT.md">Development</a>
 </p>
 
 ---
 
-ChronoLaneJS is a customizable React calendar with day, week, month, agenda,
-and custom time-grid views. It provides timezone-aware date handling,
-range navigation, event layout, interactions, and accessible defaults while
-keeping state management and persistence outside the component.
+ChronoLaneJS is an open-source React and TypeScript calendar and scheduler with
+day, week, month, agenda, and custom time-grid views. It provides resource
+scheduling, timezone-aware date handling, range navigation, event layout,
+selection, movement, resizing, and accessible defaults while keeping state
+management and persistence outside the component.
 
 > [!NOTE]
 > `@chronolanejs/react` is published on npm through a provenance-enabled trusted
@@ -78,6 +77,14 @@ every public customization point, including:
 
 Use Storybook's toolbar to change the locale, IANA timezone, and viewport. The
 website and full catalog are rebuilt and deployed together from `main`.
+
+Focused guides cover [event drag and resize](./docs/interactions.md),
+[resource scheduling](./docs/resources.md),
+[time zones and localization](./docs/time-zones.md),
+[custom renderers](./docs/renderers.md),
+[Vite and Next.js](./docs/framework-integration.md),
+[accessibility](./docs/accessibility.md), and the complete
+[TypeScript API](./docs/api.md).
 
 ## Installation
 
@@ -508,10 +515,14 @@ The complete consumer documentation is organized as GitHub-native Markdown and
 rendered from the same files on the project site:
 
 - [Getting started](./docs/getting-started.md)
-- [Complete API reference](./docs/api.md)
+- [Drag and resize events](./docs/interactions.md)
+- [Resource scheduling](./docs/resources.md)
+- [Time zones and locales](./docs/time-zones.md)
+- [Vite and Next.js integration](./docs/framework-integration.md)
 - [Styling and theming](./docs/styling.md)
-- [Runnable examples](./docs/examples.md)
+- [Custom renderers](./docs/renderers.md)
 - [Accessibility](./docs/accessibility.md)
+- [Complete TypeScript API](./docs/api.md)
 - [Migrating from v1 to v2](./docs/migrations/v2.md)
 - [Changelog](./CHANGELOG.md)
 
@@ -551,35 +562,6 @@ build target. Supported browsers require native ES modules, `Intl.Locale`, and
 ChronoLaneJS does not ship polyfills; older browsers and runtimes with
 incomplete internationalization data are unsupported.
 
-## Development
-
-Requires a supported Node.js version from the matrix above.
-
-```bash
-npm ci
-npm run check
-npm run examples:check
-npm run check:storybook
-npm pack --dry-run
-```
-
-Useful focused commands:
-
-| Command | Purpose |
-| --- | --- |
-| `npm run site` | Run the project website and compact playground |
-| `npm run site:build` | Build the GitHub Pages website |
-| `npm run storybook` | Run the exhaustive component catalog |
-| `npm run storybook:test` | Execute every story in Chromium and Firefox |
-| `npm run storybook:build` | Build the deployable static catalog |
-| `npm run examples:check` | Pack one artifact, install it into clean Vite and Next.js consumers, and verify both production builds |
-| `npm run locales:generate` | Regenerate date-fns locale loaders |
-| `npm run locales:check` | Verify the generated locale registry |
-
-GitHub Actions validates the package, packed-artifact consumers, and Storybook
-as independent boundaries. Releases use npm trusted publishing with
-provenance.
-
 ## Author
 
 **[Diogo Marques Crava](https://diogocrava.dev)**
@@ -587,6 +569,10 @@ provenance.
 - Website: [diogocrava.dev](https://diogocrava.dev)
 - GitHub: [@MaximilianWalker](https://github.com/MaximilianWalker)
 - LinkedIn: [Diogo Crava](https://www.linkedin.com/in/diogo-crava/)
+
+ChronoLaneJS is designed, developed, and maintained by its author as a solo
+project. Bug reports and feature requests are welcome through GitHub Issues;
+external pull requests are not part of the project workflow.
 
 Feel free to contact me through any of the platforms above.
 

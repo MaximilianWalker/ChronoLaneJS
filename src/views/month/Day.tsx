@@ -45,12 +45,13 @@ export default function Day<Event extends CalendarEvent>({
         backgroundEvents,
         hiddenEventCount
     } = entry;
+    const dateLabel = text.formatters.date(day, text.context);
 
     return (
         <div
             className={className}
             role="gridcell"
-            aria-label={text.formatters.date(day, text.context)}
+            aria-label={dateLabel}
         >
             {backgroundEvents.map(({ key, event }) => (
                 <div
@@ -63,6 +64,7 @@ export default function Day<Event extends CalendarEvent>({
                 type="button"
                 className="month-view_day-button"
                 disabled={!onSelect}
+                aria-label={dateLabel}
                 onClick={onSelect
                     ? (interaction) => onSelect(day, interaction)
                     : undefined}
