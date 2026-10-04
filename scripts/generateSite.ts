@@ -66,6 +66,7 @@ const applyHomeMetadata = (html: string): string => replaceMetadata(
         ["__HOME_SOCIAL_TITLE__", siteMetadata.socialTitle],
         ["__HOME_DESCRIPTION__", siteMetadata.description],
         ["__HOME_SOCIAL_DESCRIPTION__", siteMetadata.socialDescription],
+        ["__GOOGLE_SITE_VERIFICATION__", siteMetadata.googleSiteVerification],
         ["__CURRENT_RELEASE__", siteMetadata.currentRelease],
         ["__HOME_URL__", siteMetadata.url]
     ]),

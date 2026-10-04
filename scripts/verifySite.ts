@@ -83,6 +83,12 @@ await verifyPage("index.html", {
 });
 
 const homepage = await readFile(resolve(outputRoot, "index.html"), "utf8");
+assertMetadata(
+    readElements(homepage, "meta"),
+    { name: "google-site-verification" },
+    siteMetadata.googleSiteVerification,
+    "index.html"
+);
 const structuredDataBlocks = Array.from(
     homepage.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g),
     ([, source]) => JSON.parse(source!) as { "@graph"?: readonly Record<string, unknown>[] }
