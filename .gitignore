@@ -1,4 +1,5 @@
 coverage/
+.vitest/
 dist/
 .next/
 node_modules/

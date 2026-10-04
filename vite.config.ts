@@ -44,6 +44,10 @@ export default defineConfig({
         sourcemap: true
     },
     test: {
+        api: {
+            port: 62102,
+            strictPort: false
+        },
         projects: [{
             extends: true,
             plugins: [storybookTest({
@@ -52,10 +56,6 @@ export default defineConfig({
             test: {
                 name: "storybook",
                 browser: {
-                    api: {
-                        port: 62102,
-                        strictPort: false
-                    },
                     enabled: true,
                     headless: true,
                     provider: playwright({}),
