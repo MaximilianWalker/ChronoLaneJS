@@ -1,0 +1,23 @@
+name: Release
+
+# Release PRs into main must come from this repository's dev branch.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the dev branch of this repository
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REF" != "dev" ] || [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "::error::Pull requests into the release branch must come from this repository's dev branch (got $HEAD_REPO:$HEAD_REF)."
+            exit 1
+          fi
+          echo "Release PR from dev: OK"

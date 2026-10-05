@@ -259,14 +259,15 @@ stories, and documentation satisfy the listed completion criteria.
 
 `@chronolanejs/react` is configured for publication as a public package in the
 `@chronolanejs` npm organization. `dev` is the default development branch and
-accepts direct updates. `main` is the protected release branch. Promote a
-tested development state with a pull request from `dev` to `main` and merge it
-with a merge commit so both branches retain shared ancestry.
+accepts direct updates. `main` is the protected release branch. Promote a tested development state with a pull request from `dev` to
+`main` and merge it fast-forward only when possible, else with a merge commit
+(never squash), so both branches retain shared ancestry. Release pull requests
+must come from `dev`; the `Release` workflow fails any other source.
 
-Every pull request is validated by the complete CI matrix, and `main` requires
-every CI job to pass on the current branch tip before it can be merged. Each
-merge to `main` triggers a second validation of the exact merge commit and a
-GitHub Pages deployment. When pushes overlap, Pages cancels the superseded run
+Every pull request into `dev` or `main` is validated by the complete CI matrix,
+and `main` requires every CI job to pass on the current branch tip before it
+can be merged. Each merge to `main` triggers a second validation of the exact
+merge commit in the Release workflow and a GitHub Pages deployment. When pushes overlap, Pages cancels the superseded run
 so the published site converges on the latest `main` commit. The gated Release
 workflow runs from the same push, but publishes to npm only when releases are
 enabled and semantic-release finds a release-bearing Conventional Commit.
