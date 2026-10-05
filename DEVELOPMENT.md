@@ -272,8 +272,8 @@ so the published site converges on the latest `main` commit. The gated Release
 workflow runs from the same push, but publishes to npm only when releases are
 enabled and semantic-release finds a release-bearing Conventional Commit.
 
-Semantic-release derives the next version and GitHub release notes from every
-commit since the previous `v<version>` tag. The promotion pull request title is
+Semantic-release derives the next version from every commit since the
+previous `v<version>` tag. The promotion pull request title is
 used as its merge commit title and must use Conventional Commit syntax:
 
 - `fix:` publishes a patch;
@@ -300,21 +300,26 @@ major release with migration work deferred to a follow-up commit.
 After a promotion is merged, the Release workflow validates the exact `main`
 commit before semantic-release selects the version, temporarily updates the
 package metadata in the runner, publishes the package under npm's `latest`
-distribution tag, creates the `v<version>` tag, and creates the GitHub release.
-Git tags and the npm registry are the canonical version history;
-semantic-release does not commit generated version changes back to the
-repository.
+distribution tag, and pushes the `v<version>` tag to the Forgejo repository.
+It creates no GitHub or Forgejo release; the curated `CHANGELOG.md` entry is
+the release note. Git tags and the npm registry are the canonical version
+history; semantic-release does not commit generated version changes back to
+the repository, because `main` is protected against direct pushes.
 
 The release bootstrap is complete. `0.1.0-rc.0` was published manually under
 the `next` tag with a matching GitHub prerelease, the trusted publisher was
 registered, and `NPM_RELEASES_ENABLED=true` enabled automatic releases. The
 first release-bearing promotion contained breaking commits, so
 semantic-release correctly selected `1.0.0`; subsequent qualifying promotions
-continue from the published Git tags.
+continue from the published Git tags. The workflow later moved from GitHub to
+Forgejo Actions, which has no npm OIDC identity, so it now publishes with an
+npm access token instead of trusted publishing.
 
 `npm run release:verify` checks that the workflow stays restricted to enabled
-`main` releases, retains OIDC permission, and runs every validation command
-before semantic-release. The workflow uses the default fail-closed step
+`main` releases, pushes tags to Forgejo, authenticates with the `NPM_TOKEN`
+secret without OIDC or provenance, excludes the `@semantic-release/github`
+and `@semantic-release/git` plugins, and runs every validation command before
+semantic-release. The workflow uses the default fail-closed step
 behavior, so any failed validation prevents the publication step.
 
 ## Dependency maintenance
@@ -332,9 +337,8 @@ updates are enabled and grouped separately from scheduled version updates. Do
 not merge an automated update with failing checks or unresolved compatibility
 questions.
 
-Do not add an npm access token to the repository or workflow. Semantic-release
-publishes through npm trusted publishing with the workflow's short-lived OIDC
-identity.
+Never commit an npm access token. Semantic-release reads it from the
+`NPM_TOKEN` Forgejo Actions secret.
 
 ### Security releases
 
@@ -348,16 +352,22 @@ npm release with publication of the advisory, then merge `main` back into
 branches, pull requests, workflow logs, or issues before the coordinated
 disclosure.
 
-The npm trusted publisher must match these values exactly:
+### Release workflow settings
 
-- GitHub organization or user: `MaximilianWalker`
-- repository: `ChronoLaneJS`
-- workflow: `publish.yml`
-- environment: none
-- allowed action: `npm publish`
+`publish.yml` runs on Forgejo Actions (git.diogocrava.dev), which is the
+canonical repository; GitHub is a read-only mirror. It needs these repository
+settings on Forgejo:
 
-The workflow runs on a GitHub-hosted runner with narrowly scoped OIDC
-permission, pinned actions, and a pinned npm version that supports trusted
-publishing. `package.json` owns the public access and registry settings so
-local package metadata and CI cannot disagree. Trusted publishing generates
-provenance for the public package automatically.
+- variable `NPM_RELEASES_ENABLED` set to `true`;
+- secret `NPM_TOKEN`: an npm granular access token with read and write access
+  to `@chronolanejs/react` that can publish without an interactive
+  two-factor prompt;
+- optional secret `RELEASE_TOKEN`: a Forgejo token with repository write
+  access, used only if the automatic workflow token cannot push the release
+  tag. Without it the workflow uses the automatic token.
+
+Forgejo has no GitHub OIDC, so npm trusted publishing and provenance are not
+available. `release.config.mjs` sets `repositoryUrl` to the Forgejo
+repository so tags never go to the GitHub mirror. The workflow uses pinned
+actions and a pinned npm version. `package.json` owns the public access and
+registry settings so local package metadata and CI cannot disagree.

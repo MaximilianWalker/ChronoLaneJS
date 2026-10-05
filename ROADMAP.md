@@ -51,8 +51,9 @@ Last reviewed: 2026-08-25
   - Chrome and Edge 111+, Firefox 114+, and Safari and iOS Safari 16.4+ are
     supported without polyfills; older and incomplete-Intl runtimes are not.
 - [x] **[P1][REL-05] Establish versioning and release notes.**
-  - Semantic-release derives versions, tags, and GitHub release notes from
-    Conventional Commit messages promoted from `dev` to `main`.
+  - Semantic-release derives versions and tags from Conventional Commit
+    messages promoted from `dev` to `main`; curated notes live in
+    `CHANGELOG.md`.
   - Fixes and performance changes publish patches, features publish minors,
     and breaking changes publish majors.
   - The bootstrap release candidate uses npm's `next` tag; automatic stable

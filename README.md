@@ -43,8 +43,8 @@ selection, movement, resizing, and accessible defaults while keeping state
 management and persistence outside the component.
 
 > [!NOTE]
-> `@chronolanejs/react` is published on npm through a provenance-enabled trusted
-> publishing workflow. Remaining follow-up work is tracked in the
+> `@chronolanejs/react` is published on npm by an automated, gated release
+> workflow. Remaining follow-up work is tracked in the
 > [roadmap](./ROADMAP.md).
 
 ## Why ChronoLaneJS?
