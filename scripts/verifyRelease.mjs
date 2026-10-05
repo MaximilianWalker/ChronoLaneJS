@@ -13,6 +13,21 @@ const analyzer = config.plugins.find(
 assert.ok(analyzer, "The semantic-release commit analyzer must be configured");
 assert.deepEqual(config.branches, ["main"], "Only main may publish releases");
 assert.equal(config.tagFormat, "v${version}", "Release tags must use v<version>");
+assert.equal(
+    config.repositoryUrl,
+    "https://git.diogocrava.dev/MaximilianWalker/ChronoLaneJS.git",
+    "Release tags must be pushed to the canonical Forgejo repository"
+);
+
+const pluginNames = config.plugins.map(plugin => (Array.isArray(plugin) ? plugin[0] : plugin));
+
+assert.ok(pluginNames.includes("@semantic-release/npm"), "semantic-release must publish to npm");
+for (const forbiddenPlugin of ["@semantic-release/github", "@semantic-release/git"]) {
+    assert.ok(
+        !pluginNames.includes(forbiddenPlugin),
+        `${forbiddenPlugin} cannot run on Forgejo or would commit to the protected main branch`
+    );
+}
 
 const cases = [
     ["fix: correct behavior", "patch"],
@@ -52,10 +67,20 @@ assert.match(
     /if: vars\.NPM_RELEASES_ENABLED == 'true' && github\.ref == 'refs\/heads\/main'/,
     "Publication must require the explicit release variable on main"
 );
+assert.doesNotMatch(
+    releaseWorkflow,
+    /id-token:/,
+    "Forgejo Actions has no npm OIDC identity; the workflow must not request one"
+);
+assert.doesNotMatch(
+    releaseWorkflow,
+    /provenance/i,
+    "npm provenance requires GitHub OIDC and is unavailable on Forgejo"
+);
 assert.match(
     releaseWorkflow,
-    /id-token: write/,
-    "Trusted npm publishing requires the workflow's OIDC permission"
+    /NPM_TOKEN: \$\{\{ secrets\.NPM_TOKEN \}\}/,
+    "semantic-release must authenticate to npm with the NPM_TOKEN secret"
 );
 assert.ok(publishIndex >= 0, "The release workflow must invoke semantic-release");
 assert.doesNotMatch(
