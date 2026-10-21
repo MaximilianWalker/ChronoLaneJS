@@ -93,6 +93,10 @@ Graph URL, server-rendered content, and exact sitemap coverage. It also rejects
 an unexpected `robots.txt`; the site uses canonical metadata and a complete
 sitemap at the custom-domain root.
 
+Storybook runs story files sequentially per browser in CI to keep interaction
+checks reliable on the shared runner. Both Chromium and Firefox still run the
+complete suite; local runs retain parallel execution.
+
 The public site is hosted on GitHub Pages at `https://chronolanejs.diogocrava.dev/`.
 `siteMetadata.basePath` is `/`; canonical URLs, social images and navigation
 must use that origin. GitHub's Pages setting owns the custom domain (workflow

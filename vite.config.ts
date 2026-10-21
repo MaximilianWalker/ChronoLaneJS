@@ -55,6 +55,7 @@ export default defineConfig({
             })],
             test: {
                 name: "storybook",
+                fileParallelism: process.env.CI !== "true",
                 browser: {
                     enabled: true,
                     headless: true,
