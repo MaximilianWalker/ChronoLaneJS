@@ -149,7 +149,7 @@ for (const url of sitemapUrls) {
 assert.equal(
     existsSync(resolve(outputRoot, "robots.txt")),
     false,
-    "Do not publish a project-path robots.txt; it cannot control the github.io host."
+    "The public site uses canonical metadata and sitemap.xml without a separate robots.txt."
 );
 
 console.log(`Verified search metadata and sitemap coverage for ${expectedUrls.length} pages.`);

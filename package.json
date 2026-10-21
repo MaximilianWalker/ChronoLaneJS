@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/MaximilianWalker/ChronoLaneJS/issues"
   },
-  "homepage": "https://maximilianwalker.github.io/ChronoLaneJS/",
+  "homepage": "https://chronolanejs.diogocrava.dev/",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

@@ -14,14 +14,13 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/MaximilianWalker/ChronoLaneJS/actions/workflows/ci.yml"><img src="https://github.com/MaximilianWalker/ChronoLaneJS/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status" /></a>
-  <a href="https://maximilianwalker.github.io/ChronoLaneJS/storybook/"><img src="https://img.shields.io/badge/Storybook-live-ff4785?logo=storybook&logoColor=white" alt="Live Storybook" /></a>
+  <a href="https://chronolanejs.diogocrava.dev/storybook/"><img src="https://img.shields.io/badge/Storybook-live-ff4785?logo=storybook&logoColor=white" alt="Live Storybook" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/github/license/MaximilianWalker/ChronoLaneJS" alt="MIT license" /></a>
   <img src="https://img.shields.io/badge/React-18%20%7C%2019-149eca?logo=react&logoColor=white" alt="React 18 and 19" />
 </p>
 
 <p align="center">
-  <a href="https://maximilianwalker.github.io/ChronoLaneJS/">Live demo</a>
+  <a href="https://chronolanejs.diogocrava.dev/">Live demo</a>
   &middot;
   <a href="#quick-start">Quick start</a>
   &middot;
@@ -64,9 +63,9 @@ management and persistence outside the component.
 
 ## Interactive documentation
 
-The [project website](https://maximilianwalker.github.io/ChronoLaneJS/) includes
+The [project website](https://chronolanejs.diogocrava.dev/) includes
 a compact playground with every built-in view and resource-column mode. The exhaustive
-[Storybook](https://maximilianwalker.github.io/ChronoLaneJS/storybook/) covers
+[Storybook](https://chronolanejs.diogocrava.dev/storybook/) covers
 every public customization point, including:
 
 - event overlap, overnight events, and multi-day clipping;

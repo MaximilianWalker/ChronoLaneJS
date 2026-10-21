@@ -90,19 +90,42 @@ allowlist so implementation helpers cannot appear silently.
 `npm run site:build` runs `site:verify` after prerendering. The verifier requires
 one unique canonical URL per public page, matching title, description, Open
 Graph URL, server-rendered content, and exact sitemap coverage. It also rejects
-a project-path `robots.txt`: GitHub Pages serves this project below
-`github.io/ChronoLaneJS/`, while robots rules only apply from the host root.
+an unexpected `robots.txt`; the site uses canonical metadata and a complete
+sitemap at the custom-domain root.
+
+Storybook runs story files sequentially per browser in CI to keep interaction
+checks reliable on the shared runner. Both Chromium and Firefox still run the
+complete suite; local runs retain parallel execution.
+
+The public site is hosted on GitHub Pages at `https://chronolanejs.diogocrava.dev/`.
+`siteMetadata.basePath` is `/`; canonical URLs, social images and navigation
+must use that origin. GitHub's Pages setting owns the custom domain (workflow
+publishing does not require a `CNAME` file). Namecheap has a single
+`chronolanejs` CNAME to `maximilianwalker.github.io.`. Never route it through
+the homelab's public ingress.
+
+Only the Website workflow is enabled on GitHub, for building and deploying
+Pages. Tests, release checks and npm publishing run on Forgejo; their GitHub
+workflows stay disabled. The Website jobs check `github.server_url` so Forgejo
+does not attempt GitHub's Pages/OIDC deployment. Changes still flow through
+Forgejo pull requests into `dev`, then a `dev` to `main` site release; the
+existing sync fast-forwards the GitHub copy. Do not push source changes to
+GitHub or remove Forgejo's protection to publish the site.
+
+The earlier Search Console acceptance below applies to the former github.io
+URL. The owner must add and verify the new URL-prefix property and submit its
+sitemap; deployment alone does not establish Google indexing.
 
 Google Search Console is an owner-operated service and must be checked after
 the site deploys. Use this exact release procedure:
 
 1. Select or create the URL-prefix property
-   `https://maximilianwalker.github.io/ChronoLaneJS/`, including the protocol,
-   repository path, and trailing slash.
+   `https://chronolanejs.diogocrava.dev/`, including the protocol and trailing
+   slash.
 2. Confirm ownership remains verified. Keep any Google-provided verification
    file or meta value exactly as issued; do not record account data or tokens in
    this guide.
-3. Submit `https://maximilianwalker.github.io/ChronoLaneJS/sitemap.xml` in the
+3. Submit `https://chronolanejs.diogocrava.dev/sitemap.xml` in the
    Sitemaps report and resolve any fetch or parsing error.
 4. Inspect the homepage, `/docs/`, `/docs/getting-started/`, `/docs/api/`, and
    `/docs/accessibility/`. Test the live URL and confirm that Google sees the

@@ -4,7 +4,7 @@ ChronoLaneJS is an open-source React and TypeScript calendar and scheduler.
 Use these guides to integrate it, understand its public contracts, and
 customize calendar behavior without depending on implementation details. The
 same canonical Markdown is available on GitHub and on the
-[documentation site](https://maximilianwalker.github.io/ChronoLaneJS/docs/).
+[documentation site](https://chronolanejs.diogocrava.dev/docs/).
 
 ## Start building
 
@@ -47,4 +47,4 @@ published version.
 - [About ChronoLaneJS](../README.md)
 - [Roadmap](../ROADMAP.md)
 - [Security](../SECURITY.md)
-- [Storybook](https://maximilianwalker.github.io/ChronoLaneJS/storybook/)
+- [Storybook](https://chronolanejs.diogocrava.dev/storybook/)
