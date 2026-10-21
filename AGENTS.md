@@ -70,3 +70,11 @@ project-specific constraints are defined here.
 - Do not repeat a containing feature-folder name in private files or symbols.
 - Apply the domain prefix at the boundary that exports a symbol outside its
   feature folder.
+
+## Public site
+
+- The owner chose GitHub Pages for `chronolanejs.diogocrava.dev`; keep its
+  Website build/deployment workflow enabled only on GitHub. CI, release gates
+  and npm publication remain on Forgejo. Other GitHub workflows stay disabled.
+- Site changes use the normal Forgejo `dev` and `dev` to `main` release path;
+  GitHub receives source only through the existing fast-forward sync.
